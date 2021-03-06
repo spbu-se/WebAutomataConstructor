@@ -1,16 +1,25 @@
 import React from 'react';
 import "./App.css"
 import Graph from "react-graph-vis";
-import {deselectNodeEventArgs, doubleClickEventArgs, graph, node, selectNodeEventArgs} from "react-graph-vis-types";
+import {
+    controlNodeGraggingEventArgs,
+    deselectNodeEventArgs,
+    doubleClickEventArgs,
+    graph,
+    node,
+    selectNodeEventArgs
+} from "react-graph-vis-types";
 import cloneDeep from "lodash/cloneDeep";
 import NodeControl from "./Components/NodeControl/NodeControl";
+import SettingsControl from "./Components/SettingsControl/SettingsControl";
 
 interface appProps {
 }
 
 interface appState {
     elements: graph,
-    selectedNode: node | null
+    selectedNode: node | null,
+    inEdgeMode: boolean
 }
 
 const initialElements: graph = {
@@ -39,9 +48,11 @@ class App extends React.Component<appProps, appState> {
         this.state = {
             elements: initialElements,
             selectedNode: null,
+            inEdgeMode: false
         };
     }
 
+    network: any;
     lastNodeId = initialElements.nodes.length;
 
     getNodeById = (id: number): node | undefined => {
@@ -66,8 +77,7 @@ class App extends React.Component<appProps, appState> {
 
         const elements = cloneDeep(this.state.elements);
 
-        elements.nodes.push({id: ++this.lastNodeId, label: "new", x: x, y: y});
-        elements.edges.push({from: 1, to: this.lastNodeId, label: "new"});
+        elements.nodes.push({id: ++this.lastNodeId, label: "new"});
 
         this.setState({elements: elements});
     }
@@ -105,14 +115,38 @@ class App extends React.Component<appProps, appState> {
         this.setState({elements: elements});
     }
 
+    addEdge = (from: number, to: number): void => {
+        const elements = cloneDeep(this.state.elements);
 
+        elements.edges.push({from: from, to: to});
+
+        this.setState({elements: elements});
+    }
+
+    enterEdgeMode = (): void => {
+        this.network.addEdgeMode();
+        this.setState({inEdgeMode: true});
+    }
+
+    leaveEdgeMode = (): void => {
+        this.network.disableEditMode();
+        this.setState({inEdgeMode: false});
+    }
+
+    onEdgeDragEnd = (args: controlNodeGraggingEventArgs): void => {
+        if (args.controlEdge.to !== undefined) {
+            this.addEdge(args.controlEdge.from, args.controlEdge.to);
+            this.leaveEdgeMode();
+        }
+    }
 
     options = {};
 
     events = {
         doubleClick: this.createNode,
         selectNode: this.selectNode,
-        deselectNode: this.deselectNode
+        deselectNode: this.deselectNode,
+        controlNodeDragEnd: this.onEdgeDragEnd
     };
 
     render() {
@@ -120,6 +154,7 @@ class App extends React.Component<appProps, appState> {
             <div className="app">
                 <div className="field__container">
                     <Graph
+                        getNetwork={(network: any) => this.network = network}
                         graph={this.state.elements}
                         options={this.options}
                         events={this.events}
@@ -131,6 +166,11 @@ class App extends React.Component<appProps, appState> {
                         node={this.state.selectedNode}
                         changeNodeLabel={this.changeNodeLabel}
                         deleteNode={this.deleteNode}
+                    />
+                    <SettingsControl
+                        enterEdgeMode={this.enterEdgeMode}
+                        leaveEdgeMode={this.leaveEdgeMode}
+                        inEdgeMode={this.state.inEdgeMode}
                     />
                 </div>
 

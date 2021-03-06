@@ -60,4 +60,24 @@ declare module "react-graph-vis-types" {
         }
     };
     export type deselectEdgeEventArgs = deselectNodeEventArgs;
+
+    export type controlNodeGraggingEventArgs = {
+        nodes: number[],
+        edges: string[],
+        event: object,
+        pointer: {
+            DOM: {
+                x: number,
+                y: number
+            },
+            canvas: {
+                x: number,
+                y: number
+            }
+        },
+        controlEdge: {
+            from: number,
+            to: number | undefined
+        }
+    }
 }
