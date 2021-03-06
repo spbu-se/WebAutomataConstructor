@@ -1,0 +1,19 @@
+.app__right-menu {
+    position: fixed;
+    height: 100%;
+    width: 400px;
+    right: 0;
+
+    padding: 16px;
+
+    box-shadow: -4px 0px 8px 2px rgba(182,184,195,0.75);
+    background-color: white;
+}
+
+.field__container {
+    position: fixed;
+    width: 80%;
+    height: 100%;
+
+    background-color: #e8eaf6;
+}

@@ -1,9 +1,138 @@
 import React from 'react';
+import "./App.css"
+import Graph from "react-graph-vis";
+import {deselectNodeEventArgs, doubleClickEventArgs, graph, node, selectNodeEventArgs} from "react-graph-vis-types";
+import cloneDeep from "lodash/cloneDeep";
+import NodeControl from "./Components/NodeControl/NodeControl";
 
-class App extends React.Component {
+interface appProps {
+}
+
+interface appState {
+    elements: graph,
+    selectedNode: node | null
+}
+
+const initialElements: graph = {
+    nodes: [
+        {id: 1, label: "label 1"},
+        {id: 2, label: "label 2"},
+        {id: 3, label: "label 3"},
+        {id: 4, label: "label 4"},
+    ],
+    edges: [
+        {from: 1, to: 2, label: "0"},
+        {from: 2, to: 1, label: "0"},
+        {from: 3, to: 4, label: "0"},
+        {from: 4, to: 4, label: "0"},
+        {from: 1, to: 3, label: "1"},
+        {from: 2, to: 4, label: "1"},
+        {from: 3, to: 2, label: "1"},
+        {from: 4, to: 2, label: "kek"},
+    ]
+}
+
+class App extends React.Component<appProps, appState> {
+    constructor(props: appProps) {
+        super(props);
+
+        this.state = {
+            elements: initialElements,
+            selectedNode: null,
+        };
+    }
+
+    lastNodeId = initialElements.nodes.length;
+
+    getNodeById = (id: number): node | undefined => {
+        return this.state.elements.nodes.find(node => node.id === id);
+    }
+
+    changeNodeLabel = (id: number, label: string): void => {
+        const elements = cloneDeep(this.state.elements);
+
+        for(let i = 0; i < elements.nodes.length; i++) {
+            if (elements.nodes[i].id === id) {
+                elements.nodes[i].label = label;
+            }
+        }
+
+        this.setState({elements: elements});
+    }
+
+    createNode = (args: doubleClickEventArgs): void => {
+        const x = args.pointer.canvas.x;
+        const y = args.pointer.canvas.y;
+
+        const elements = cloneDeep(this.state.elements);
+
+        elements.nodes.push({id: ++this.lastNodeId, label: "new", x: x, y: y});
+        elements.edges.push({from: 1, to: this.lastNodeId, label: "new"});
+
+        this.setState({elements: elements});
+    }
+
+    selectNode = (args: selectNodeEventArgs): void => {
+        if (args.nodes.length > 0) {
+            this.setState({selectedNode: this.getNodeById(args.nodes[0])!});
+        }
+    }
+
+    deselectNode = (args: deselectNodeEventArgs): void => {
+        if (args.nodes.length === 0) {
+            this.setState({selectedNode: null});
+        }
+    }
+
+    deleteNode = (id: number): void => {
+        const elements = cloneDeep(this.state.elements);
+
+        for (let i = 0; i < elements.nodes.length; i++) {
+            if (elements.nodes[i].id === id) {
+                elements.nodes.splice(i, 1);
+                break;
+            }
+        }
+
+        for (let i = 0; i < elements.edges.length; i++) {
+            if (elements.edges[i].from === id ||
+                elements.edges[i].to === id) {
+                elements.edges.splice(i, 1);
+                i--;
+            }
+        }
+
+        this.setState({elements: elements});
+    }
+
+
+
+    options = {};
+
+    events = {
+        doubleClick: this.createNode,
+        selectNode: this.selectNode,
+        deselectNode: this.deselectNode
+    };
+
     render() {
         return (
-            <div className="App">
+            <div className="app">
+                <div className="field__container">
+                    <Graph
+                        graph={this.state.elements}
+                        options={this.options}
+                        events={this.events}
+                    />
+                </div>
+
+                <div className="app__right-menu">
+                    <NodeControl
+                        node={this.state.selectedNode}
+                        changeNodeLabel={this.changeNodeLabel}
+                        deleteNode={this.deleteNode}
+                    />
+                </div>
 
             </div>
         )
