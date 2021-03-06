@@ -2,7 +2,7 @@ import React from 'react';
 import "./App.css"
 import Graph from "react-graph-vis";
 import {
-    controlNodeGraggingEventArgs,
+    controlNodeDraggingEventArgs,
     deselectNodeEventArgs,
     doubleClickEventArgs,
     graph,
@@ -133,7 +133,7 @@ class App extends React.Component<appProps, appState> {
         this.setState({inEdgeMode: false});
     }
 
-    onEdgeDragEnd = (args: controlNodeGraggingEventArgs): void => {
+    onEdgeDragEnd = (args: controlNodeDraggingEventArgs): void => {
         if (args.controlEdge.to !== undefined) {
             this.addEdge(args.controlEdge.from, args.controlEdge.to);
             this.leaveEdgeMode();

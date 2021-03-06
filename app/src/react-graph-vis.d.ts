@@ -61,7 +61,7 @@ declare module "react-graph-vis-types" {
     };
     export type deselectEdgeEventArgs = deselectNodeEventArgs;
 
-    export type controlNodeGraggingEventArgs = {
+    export type controlNodeDraggingEventArgs = {
         nodes: number[],
         edges: string[],
         event: object,
