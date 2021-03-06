@@ -2,16 +2,17 @@ import React from 'react';
 import "./App.css"
 import Graph from "react-graph-vis";
 import {
-    controlNodeDraggingEventArgs,
+    controlNodeDraggingEventArgs, deselectEdgeEventArgs,
     deselectNodeEventArgs,
-    doubleClickEventArgs,
+    doubleClickEventArgs, edge,
     graph,
-    node,
+    node, selectEdgeEventArgs,
     selectNodeEventArgs
 } from "react-graph-vis-types";
 import cloneDeep from "lodash/cloneDeep";
 import NodeControl from "./Components/NodeControl/NodeControl";
 import SettingsControl from "./Components/SettingsControl/SettingsControl";
+import EdgeControl from "./Components/EdgeControl/EdgeControl";
 
 interface appProps {
 }
@@ -19,6 +20,7 @@ interface appProps {
 interface appState {
     elements: graph,
     selectedNode: node | null,
+    selectedEdge: edge | null,
     inEdgeMode: boolean
 }
 
@@ -48,6 +50,7 @@ class App extends React.Component<appProps, appState> {
         this.state = {
             elements: initialElements,
             selectedNode: null,
+            selectedEdge: null,
             inEdgeMode: false
         };
     }
@@ -59,10 +62,14 @@ class App extends React.Component<appProps, appState> {
         return this.state.elements.nodes.find(node => node.id === id);
     }
 
+    getEdgeById = (id: string): edge | undefined => {
+        return this.state.elements.edges.find(edge => edge.id === id);
+    }
+
     changeNodeLabel = (id: number, label: string): void => {
         const elements = cloneDeep(this.state.elements);
 
-        for(let i = 0; i < elements.nodes.length; i++) {
+        for (let i = 0; i < elements.nodes.length; i++) {
             if (elements.nodes[i].id === id) {
                 elements.nodes[i].label = label;
             }
@@ -112,7 +119,7 @@ class App extends React.Component<appProps, appState> {
             }
         }
 
-        this.setState({elements: elements});
+        this.setState({elements: elements, selectedNode: null});
     }
 
     addEdge = (from: number, to: number): void => {
@@ -140,12 +147,67 @@ class App extends React.Component<appProps, appState> {
         }
     }
 
-    options = {};
+    selectEdge = (args: selectEdgeEventArgs): void => {
+        if (args.edges.length === 1) {
+            this.setState({selectedEdge: this.getEdgeById(args.edges[0])!}, () => console.log(this.state.selectedEdge));
+        }
+    }
+
+    deselectEdge = (args: deselectEdgeEventArgs): void => {
+        if (args.edges.length === 0) {
+            this.setState({selectedEdge: null});
+        }
+    }
+
+    changeEdgeLabel = (id: string, label: string): void => {
+        const elements = cloneDeep(this.state.elements);
+
+        for (let i = 0; i < elements.edges.length; i++) {
+            if (elements.edges[i].id === id) {
+                elements.edges[i].label = label;
+            }
+        }
+
+        this.setState({elements: elements});
+    }
+
+    deleteEdge = (id: string): void => {
+        const elements = cloneDeep(this.state.elements);
+
+        for (let i = 0; i < elements.edges.length; i++) {
+            if (elements.edges[i].id === id) {
+                elements.edges.splice(i, 1);
+                break;
+            }
+        }
+
+        this.setState({elements: elements, selectedEdge: null});
+    }
+
+    options = {
+        edges: {
+            smooth: {
+                enabled: true,
+                type: "discrete",
+                roundness: 0.5
+            },
+            length: 200
+        },
+        nodes: {
+            shape: "circle",
+            color: {
+                border: "black",
+                background: "white"
+            }
+        }
+    };
 
     events = {
         doubleClick: this.createNode,
         selectNode: this.selectNode,
+        selectEdge: this.selectEdge,
         deselectNode: this.deselectNode,
+        deselectEdge: this.deselectEdge,
         controlNodeDragEnd: this.onEdgeDragEnd
     };
 
@@ -171,6 +233,11 @@ class App extends React.Component<appProps, appState> {
                         enterEdgeMode={this.enterEdgeMode}
                         leaveEdgeMode={this.leaveEdgeMode}
                         inEdgeMode={this.state.inEdgeMode}
+                    />
+                    <EdgeControl
+                        edge={this.state.selectedEdge}
+                        changeEdgeLabel={this.changeEdgeLabel}
+                        deleteEdge={this.deleteEdge}
                     />
                 </div>
 
