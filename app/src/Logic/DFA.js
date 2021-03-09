@@ -20,7 +20,7 @@ var DFA = /** @class */ (function () {
             return i;
         };
         this.isAdmit = function () {
-            var current = _this.startStatemetn; // START STATEMENT
+            var current = _this.startStatement;
             var oldCurrent = current;
             var l = 0;
             var i = 0;
@@ -29,7 +29,7 @@ var DFA = /** @class */ (function () {
             while (l < _this.input.length) {
                 j = _this.firstMatchValue(_this.input[l]);
                 if (_this.matrix[i][j] === exports.eof) {
-                    console.log('FUBAR Aoutomata was stoped in ', oldCurrent, 'because string has only EOF values (noway from this statement)', ' in: ', i, ' ', j);
+                    console.log('FUBAR Aoutomata was stoped in ', oldCurrent, 'because string in matrix has only EOF values (noway from this statement)', ' in: ', i, ' ', j);
                     return oldCurrent.isAdmit;
                 }
                 oldCurrent = current;
@@ -45,16 +45,16 @@ var DFA = /** @class */ (function () {
         this.input = input;
         this.matrix = matrix;
         this.alphabet = alphabet;
-        this.startStatemetn = statements[0];
+        this.startStatement = statements[0];
     }
     return DFA;
 }());
 exports.DFA = DFA;
-var q0 = { id: 0, isAdmit: false };
+var q0 = { id: 0, isAdmit: true };
 var q1 = { id: 1, isAdmit: false };
-var q2 = { id: 2, isAdmit: true };
 var matrix = [
-    [exports.eof]
+    [q1, q1],
+    [q0, q0]
 ];
-var dfa = new DFA([q0, q1, q2], matrix, [0, 1, 1, 1, 1], [0]);
+var dfa = new DFA([q0, q1], matrix, [0, 1, 1, 1, 1], [0, 1]);
 console.log(dfa.isAdmit());

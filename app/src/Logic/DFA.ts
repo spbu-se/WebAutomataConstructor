@@ -22,7 +22,7 @@ export class DFA {
         this.startStatement = statements[0]
     }
 
-    public firstMatchValue = (current: elementOfAlphabet) : number => { //hash?
+    private firstMatchValue = (current: elementOfAlphabet) : number => { //hash?
         let i = 0;
         while (current !== this.alphabet[i]) {
             i++;
@@ -30,7 +30,7 @@ export class DFA {
         return i
     }
 
-    public firstMatchStatement = (current: statement) : number => { //hash?
+    private firstMatchStatement = (current: statement) : number => { //hash?
         let i = 0;
         while (current !== this.statements[i]) {
             i++;
@@ -48,7 +48,7 @@ export class DFA {
         while (l < this.input.length) {
             j = this.firstMatchValue(this.input[l])
             if (this.matrix[i][j] === eof) {
-                console.log('FUBAR Aoutomata was stoped in ', oldCurrent, 'because string has only EOF values (noway from this statement)', ' in: ', i, ' ', j)
+                console.log('FUBAR Aoutomata was stoped in ', oldCurrent, 'because string in matrix has only EOF values (noway from this statement)', ' in: ', i, ' ', j)
                 return oldCurrent.isAdmit
             }
             oldCurrent = current
@@ -60,19 +60,23 @@ export class DFA {
         console.log('Aoutomata was stoped in ', current, ' ~ ', i, ' ', j)
         return current.isAdmit
     }
+
 }
 
 
-/*
 
-let q0: statement = {id: 0, isAdmit: false}
+
+
+
+
+let q0: statement = {id: 0, isAdmit: true}
 let q1: statement = {id: 1, isAdmit: false}
-let q2: statement = {id: 2, isAdmit: true}
+
 let matrix: statement[][] = [
-    [eof]
+    [q1,q1],
+    [q0,q0]
 ]
-let dfa = new DFA([q0, q1, q2] ,matrix, [0,  1, 1,1,1], [0])
+let dfa = new DFA([q0, q1] ,matrix, [0,  1, 1,1,1], [0,1])
 
 console.log(dfa.isAdmit())
 
-*/

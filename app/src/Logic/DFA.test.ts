@@ -75,3 +75,15 @@ test("{ (q0)<-; A = {0}}: statement without edges", () => {
 
     expect(dfa.isAdmit()).toBe(true)
 })
+
+test("{ (q0)<=>q1; A = {0}}: is input length divided at 2", () => {
+    let q0: statement = {id: 0, isAdmit: true}
+    let q1: statement = {id: 1, isAdmit: false}
+
+    let matrix: statement[][] = [
+        [q1,q1],
+        [q0,q0]
+    ]
+    let dfa = new DFA([q0, q1] ,matrix, [0, 1, 1, 1], [0, 1])
+    expect(dfa.isAdmit()).toBe(true)
+})
