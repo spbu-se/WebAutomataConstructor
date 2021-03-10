@@ -1,5 +1,6 @@
 export interface nodeCore {
     id: number
+    isAdmit: boolean
 }
 
 export interface edgeCore {
