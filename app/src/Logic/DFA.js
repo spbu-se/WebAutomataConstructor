@@ -1,14 +1,9 @@
 "use strict";
 exports.__esModule = true;
 exports.DFA = exports.eof = void 0;
-exports.eof = { isAdmit: false, idLogic: -1 };
+exports.eof = { isAdmit: false, idLogic: -1, id: -1 };
 var DFA = /** @class */ (function () {
-    function DFA(startStatement, graph, input /*statements: statement[], matrix: statement[][], input: elementOfAlphabet[] , alphabet: elementOfAlphabet[]*/) {
-        //this.statements = statements
-        //this.input = input
-        //this.matrix = matrix
-        //this.alphabet = alphabet
-        //this.startStatement = statements[0]
+    function DFA(graph, startStatement, input) {
         var _this = this;
         this.matrix = [];
         this.input = [];
@@ -22,7 +17,7 @@ var DFA = /** @class */ (function () {
         this.getAlphabetFromEdges = function (edges) {
             var alphabetSet = new Set;
             for (var i_1 = 0; i_1 < edges.length; i_1++) {
-                alphabetSet.add(edges[i_1].value);
+                edges[i_1].value.forEach(function (value) { return alphabetSet.add(value); });
             }
             var i = 0;
             alphabetSet.forEach(function (value) {
@@ -37,19 +32,24 @@ var DFA = /** @class */ (function () {
                     _this.matrix[i][j] = exports.eof;
                 }
             }
-            for (var i = 0; i < edges.length; i++) {
+            var _loop_1 = function (i) {
                 var statementNumberFrom = _this.statements.get(edges[i].from).idLogic;
                 var alphabetSymbolNumber = _this.alphabet.get(edges[i].value);
                 var statementNumberTo = _this.statements.get(edges[i].to);
-                _this.matrix[statementNumberFrom][alphabetSymbolNumber] = statementNumberTo;
-                //console.log(this.statements.get(edges[i].from).idLogic, this.alphabet.get(edges[i].value), '<->', edges[i].value, this.statements.get(edges[i].to))
+                edges[i].value.forEach(function (value) { return _this.matrix[statementNumberFrom][_this.alphabet.get(value)] = statementNumberTo; });
+            };
+            for (var i = 0; i < edges.length; i++) {
+                _loop_1(i);
             }
         };
         this.getTransformedInput = function (input) {
             input.forEach(function (value) {
                 _this.input.push({ idLogic: _this.alphabet.get(value), value: value });
-                console.log(value, _this.alphabet.get(value));
+                //console.log(value, this.alphabet.get(value))
             });
+        };
+        this.getCurrentNode = function (current) {
+            return _this.nodes[current.idLogic];
         };
         this.isAdmit = function () {
             var current = _this.statements.get(_this.startStatement.id);
@@ -57,53 +57,53 @@ var DFA = /** @class */ (function () {
             var l = 0;
             var i = current.idLogic;
             var j = -1; //now we see at left column of table of def statements
-            console.log('NOW in', current, 'start statement');
+            if (_this.alphabet.size < 1) {
+                console.log('Alphabet is empty, you should to enter edges');
+                return current.isAdmit;
+            }
+            console.log(_this.getCurrentNode(current), 'NOW in', 'start statement');
             while (l < _this.input.length) {
+                var isMoved = false;
                 j = _this.input[l].idLogic;
                 if (_this.matrix[i][j] === exports.eof) {
-                    console.log('FUBAR Aoutomata was stoped in ', oldCurrent, 'because string in matrix has only EOF values (noway from this statement)', ' in: ', i, ' ', j);
+                    console.log(_this.getCurrentNode(oldCurrent), 'FUBAR Aoutomata was stoped in ', oldCurrent, 'because string in matrix has only EOF values (noway from this statement)', ' in: ', i, ' ', j);
                     return oldCurrent.isAdmit;
                 }
                 oldCurrent = current;
                 current = _this.matrix[i][j];
-                console.log('NOW in', current, ' ~ ', i, ' ', j);
+                console.log(_this.getCurrentNode(current), 'NOW in', ' ~ ', i, ' ', j);
                 i = _this.matrix[i][j].idLogic;
                 l++;
             }
-            console.log('Aoutomata was stoped in ', current, ' ~ ', i, ' ', j);
+            console.log(_this.getCurrentNode(current), 'Aoutomata was stoped in ', current, ' ~ ', i, ' ', j);
             return current.isAdmit;
         };
         var edges = graph.edges.sort(function (a, b) { return a.from - b.from; });
-        //console.log(edges)
+        //console.log('EDGES: ', edges)
         this.getAlphabetFromEdges(edges);
-        //console.log(this.alphabet)
-        this.getStatementsFromNodes(graph.nodes);
-        //console.log(this.statements)
-        this.createMatrix(edges);
-        //console.log(this.matrix)
-        this.startStatement = startStatement;
+        //console.log('ALPHABET: ', this.alphabet)
         this.getTransformedInput(input);
+        this.getStatementsFromNodes(graph.nodes);
+        //console.log('STATEMENTS: ', this.statements)
+        this.createMatrix(edges);
+        //console.log('MATRIX ', this.matrix)
+        this.startStatement = startStatement;
+        this.nodes = graph.nodes;
+        console.log(this.nodes, this.statements);
     }
     return DFA;
 }());
 exports.DFA = DFA;
-var q0 = { id: 0, isAdmit: true, idLogic: 0 };
-var q1 = { id: 1, isAdmit: false, idLogic: 1 };
-var matrix = [
-    [q1, q1],
-    [q0, q0]
-];
-//let dfa = new DFA([q0, q1] ,matrix, [{idLogic: 0, value: '0'},  {idLogic: 1, value: '0'}], [{idLogic: 0, value: '0'}, {idLogic: 1, value: '1'}])
-var dfa = new DFA({ id: 0, isAdmit: true }, {
-    nodes: [
-        { id: 0, isAdmit: true },
-        { id: 44, isAdmit: false },
-        { id: 88, isAdmit: false }
-    ],
+/*
+let dfa = new DFA(
+    {
+        nodes: [
+            {id: 0, isAdmit: true},
+            {id: 44, isAdmit: false},
+        ],
     edges: [
-        { from: 0, to: 44, value: '0' },
-        { from: 44, to: 88, value: '0' },
-        { from: 88, to: 88, value: 'a' }
-    ]
-}, ['0', '0', 'a']);
-dfa.isAdmit();
+
+
+]
+}, {id: 0, isAdmit: true}, ['0', 'a'])
+dfa.isAdmit()*/ 

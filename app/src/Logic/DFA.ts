@@ -8,7 +8,7 @@ export type elementOfAlphabet = {
     idLogic: number
 }
 
-export const eof: statement = { isAdmit: false, idLogic: -1 }
+export const eof: statement = { isAdmit: false, idLogic: -1, id: -1}
 
 export class DFA {
 
@@ -16,6 +16,7 @@ export class DFA {
     private readonly input: elementOfAlphabet[] = []
     private readonly alphabet = new Map()
     private readonly statements = new Map()
+    private readonly nodes: nodeCore[]
     private readonly startStatement
 
     private getStatementsFromNodes = (nodes: nodeCore[]) : void => {
@@ -27,7 +28,7 @@ export class DFA {
     private getAlphabetFromEdges = (edges: edgeCore[]) : void => {
         let alphabetSet: Set<string> = new Set
         for (let i = 0; i < edges.length; i++) {
-            alphabetSet.add(edges[i].value)
+            edges[i].value.forEach(value => alphabetSet.add(value))
         }
         let i = 0
         alphabetSet.forEach(value => {
@@ -45,9 +46,9 @@ export class DFA {
         }
         for (let i = 0; i < edges.length; i++) {
             let statementNumberFrom = this.statements.get(edges[i].from).idLogic
-            let alphabetSymbolNumber = this.alphabet.get(edges[i].value)
+            //let alphabetSymbolNumber = this.alphabet.get(edges[i].value)
             let statementNumberTo = this.statements.get(edges[i].to)
-            this.matrix[statementNumberFrom][alphabetSymbolNumber] = statementNumberTo
+            edges[i].value.forEach(value => this.matrix[statementNumberFrom][this.alphabet.get(value)] = statementNumberTo)
             //console.log(this.statements.get(edges[i].from).idLogic, this.alphabet.get(edges[i].value), '<->', edges[i].value, this.statements.get(edges[i].to))
         }
     }
@@ -55,27 +56,28 @@ export class DFA {
     private getTransformedInput = (input: string[]) : void => {
         input.forEach(value => {
             this.input.push({idLogic: this.alphabet.get(value), value: value})
-            console.log(value, this.alphabet.get(value))
+            //console.log(value, this.alphabet.get(value))
         })
     }
 
-    constructor(startStatement: nodeCore, graph: graphCore, input: string[] /*statements: statement[], matrix: statement[][], input: elementOfAlphabet[] , alphabet: elementOfAlphabet[]*/) {
-        //this.statements = statements
-        //this.input = input
-        //this.matrix = matrix
-        //this.alphabet = alphabet
-        //this.startStatement = statements[0]
-
+    constructor(graph: graphCore, startStatement: nodeCore, input: string[]) {
         let edges = graph.edges.sort((a, b) => a.from - b.from)
-        //console.log(edges)
+        //console.log('EDGES: ', edges)
         this.getAlphabetFromEdges(edges)
-        //console.log(this.alphabet)
-        this.getStatementsFromNodes(graph.nodes)
-        //console.log(this.statements)
-        this.createMatrix(edges)
-        //console.log(this.matrix)
-        this.startStatement = startStatement
+        //console.log('ALPHABET: ', this.alphabet)
         this.getTransformedInput(input)
+        this.getStatementsFromNodes(graph.nodes)
+        //console.log('STATEMENTS: ', this.statements)
+        this.createMatrix(edges)
+        //console.log('MATRIX ', this.matrix)
+        this.startStatement = startStatement
+        this.nodes = graph.nodes
+
+        console.log(this.nodes, this.statements)
+    }
+
+    private getCurrentNode = (current: statement) : nodeCore => {
+        return this.nodes[current.idLogic]
     }
 
     public isAdmit = () : boolean => {
@@ -84,44 +86,26 @@ export class DFA {
         let l = 0
         let i = current.idLogic
         let j = -1 //now we see at left column of table of def statements
-        console.log('NOW in', current, 'start statement')
+        if (this.alphabet.size < 1) {
+            console.log('Alphabet is empty, you should to enter edges')
+            return current.isAdmit
+        }
+        console.log(this.getCurrentNode(current), 'NOW in', 'start statement')
         while (l < this.input.length) {
+            //let isMoved: boolean = false
             j = this.input[l].idLogic
             if (this.matrix[i][j] === eof) {
-                console.log('FUBAR Aoutomata was stoped in ', oldCurrent, 'because string in matrix has only EOF values (noway from this statement)', ' in: ', i, ' ', j)
+                console.log(this.getCurrentNode(oldCurrent), 'FUBAR Aoutomata was stoped in ', oldCurrent, 'because string in matrix has only EOF values (noway from this statement)', ' in: ', i, ' ', j)
                 return oldCurrent.isAdmit
             }
             oldCurrent = current
             current = this.matrix[i][j]
-            console.log('NOW in', current, ' ~ ', i, ' ', j)
+            console.log(this.getCurrentNode(current), 'NOW in',  ' ~ ', i, ' ', j)
             i = this.matrix[i][j].idLogic
             l++
         }
-        console.log('Aoutomata was stoped in ', current, ' ~ ', i, ' ', j)
+        console.log(this.getCurrentNode(current), 'Aoutomata was stoped in ', current, ' ~ ', i, ' ', j)
         return current.isAdmit
     }
 
 }
-/*
-let q0: statement = {id: 0, isAdmit: true, idLogic: 0}
-let q1: statement = {id: 1, isAdmit: false, idLogic: 1}
-
-let matrix: statement[][] = [
-    [q1,q1],
-    [q0,q0]
-]*/
-//let dfa = new DFA([q0, q1] ,matrix, [{idLogic: 0, value: '0'},  {idLogic: 1, value: '0'}], [{idLogic: 0, value: '0'}, {idLogic: 1, value: '1'}])
-let dfa = new DFA( {id: 0, isAdmit: true},
-    {
-        nodes: [
-            {id: 0, isAdmit: true},
-            {id: 44, isAdmit: false},
-            {id: 88, isAdmit: false}
-        ],
-    edges: [
-        {from: 0, to: 44, value: '0'},
-        {from: 44, to: 88, value: '0'},
-        {from: 88, to: 88, value: 'a'}
-]
-}, ['0','0','a'])
-dfa.isAdmit()

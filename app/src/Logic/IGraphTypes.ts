@@ -1,12 +1,12 @@
 export interface nodeCore {
-    id?: number
+    id: number
     isAdmit: boolean
 }
 
 export interface edgeCore {
     from: number
     to: number
-    value: string
+    value: string[]
 }
 
 export interface graphCore {
