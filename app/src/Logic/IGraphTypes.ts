@@ -1,5 +1,5 @@
 export interface nodeCore {
-    id: number
+    id?: number
     isAdmit: boolean
 }
 
@@ -9,7 +9,7 @@ export interface edgeCore {
     value: string
 }
 
-export interface graph {
+export interface graphCore {
     nodes: nodeCore[]
     edges: edgeCore[]
 }
