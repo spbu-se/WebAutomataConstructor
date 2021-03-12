@@ -6,7 +6,7 @@ export interface nodeCore {
 export interface edgeCore {
     from: number
     to: number
-    value: string[]
+    localValue: string[]
 }
 
 export interface graphCore {

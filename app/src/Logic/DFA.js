@@ -15,9 +15,9 @@ var DFA = /** @class */ (function () {
             }
         };
         this.getAlphabetFromEdges = function (edges) {
-            var alphabetSet = new Set;
+            var alphabetSet = new Set();
             for (var i_1 = 0; i_1 < edges.length; i_1++) {
-                edges[i_1].value.forEach(function (value) { return alphabetSet.add(value); });
+                edges[i_1].localValue.forEach(function (value) { return alphabetSet.add(value); });
             }
             var i = 0;
             alphabetSet.forEach(function (value) {
@@ -34,9 +34,9 @@ var DFA = /** @class */ (function () {
             }
             var _loop_1 = function (i) {
                 var statementNumberFrom = _this.statements.get(edges[i].from).idLogic;
-                var alphabetSymbolNumber = _this.alphabet.get(edges[i].value);
+                //let alphabetSymbolNumber = this.alphabet.get(edges[i].value)
                 var statementNumberTo = _this.statements.get(edges[i].to);
-                edges[i].value.forEach(function (value) { return _this.matrix[statementNumberFrom][_this.alphabet.get(value)] = statementNumberTo; });
+                edges[i].localValue.forEach(function (value) { return _this.matrix[statementNumberFrom][_this.alphabet.get(value)] = statementNumberTo; });
             };
             for (var i = 0; i < edges.length; i++) {
                 _loop_1(i);
@@ -51,6 +51,19 @@ var DFA = /** @class */ (function () {
         this.getCurrentNode = function (current) {
             return _this.nodes[current.idLogic];
         };
+        this.isPossibleTransition = function (current, input) {
+            var currentStatement = _this.statements.get(current.id);
+            var transformedInput = _this.alphabet.get(input);
+            //console.log(!(this.matrix[currentStatement.idLogic][transformedInput] === eof || this.matrix[currentStatement.idLogic][transformedInput] === undefined), this.matrix[currentStatement.idLogic][transformedInput])
+            return !(_this.matrix[currentStatement.idLogic][transformedInput] === exports.eof || _this.matrix[currentStatement.idLogic][transformedInput] === undefined);
+        };
+        // Get next node by edge symbol. (Nodes for visualization)
+        this.nextNode = function (current, input) {
+            var currentStatement = _this.statements.get(current.id);
+            var transformedInput = _this.alphabet.get(input);
+            return _this.nodes[_this.matrix[currentStatement.idLogic][transformedInput].idLogic];
+        };
+        // Get information about admitting in result statement
         this.isAdmit = function () {
             var current = _this.statements.get(_this.startStatement.id);
             var oldCurrent = current;
@@ -63,7 +76,7 @@ var DFA = /** @class */ (function () {
             }
             console.log(_this.getCurrentNode(current), 'NOW in', 'start statement');
             while (l < _this.input.length) {
-                var isMoved = false;
+                //let isMoved: boolean = false
                 j = _this.input[l].idLogic;
                 if (_this.matrix[i][j] === exports.eof) {
                     console.log(_this.getCurrentNode(oldCurrent), 'FUBAR Aoutomata was stoped in ', oldCurrent, 'because string in matrix has only EOF values (noway from this statement)', ' in: ', i, ' ', j);
@@ -86,24 +99,32 @@ var DFA = /** @class */ (function () {
         this.getStatementsFromNodes(graph.nodes);
         //console.log('STATEMENTS: ', this.statements)
         this.createMatrix(edges);
-        //console.log('MATRIX ', this.matrix)
+        console.log('MATRIX ', this.matrix);
         this.startStatement = startStatement;
         this.nodes = graph.nodes;
-        console.log(this.nodes, this.statements);
+        //console.log(this.nodes, this.statements)
     }
     return DFA;
 }());
 exports.DFA = DFA;
-/*
-let dfa = new DFA(
-    {
-        nodes: [
-            {id: 0, isAdmit: true},
-            {id: 44, isAdmit: false},
-        ],
+var dfa = new DFA({
+    nodes: [
+        { id: -100, isAdmit: true },
+        { id: 1, isAdmit: false },
+    ],
     edges: [
-
-
-]
-}, {id: 0, isAdmit: true}, ['0', 'a'])
-dfa.isAdmit()*/ 
+        { from: -100, to: 1, localValue: ['z'] },
+        { from: 1, to: -100, localValue: ['z'] }
+    ]
+}, { id: 1, isAdmit: true }, ['z', 'z', 'z', 'z', 'z', 'z', 'z', 'z', 'z', 'z']);
+var input = ['z', 'z', 'z', 'z', 'z', 'z', 'z', 'z', 'z', 'z'];
+var curren = { id: -100, isAdmit: true };
+for (var i = 0; i < input.length; i++) {
+    curren = dfa.nextNode(curren, input[i]);
+    console.log(curren);
+}
+dfa.isPossibleTransition(curren, 'z');
+//console.log(dfa.nextNode({id: 1, isAdmit: true}, 'z'))
+/*console.log(dfa.nextNode( {id: 1, isAdmit: true}, 'z'))
+console.log(dfa.nextNode( {id: -100, isAdmit: false}, 'z'))
+console.log(dfa.nextNode( {id: 1, isAdmit: true}, 'z'))*/ 
