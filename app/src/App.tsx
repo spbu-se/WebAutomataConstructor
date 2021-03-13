@@ -13,6 +13,7 @@ import cloneDeep from "lodash/cloneDeep";
 import NodeControl from "./Components/NodeControl/NodeControl";
 import SettingsControl from "./Components/SettingsControl/SettingsControl";
 import EdgeControl from "./Components/EdgeControl/EdgeControl";
+import {transitionsToLabel} from "./utils";
 
 interface appProps {
 }
@@ -32,14 +33,14 @@ const initialElements: graph = {
         {id: 4, label: "label 4"},
     ],
     edges: [
-        {from: 1, to: 2, label: "0"},
-        {from: 2, to: 1, label: "0"},
-        {from: 3, to: 4, label: "0"},
-        {from: 4, to: 4, label: "0"},
-        {from: 1, to: 3, label: "1"},
-        {from: 2, to: 4, label: "1"},
-        {from: 3, to: 2, label: "1"},
-        {from: 4, to: 2, label: "kek"},
+        {from: 1, to: 2, label: "0", transitions: new Set(["0"])},
+        {from: 2, to: 1, label: "0", transitions: new Set(["0"])},
+        {from: 3, to: 4, label: "0", transitions: new Set(["0"])},
+        {from: 4, to: 4, label: "0", transitions: new Set(["0"])},
+        {from: 1, to: 3, label: "1", transitions: new Set(["1"])},
+        {from: 2, to: 4, label: "1", transitions: new Set(["1"])},
+        {from: 3, to: 2, label: "1", transitions: new Set(["1"])},
+        {from: 4, to: 2, label: "1", transitions: new Set(["1"])},
     ]
 }
 
@@ -125,7 +126,8 @@ class App extends React.Component<appProps, appState> {
     addEdge = (from: number, to: number): void => {
         const elements = cloneDeep(this.state.elements);
 
-        elements.edges.push({from: from, to: to});
+        const edge: edge = {from: from, to: to, label: "", transitions: new Set()};
+        elements.edges.push(edge);
 
         this.setState({elements: elements});
     }
@@ -165,6 +167,19 @@ class App extends React.Component<appProps, appState> {
         for (let i = 0; i < elements.edges.length; i++) {
             if (elements.edges[i].id === id) {
                 elements.edges[i].label = label;
+            }
+        }
+
+        this.setState({elements: elements});
+    }
+
+    changeEdgeTransition = (id: string, transitions: Set<string>): void => {
+        const elements = cloneDeep(this.state.elements);
+
+        for (let i = 0; i < elements.edges.length; i++) {
+            if (elements.edges[i].id === id) {
+                elements.edges[i].transitions = transitions;
+                elements.edges[i].label = transitionsToLabel(transitions);
             }
         }
 
@@ -237,6 +252,7 @@ class App extends React.Component<appProps, appState> {
                     <EdgeControl
                         edge={this.state.selectedEdge}
                         changeEdgeLabel={this.changeEdgeLabel}
+                        changeEdgeTransitions={this.changeEdgeTransition}
                         deleteEdge={this.deleteEdge}
                     />
                 </div>

@@ -12,7 +12,8 @@ declare module "react-graph-vis-types" {
         id?: string,
         from: number,
         to: number,
-        label?: string
+        label?: string,
+        transitions: Set<string>
     }
 
     export type graph = {
