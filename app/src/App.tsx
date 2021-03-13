@@ -27,10 +27,10 @@ interface appState {
 
 const initialElements: graph = {
     nodes: [
-        {id: 1, label: "label 1", isAdmit: false, color: getStateColor(false, false)},
-        {id: 2, label: "label 2", isAdmit: false, color: getStateColor(false, false)},
-        {id: 3, label: "label 3", isAdmit: true, color: getStateColor(true, false)},
-        {id: 4, label: "label 4", isAdmit: true, color: getStateColor(true, false)},
+        {id: 1, label: "label 1", isAdmit: false, isInitial: true, color: getStateColor(false, true)},
+        {id: 2, label: "label 2", isAdmit: false, isInitial: false, color: getStateColor(false, false)},
+        {id: 3, label: "label 3", isAdmit: true, isInitial: false, color: getStateColor(true, false)},
+        {id: 4, label: "label 4", isAdmit: true, isInitial: false, color: getStateColor(true, false)},
     ],
     edges: [
         {from: 1, to: 2, label: "0", transitions: new Set(["0"])},
@@ -85,7 +85,25 @@ class App extends React.Component<appProps, appState> {
         for (let i = 0; i < elements.nodes.length; i++) {
             if (elements.nodes[i].id === id) {
                 elements.nodes[i].isAdmit = isAdmit;
-                elements.nodes[i].color = getStateColor(isAdmit, false);
+                elements.nodes[i].color = getStateColor(isAdmit, elements.nodes[i].isInitial);
+            }
+        }
+
+        this.setState({elements: elements});
+    }
+
+    changeStateIsInitial = (id: number, isInitial: boolean): void => {
+        const elements = cloneDeep(this.state.elements);
+
+        for (let i = 0; i < elements.nodes.length; i++) {
+            if (elements.nodes[i].isInitial) {
+                elements.nodes[i].isInitial = false;
+                elements.nodes[i].color = getStateColor(elements.nodes[i].isAdmit, false);
+            }
+
+            if (elements.nodes[i].id === id) {
+                elements.nodes[i].isInitial = isInitial
+                elements.nodes[i].color = getStateColor(elements.nodes[i].isAdmit, isInitial);
             }
         }
 
@@ -256,6 +274,7 @@ class App extends React.Component<appProps, appState> {
                         node={this.state.selectedNode}
                         changeNodeLabel={this.changeNodeLabel}
                         changeStateIsAdmit={this.changeStateIsAdmit}
+                        changeStateIsInitial={this.changeStateIsInitial}
                         deleteNode={this.deleteNode}
                     />
                     <SettingsControl

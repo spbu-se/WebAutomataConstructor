@@ -8,6 +8,7 @@ declare module "react-graph-vis-types" {
         y?: number,
         color?: object,
         isAdmit: boolean,
+        isInitial: boolean
     }
 
     export type edge = {
