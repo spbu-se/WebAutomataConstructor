@@ -13,7 +13,7 @@ import cloneDeep from "lodash/cloneDeep";
 import NodeControl from "./Components/NodeControl/NodeControl";
 import SettingsControl from "./Components/SettingsControl/SettingsControl";
 import EdgeControl from "./Components/EdgeControl/EdgeControl";
-import {transitionsToLabel} from "./utils";
+import {getStateColor, transitionsToLabel} from "./utils";
 
 interface appProps {
 }
@@ -27,10 +27,10 @@ interface appState {
 
 const initialElements: graph = {
     nodes: [
-        {id: 1, label: "label 1"},
-        {id: 2, label: "label 2"},
-        {id: 3, label: "label 3"},
-        {id: 4, label: "label 4"},
+        {id: 1, label: "label 1", isAdmit: false, color: getStateColor(false, false)},
+        {id: 2, label: "label 2", isAdmit: false, color: getStateColor(false, false)},
+        {id: 3, label: "label 3", isAdmit: true, color: getStateColor(true, false)},
+        {id: 4, label: "label 4", isAdmit: true, color: getStateColor(true, false)},
     ],
     edges: [
         {from: 1, to: 2, label: "0", transitions: new Set(["0"])},
@@ -73,6 +73,19 @@ class App extends React.Component<appProps, appState> {
         for (let i = 0; i < elements.nodes.length; i++) {
             if (elements.nodes[i].id === id) {
                 elements.nodes[i].label = label;
+            }
+        }
+
+        this.setState({elements: elements});
+    }
+
+    changeStateIsAdmit = (id: number, isAdmit: boolean): void => {
+        const elements = cloneDeep(this.state.elements);
+
+        for (let i = 0; i < elements.nodes.length; i++) {
+            if (elements.nodes[i].id === id) {
+                elements.nodes[i].isAdmit = isAdmit;
+                elements.nodes[i].color = getStateColor(isAdmit, false);
             }
         }
 
@@ -242,6 +255,7 @@ class App extends React.Component<appProps, appState> {
                     <NodeControl
                         node={this.state.selectedNode}
                         changeNodeLabel={this.changeNodeLabel}
+                        changeStateIsAdmit={this.changeStateIsAdmit}
                         deleteNode={this.deleteNode}
                     />
                     <SettingsControl

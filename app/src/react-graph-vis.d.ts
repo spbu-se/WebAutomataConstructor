@@ -5,7 +5,9 @@ declare module "react-graph-vis-types" {
         id: number,
         label?: string,
         x?: number,
-        y?: number
+        y?: number,
+        color?: string,
+        isAdmit: boolean,
     }
 
     export type edge = {

@@ -5,12 +5,14 @@ import {node} from "react-graph-vis-types";
 interface nodeControlProps {
     node: node | null,
     changeNodeLabel: (id: number, label: string) => void,
+    changeStateIsAdmit: (id: number, isAdmit: boolean) => void,
     deleteNode: (id: number) => void,
 }
 
 interface nodeControlState {
     prevNodeId: number | undefined,
-    label: string
+    label: string,
+    isAdmit: boolean
 }
 
 class NodeControl extends React.Component<nodeControlProps, nodeControlState> {
@@ -19,13 +21,18 @@ class NodeControl extends React.Component<nodeControlProps, nodeControlState> {
 
         this.state = {
             prevNodeId: this.props.node?.id,
-            label: this.props.node?.label || ""
+            label: this.props.node?.label || "",
+            isAdmit: this.props.node?.isAdmit || false
         }
     }
 
     componentDidUpdate(prevProps: Readonly<nodeControlProps>, prevState: Readonly<nodeControlState>) {
         if (this.props.node?.id !== prevState.prevNodeId) {
-            this.setState({label: this.props.node?.label || "", prevNodeId: this.props.node?.id});
+            this.setState({
+                label: this.props.node?.label || "",
+                isAdmit: this.props.node?.isAdmit || false,
+                prevNodeId: this.props.node?.id,
+            });
         }
     }
 
@@ -33,6 +40,13 @@ class NodeControl extends React.Component<nodeControlProps, nodeControlState> {
         if (this.props.node !== null) {
             this.props.changeNodeLabel(this.props.node.id, event.target.value);
             this.setState({label: event.target.value});
+        }
+    }
+
+    onIsAdmitChanged = (event: ChangeEvent<HTMLInputElement>): void => {
+        if (this.props.node !== null) {
+            this.props.changeStateIsAdmit(this.props.node.id, event.target.checked);
+            this.setState({isAdmit: event.target.checked});
         }
     }
 
@@ -51,6 +65,13 @@ class NodeControl extends React.Component<nodeControlProps, nodeControlState> {
                     type="text"
                     value={this.state.label}
                     onChange={this.onLabelChange}
+                />
+
+                <input
+                    className="node-control__is-admit-checkbox"
+                    type="checkbox"
+                    checked={this.state.isAdmit}
+                    onChange={this.onIsAdmitChanged}
                 />
 
                 <button
