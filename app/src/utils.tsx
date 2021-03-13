@@ -2,10 +2,16 @@ export const transitionsToLabel = (transitions: Set<string>): string => {
     return Array.from(transitions).join(",");
 }
 
-export const getStateColor = (isAdmit: boolean, isInitial: boolean): string => {
-    if (isAdmit) {
-        return "#88ff88";
+export const getStateColor = (isAdmit: boolean, isInitial: boolean): object => {
+    const getColorObject = (background: string): object => {
+        return {
+            background: background
+        }
     }
 
-    return "#fff";
+    if (isAdmit) {
+        return getColorObject("#88ff88");
+    }
+
+    return getColorObject("#fff");
 }

@@ -6,7 +6,7 @@ declare module "react-graph-vis-types" {
         label?: string,
         x?: number,
         y?: number,
-        color?: string,
+        color?: object,
         isAdmit: boolean,
     }
 
