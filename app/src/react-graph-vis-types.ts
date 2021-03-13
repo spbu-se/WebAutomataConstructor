@@ -1,22 +1,24 @@
-export type node = {
-    id: number,
+import {edgeCore, graphCore, nodeCore} from "./Logic/IGraphTypes";
+
+export interface node extends nodeCore{
+   // id: number,
     label?: string,
     x?: number,
     y?: number,
     color?: object,
-    isAdmit: boolean,
+   // isAdmit: boolean,
     isInitial: boolean
 }
 
-export type edge = {
+export interface edge extends edgeCore {
     id?: string,
-    from: number,
-    to: number,
+    //from: number,
+   // to: number,
     label?: string,
-    transitions: Set<string>
+    //transitions: Set<string>//////
 }
 
-export type graph = {
+export interface graph extends graphCore {
     nodes: node[],
     edges: edge[]
 }

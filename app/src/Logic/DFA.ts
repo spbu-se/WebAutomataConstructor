@@ -9,7 +9,8 @@ export type elementOfAlphabet = {
     idLogic: number
 }
 
-export const eof: statement = {isAdmit: false, idLogic: -1, id: -1}
+export const eof: statement = {
+    isAdmit: false, idLogic: -1, id: -1}
 
 export class DFA {
 
@@ -17,7 +18,7 @@ export class DFA {
     private readonly input: elementOfAlphabet[] = []
     private readonly alphabet = new Map()
     private readonly statements = new Map()
-    private readonly nodes: nodeCore[]
+    private readonly nodes!: nodeCore[]
     private readonly startStatement
 
     private getStatementsFromNodes = (nodes: nodeCore[]) : void => {
@@ -29,7 +30,7 @@ export class DFA {
     private getAlphabetFromEdges = (edges: edgeCore[]) : void => {
         let alphabetSet: Set<string> = new Set()
         for (let i = 0; i < edges.length; i++) {
-            edges[i].localValue.forEach(value => alphabetSet.add(value))
+            edges[i].localValue!.forEach(value => alphabetSet.add(value))
         }
         let i = 0
         alphabetSet.forEach(value => {
@@ -49,7 +50,7 @@ export class DFA {
             let statementNumberFrom = this.statements.get(edges[i].from).idLogic
             //let alphabetSymbolNumber = this.alphabet.get(edges[i].value)
             let statementNumberTo = this.statements.get(edges[i].to)
-            edges[i].localValue.forEach(value => this.matrix[statementNumberFrom][this.alphabet.get(value)] = statementNumberTo)
+            edges[i].localValue!.forEach(value => this.matrix[statementNumberFrom][this.alphabet.get(value)] = statementNumberTo)
             //console.log(this.statements.get(edges[i].from).idLogic, this.alphabet.get(edges[i].value), '<->', edges[i].value, this.statements.get(edges[i].to))
         }
     }
@@ -62,15 +63,20 @@ export class DFA {
     }
 
     constructor(graph: graphCore, startStatement: nodeCore, input: string[]) {
+
         let edges = graph.edges.sort((a, b) => a.from - b.from)
-        //console.log('EDGES: ', edges)
+        for (let i = 0; i < edges.length; i++) {
+            edges[i].localValue = []
+            edges[i].transitions.forEach(value => edges[i].localValue!.push(value))
+        }
+        console.log('EDGES: ', edges)
         this.getAlphabetFromEdges(edges)
-        //console.log('ALPHABET: ', this.alphabet)
+        console.log('ALPHABET: ', this.alphabet)
         this.getTransformedInput(input)
         this.getStatementsFromNodes(graph.nodes)
-        //console.log('STATEMENTS: ', this.statements)
+        console.log('STATEMENTS: ', this.statements)
         this.createMatrix(edges)
-        //console.log('MATRIX ', this.matrix)
+        console.log('MATRIX ', this.matrix)
         this.startStatement = startStatement
         this.nodes = graph.nodes
         //console.log(this.nodes, this.statements)
@@ -80,7 +86,7 @@ export class DFA {
         return this.nodes[current.idLogic]
     }
 
-    public isPossibleTransition = (current: nodeCore, input: string) : boolean => {
+    private isPossibleTransition = (current: nodeCore, input: string) : boolean => {
         let currentStatement: statement = this.statements.get(current.id)
         let transformedInput: number = this.alphabet.get(input)
         //console.log(!(this.matrix[currentStatement.idLogic][transformedInput] === eof || this.matrix[currentStatement.idLogic][transformedInput] === undefined), this.matrix[currentStatement.idLogic][transformedInput])
@@ -89,6 +95,9 @@ export class DFA {
 
     // Get next node by edge symbol. (Nodes for visualization)
      public nextNode = (current: nodeCore, input: string) : nodeCore => {
+        if (!this.isPossibleTransition(current, input)) {
+            return current
+        }
         let currentStatement: statement = this.statements.get(current.id)
         let transformedInput: number = this.alphabet.get(input)
         return this.nodes[this.matrix[currentStatement.idLogic][transformedInput].idLogic]
@@ -124,6 +133,49 @@ export class DFA {
     }
 
 }
+
+//
+//let t: Set<string> = new Set
+//let tt: Set<string> = new Set
+//
+//t.add('z')
+//tt.add('z')
+//tt.add('a')
+//
+//let a: Set<string> = new Set
+//let aa: Set<string> = new Set
+//
+//a.add('0')
+//aa.add('1')
+//
+//
+//let dfa = new DFA(
+//    {
+//        nodes: [
+//            {id: -100, isAdmit: false},
+//            {id: 1, isAdmit: true},
+//            {id: 2, isAdmit: true}
+//        ],
+//        edges: [
+//            {from: -100, to: 1, transitions: a},
+//            {from: 1, to: 2, transitions: aa}
+//        ]
+//    }, {id: -100, isAdmit: false}, ['0', '1'])
+//
+//let testFunc = (dfa: DFA, current: nodeCore, input: string[]) : boolean => {
+//    for (let i = 0; i < input.length; i++) {
+//        // if (!dfa.isPossibleTransition(current, input[i])) {
+//        //     console.log('empty')
+//        //     return false
+//        // }
+//        current = dfa.nextNode(current, input[i])
+//        //console.log(current)
+//    }
+//    return current.isAdmit
+//}
+//
+//console.log(testFunc(dfa, {id: -100, isAdmit: false}, ['0', '1']))
+
 /*
 let dfa = new DFA(
     {
@@ -136,16 +188,16 @@ let dfa = new DFA(
             {from: 1, to: -100, localValue: ['z']}
         ]
     }, {id: 1, isAdmit: true}, ['z', 'z', 'z', 'z', 'z', 'z', 'z', 'z', 'z', 'z'])
-
-let input: string[] = ['z', 'z', 'z', 'z', 'z', 'z', 'z', 'z', 'z', 'z']
-
-let curren: nodeCore = {id: -100, isAdmit: true}
-for (let i = 0; i < input.length; i++) {
-    curren = dfa.nextNode(curren, input[i])
-    console.log(curren)
-}
-
 */
+//let input: string[] = ['z', 'z', 'z', 'z', 'z', 'z', 'z', 'z', 'z', 'z']
+
+//let curren: nodeCore = {id: -100, isAdmit: true}
+//for (let i = 0; i < input.length; i++) {
+//    curren = dfa.nextNode(curren, input[i])
+//    console.log(curren)
+//}
+
+
 //console.log(dfa.nextNode({id: 1, isAdmit: true}, 'z'))
 /*console.log(dfa.nextNode( {id: 1, isAdmit: true}, 'z'))
 console.log(dfa.nextNode( {id: -100, isAdmit: false}, 'z'))
