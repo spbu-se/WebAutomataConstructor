@@ -9,7 +9,6 @@ import {
     node, selectEdgeEventArgs,
     selectNodeEventArgs
 } from "react-graph-vis-types";
-import cloneDeep from "lodash/cloneDeep";
 import NodeControl from "./Components/NodeControl/NodeControl";
 import SettingsControl from "./Components/SettingsControl/SettingsControl";
 import EdgeControl from "./Components/EdgeControl/EdgeControl";
@@ -19,7 +18,6 @@ interface appProps {
 }
 
 interface appState {
-    elements: graph,
     selectedNode: node | null,
     selectedEdge: edge | null,
     inEdgeMode: boolean
@@ -49,76 +47,78 @@ class App extends React.Component<appProps, appState> {
         super(props);
 
         this.state = {
-            elements: initialElements,
             selectedNode: null,
             selectedEdge: null,
             inEdgeMode: false
         };
     }
 
+    componentDidMount() {
+        this.updateGraph()
+    }
+
+    elements: graph = initialElements;
     network: any;
     lastNodeId = initialElements.nodes.length;
 
     getNodeById = (id: number): node | undefined => {
-        return this.state.elements.nodes.find(node => node.id === id);
+        return this.elements.nodes.find(node => node.id === id);
     }
 
     getEdgeById = (id: string): edge | undefined => {
-        return this.state.elements.edges.find(edge => edge.id === id);
+        return this.elements.edges.find(edge => edge.id === id);
+    }
+
+    updateGraph = (): void => {
+        if (this.network !== null) {
+            this.network.setData(this.elements);
+        }
     }
 
     changeNodeLabel = (id: number, label: string): void => {
-        const elements = cloneDeep(this.state.elements);
-
-        for (let i = 0; i < elements.nodes.length; i++) {
-            if (elements.nodes[i].id === id) {
-                elements.nodes[i].label = label;
+        for (let i = 0; i < this.elements.nodes.length; i++) {
+            if (this.elements.nodes[i].id === id) {
+                this.elements.nodes[i].label = label;
             }
         }
 
-        this.setState({elements: elements});
+        this.updateGraph();
     }
 
     changeStateIsAdmit = (id: number, isAdmit: boolean): void => {
-        const elements = cloneDeep(this.state.elements);
-
-        for (let i = 0; i < elements.nodes.length; i++) {
-            if (elements.nodes[i].id === id) {
-                elements.nodes[i].isAdmit = isAdmit;
-                elements.nodes[i].color = getStateColor(isAdmit, elements.nodes[i].isInitial);
+        for (let i = 0; i < this.elements.nodes.length; i++) {
+            if (this.elements.nodes[i].id === id) {
+                this.elements.nodes[i].isAdmit = isAdmit;
+                this.elements.nodes[i].color = getStateColor(isAdmit, this.elements.nodes[i].isInitial);
             }
         }
 
-        this.setState({elements: elements});
+        this.updateGraph();
     }
 
     changeStateIsInitial = (id: number, isInitial: boolean): void => {
-        const elements = cloneDeep(this.state.elements);
-
-        for (let i = 0; i < elements.nodes.length; i++) {
-            if (elements.nodes[i].isInitial) {
-                elements.nodes[i].isInitial = false;
-                elements.nodes[i].color = getStateColor(elements.nodes[i].isAdmit, false);
+        for (let i = 0; i < this.elements.nodes.length; i++) {
+            if (this.elements.nodes[i].isInitial) {
+                this.elements.nodes[i].isInitial = false;
+                this.elements.nodes[i].color = getStateColor(this.elements.nodes[i].isAdmit, false);
             }
 
-            if (elements.nodes[i].id === id) {
-                elements.nodes[i].isInitial = isInitial
-                elements.nodes[i].color = getStateColor(elements.nodes[i].isAdmit, isInitial);
+            if (this.elements.nodes[i].id === id) {
+                this.elements.nodes[i].isInitial = isInitial
+                this.elements.nodes[i].color = getStateColor(this.elements.nodes[i].isAdmit, isInitial);
             }
         }
 
-        this.setState({elements: elements});
+        this.updateGraph();
     }
 
     createNode = (args: doubleClickEventArgs): void => {
         const x = args.pointer.canvas.x;
         const y = args.pointer.canvas.y;
 
-        const elements = cloneDeep(this.state.elements);
+        this.elements.nodes.push({id: ++this.lastNodeId, label: "new", isAdmit: false, isInitial: false});
 
-        elements.nodes.push({id: ++this.lastNodeId, label: "new"});
-
-        this.setState({elements: elements});
+        this.updateGraph();
     }
 
     selectNode = (args: selectNodeEventArgs): void => {
@@ -134,33 +134,29 @@ class App extends React.Component<appProps, appState> {
     }
 
     deleteNode = (id: number): void => {
-        const elements = cloneDeep(this.state.elements);
-
-        for (let i = 0; i < elements.nodes.length; i++) {
-            if (elements.nodes[i].id === id) {
-                elements.nodes.splice(i, 1);
+        for (let i = 0; i < this.elements.nodes.length; i++) {
+            if (this.elements.nodes[i].id === id) {
+                this.elements.nodes.splice(i, 1);
                 break;
             }
         }
 
-        for (let i = 0; i < elements.edges.length; i++) {
-            if (elements.edges[i].from === id ||
-                elements.edges[i].to === id) {
-                elements.edges.splice(i, 1);
+        for (let i = 0; i < this.elements.edges.length; i++) {
+            if (this.elements.edges[i].from === id ||
+                this.elements.edges[i].to === id) {
+                this.elements.edges.splice(i, 1);
                 i--;
             }
         }
 
-        this.setState({elements: elements, selectedNode: null});
+        this.setState({selectedNode: null});
+        this.updateGraph();
     }
 
     addEdge = (from: number, to: number): void => {
-        const elements = cloneDeep(this.state.elements);
+        this.elements.edges.push({from: from, to: to, label: "", transitions: new Set()});
 
-        const edge: edge = {from: from, to: to, label: "", transitions: new Set()};
-        elements.edges.push(edge);
-
-        this.setState({elements: elements});
+        this.updateGraph();
     }
 
     enterEdgeMode = (): void => {
@@ -182,7 +178,7 @@ class App extends React.Component<appProps, appState> {
 
     selectEdge = (args: selectEdgeEventArgs): void => {
         if (args.edges.length === 1) {
-            this.setState({selectedEdge: this.getEdgeById(args.edges[0])!}, () => console.log(this.state.selectedEdge));
+            this.setState({selectedEdge: this.getEdgeById(args.edges[0])!});
         }
     }
 
@@ -193,41 +189,36 @@ class App extends React.Component<appProps, appState> {
     }
 
     changeEdgeLabel = (id: string, label: string): void => {
-        const elements = cloneDeep(this.state.elements);
-
-        for (let i = 0; i < elements.edges.length; i++) {
-            if (elements.edges[i].id === id) {
-                elements.edges[i].label = label;
+        for (let i = 0; i < this.elements.edges.length; i++) {
+            if (this.elements.edges[i].id === id) {
+                this.elements.edges[i].label = label;
             }
         }
 
-        this.setState({elements: elements});
+        this.updateGraph();
     }
 
     changeEdgeTransition = (id: string, transitions: Set<string>): void => {
-        const elements = cloneDeep(this.state.elements);
-
-        for (let i = 0; i < elements.edges.length; i++) {
-            if (elements.edges[i].id === id) {
-                elements.edges[i].transitions = transitions;
-                elements.edges[i].label = transitionsToLabel(transitions);
+        for (let i = 0; i < this.elements.edges.length; i++) {
+            if (this.elements.edges[i].id === id) {
+                this.elements.edges[i].transitions = transitions;
+                this.elements.edges[i].label = transitionsToLabel(transitions);
             }
         }
 
-        this.setState({elements: elements});
+        this.updateGraph();
     }
 
     deleteEdge = (id: string): void => {
-        const elements = cloneDeep(this.state.elements);
-
-        for (let i = 0; i < elements.edges.length; i++) {
-            if (elements.edges[i].id === id) {
-                elements.edges.splice(i, 1);
+        for (let i = 0; i < this.elements.edges.length; i++) {
+            if (this.elements.edges[i].id === id) {
+                this.elements.edges.splice(i, 1);
                 break;
             }
         }
 
-        this.setState({elements: elements, selectedEdge: null});
+        this.setState({selectedEdge: null});
+        this.updateGraph();
     }
 
     options = {
@@ -263,7 +254,7 @@ class App extends React.Component<appProps, appState> {
                 <div className="field__container">
                     <Graph
                         getNetwork={(network: any) => this.network = network}
-                        graph={this.state.elements}
+                        graph={{nodes: [], edges: []}}
                         options={this.options}
                         events={this.events}
                     />
