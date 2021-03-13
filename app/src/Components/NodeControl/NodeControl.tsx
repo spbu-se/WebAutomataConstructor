@@ -1,6 +1,6 @@
 import React, {ChangeEvent} from "react";
 import "./NodeControl.css";
-import {node} from "react-graph-vis-types";
+import {node} from "../../react-graph-vis-types";
 
 interface nodeControlProps {
     node: node | null,

@@ -8,7 +8,7 @@ import {
     graph,
     node, selectEdgeEventArgs,
     selectNodeEventArgs
-} from "react-graph-vis-types";
+} from "./react-graph-vis-types";
 import NodeControl from "./Components/NodeControl/NodeControl";
 import SettingsControl from "./Components/SettingsControl/SettingsControl";
 import EdgeControl from "./Components/EdgeControl/EdgeControl";

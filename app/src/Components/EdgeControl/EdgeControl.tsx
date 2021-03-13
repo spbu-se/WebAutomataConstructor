@@ -1,5 +1,5 @@
 import React, {ChangeEvent} from "react";
-import {edge} from "react-graph-vis-types";
+import {edge} from "../../react-graph-vis-types";
 import {transitionsToLabel} from "../../utils";
 
 interface EdgeControlProps {
