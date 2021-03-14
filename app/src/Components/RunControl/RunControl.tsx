@@ -6,7 +6,8 @@ interface runControlProps {
 }
 
 interface runControlState {
-    input: string
+    input: string,
+    result: string
 }
 
 class RunControl extends React.Component<runControlProps, runControlState> {
@@ -14,7 +15,8 @@ class RunControl extends React.Component<runControlProps, runControlState> {
         super(props);
 
         this.state = {
-            input: ""
+            input: "",
+            result: "undefined"
         };
     }
 
@@ -50,6 +52,7 @@ class RunControl extends React.Component<runControlProps, runControlState> {
                 >
                     Run
                 </button>
+                <span>{this.state.result}</span>
             </div>
         )
     }
