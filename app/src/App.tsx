@@ -13,6 +13,7 @@ import NodeControl from "./Components/NodeControl/NodeControl";
 import SettingsControl from "./Components/SettingsControl/SettingsControl";
 import EdgeControl from "./Components/EdgeControl/EdgeControl";
 import {getStateColor, transitionsToLabel} from "./utils";
+import RunControl from "./Components/RunControl/RunControl";
 
 interface appProps {
 }
@@ -278,6 +279,9 @@ class App extends React.Component<appProps, appState> {
                         changeEdgeLabel={this.changeEdgeLabel}
                         changeEdgeTransitions={this.changeEdgeTransition}
                         deleteEdge={this.deleteEdge}
+                    />
+                    <RunControl
+
                     />
                 </div>
 
