@@ -1,7 +1,8 @@
-import React, {ChangeEvent} from "react";
+import React, { ChangeEvent } from "react";
+import { graph } from "../../react-graph-vis-types";
 
 interface runControlProps {
-
+    elements: graph
 }
 
 interface runControlState {

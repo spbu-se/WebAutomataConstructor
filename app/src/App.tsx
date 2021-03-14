@@ -21,7 +21,8 @@ interface appProps {
 interface appState {
     selectedNode: node | null,
     selectedEdge: edge | null,
-    inEdgeMode: boolean
+    inEdgeMode: boolean,
+    elements: graph
 }
 
 const initialElements: graph = {
@@ -50,7 +51,8 @@ class App extends React.Component<appProps, appState> {
         this.state = {
             selectedNode: null,
             selectedEdge: null,
-            inEdgeMode: false
+            inEdgeMode: false,
+            elements: initialElements
         };
     }
 
@@ -58,68 +60,75 @@ class App extends React.Component<appProps, appState> {
         this.updateGraph()
     }
 
-    elements: graph = initialElements;
     network: any;
     lastNodeId = initialElements.nodes.length;
 
     getNodeById = (id: number): node | undefined => {
-        return this.elements.nodes.find(node => node.id === id);
+        return this.state.elements.nodes.find(node => node.id === id);
     }
 
     getEdgeById = (id: string): edge | undefined => {
-        return this.elements.edges.find(edge => edge.id === id);
+        return this.state.elements.edges.find(edge => edge.id === id);
     }
 
     updateGraph = (): void => {
         if (this.network !== null) {
-            this.network.setData(this.elements);
+            this.network.setData(this.state.elements);
         }
     }
 
     changeNodeLabel = (id: number, label: string): void => {
-        for (let i = 0; i < this.elements.nodes.length; i++) {
-            if (this.elements.nodes[i].id === id) {
-                this.elements.nodes[i].label = label;
+        const elements = this.state.elements;
+
+        for (let i = 0; i < elements.nodes.length; i++) {
+            if (elements.nodes[i].id === id) {
+                elements.nodes[i].label = label;
             }
         }
 
-        this.updateGraph();
+        this.setState({elements: elements}, () => this.updateGraph());
     }
 
     changeStateIsAdmit = (id: number, isAdmit: boolean): void => {
-        for (let i = 0; i < this.elements.nodes.length; i++) {
-            if (this.elements.nodes[i].id === id) {
-                this.elements.nodes[i].isAdmit = isAdmit;
-                this.elements.nodes[i].color = getStateColor(isAdmit, this.elements.nodes[i].isInitial);
+        const elements = this.state.elements;
+
+        for (let i = 0; i < elements.nodes.length; i++) {
+            if (elements.nodes[i].id === id) {
+                elements.nodes[i].isAdmit = isAdmit;
+                elements.nodes[i].color = getStateColor(isAdmit, elements.nodes[i].isInitial);
             }
         }
 
-        this.updateGraph();
+        this.setState({elements: elements}, () => this.updateGraph());
     }
 
     changeStateIsInitial = (id: number, isInitial: boolean): void => {
-        for (let i = 0; i < this.elements.nodes.length; i++) {
-            if (this.elements.nodes[i].isInitial) {
-                this.elements.nodes[i].isInitial = false;
-                this.elements.nodes[i].color = getStateColor(this.elements.nodes[i].isAdmit, false);
+        const elements = this.state.elements;
+
+        for (let i = 0; i < elements.nodes.length; i++) {
+            if (elements.nodes[i].isInitial) {
+                elements.nodes[i].isInitial = false;
+                elements.nodes[i].color = getStateColor(elements.nodes[i].isAdmit, false);
             }
 
-            if (this.elements.nodes[i].id === id) {
-                this.elements.nodes[i].isInitial = isInitial
-                this.elements.nodes[i].color = getStateColor(this.elements.nodes[i].isAdmit, isInitial);
+            if (elements.nodes[i].id === id) {
+                elements.nodes[i].isInitial = isInitial
+                elements.nodes[i].color = getStateColor(elements.nodes[i].isAdmit, isInitial);
             }
         }
 
-        this.updateGraph();
+        this.setState({elements: elements}, () => this.updateGraph());
     }
 
     createNode = (args: doubleClickEventArgs): void => {
         const x = args.pointer.canvas.x;
         const y = args.pointer.canvas.y;
 
-        this.elements.nodes.push({id: ++this.lastNodeId, label: "new", isAdmit: false, isInitial: false});
+        const elements = this.state.elements;
 
-        this.updateGraph();
+        elements.nodes.push({id: ++this.lastNodeId, label: "new", isAdmit: false, isInitial: false});
+
+        this.setState({elements: elements}, () => this.updateGraph());
     }
 
     selectNode = (args: selectNodeEventArgs): void => {
@@ -135,29 +144,33 @@ class App extends React.Component<appProps, appState> {
     }
 
     deleteNode = (id: number): void => {
-        for (let i = 0; i < this.elements.nodes.length; i++) {
-            if (this.elements.nodes[i].id === id) {
-                this.elements.nodes.splice(i, 1);
+        const elements = this.state.elements;
+
+        for (let i = 0; i < elements.nodes.length; i++) {
+            if (elements.nodes[i].id === id) {
+                elements.nodes.splice(i, 1);
                 break;
             }
         }
 
-        for (let i = 0; i < this.elements.edges.length; i++) {
-            if (this.elements.edges[i].from === id ||
-                this.elements.edges[i].to === id) {
-                this.elements.edges.splice(i, 1);
+        for (let i = 0; i < elements.edges.length; i++) {
+            if (elements.edges[i].from === id ||
+                elements.edges[i].to === id) {
+                elements.edges.splice(i, 1);
                 i--;
             }
         }
 
         this.setState({selectedNode: null});
-        this.updateGraph();
+        this.setState({elements: elements}, () => this.updateGraph());
     }
 
     addEdge = (from: number, to: number): void => {
-        this.elements.edges.push({from: from, to: to, label: "", transitions: new Set()});
+        const elements = this.state.elements;
 
-        this.updateGraph();
+        elements.edges.push({from: from, to: to, label: "", transitions: new Set()});
+
+        this.setState({elements: elements}, () => this.updateGraph());
     }
 
     enterEdgeMode = (): void => {
@@ -190,36 +203,42 @@ class App extends React.Component<appProps, appState> {
     }
 
     changeEdgeLabel = (id: string, label: string): void => {
-        for (let i = 0; i < this.elements.edges.length; i++) {
-            if (this.elements.edges[i].id === id) {
-                this.elements.edges[i].label = label;
+        const elements = this.state.elements;
+
+        for (let i = 0; i < elements.edges.length; i++) {
+            if (elements.edges[i].id === id) {
+                elements.edges[i].label = label;
             }
         }
 
-        this.updateGraph();
+        this.setState({elements: elements}, () => this.updateGraph());
     }
 
     changeEdgeTransition = (id: string, transitions: Set<string>): void => {
-        for (let i = 0; i < this.elements.edges.length; i++) {
-            if (this.elements.edges[i].id === id) {
-                this.elements.edges[i].transitions = transitions;
-                this.elements.edges[i].label = transitionsToLabel(transitions);
+        const elements = this.state.elements;
+
+        for (let i = 0; i < elements.edges.length; i++) {
+            if (elements.edges[i].id === id) {
+                elements.edges[i].transitions = transitions;
+                elements.edges[i].label = transitionsToLabel(transitions);
             }
         }
 
-        this.updateGraph();
+        this.setState({elements: elements}, () => this.updateGraph());
     }
 
     deleteEdge = (id: string): void => {
-        for (let i = 0; i < this.elements.edges.length; i++) {
-            if (this.elements.edges[i].id === id) {
-                this.elements.edges.splice(i, 1);
+        const elements = this.state.elements;
+
+        for (let i = 0; i < elements.edges.length; i++) {
+            if (elements.edges[i].id === id) {
+                elements.edges.splice(i, 1);
                 break;
             }
         }
 
         this.setState({selectedEdge: null});
-        this.updateGraph();
+        this.setState({elements: elements}, () => this.updateGraph());
     }
 
     options = {
@@ -281,7 +300,7 @@ class App extends React.Component<appProps, appState> {
                         deleteEdge={this.deleteEdge}
                     />
                     <RunControl
-
+                        elements={this.state.elements}
                     />
                 </div>
 
