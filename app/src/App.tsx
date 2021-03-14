@@ -9,6 +9,7 @@ import {
     node, selectEdgeEventArgs,
     selectNodeEventArgs
 } from "./react-graph-vis-types";
+import { cloneDeep } from "lodash";
 import NodeControl from "./Components/NodeControl/NodeControl";
 import SettingsControl from "./Components/SettingsControl/SettingsControl";
 import EdgeControl from "./Components/EdgeControl/EdgeControl";
@@ -78,7 +79,7 @@ class App extends React.Component<appProps, appState> {
     }
 
     changeNodeLabel = (id: number, label: string): void => {
-        const elements = this.state.elements;
+        const elements = cloneDeep(this.state.elements);
 
         for (let i = 0; i < elements.nodes.length; i++) {
             if (elements.nodes[i].id === id) {
@@ -90,7 +91,7 @@ class App extends React.Component<appProps, appState> {
     }
 
     changeStateIsAdmit = (id: number, isAdmit: boolean): void => {
-        const elements = this.state.elements;
+        const elements = cloneDeep(this.state.elements);
 
         for (let i = 0; i < elements.nodes.length; i++) {
             if (elements.nodes[i].id === id) {
@@ -103,7 +104,7 @@ class App extends React.Component<appProps, appState> {
     }
 
     changeStateIsInitial = (id: number, isInitial: boolean): void => {
-        const elements = this.state.elements;
+        const elements = cloneDeep(this.state.elements);
 
         for (let i = 0; i < elements.nodes.length; i++) {
             if (elements.nodes[i].isInitial) {
@@ -124,7 +125,7 @@ class App extends React.Component<appProps, appState> {
         const x = args.pointer.canvas.x;
         const y = args.pointer.canvas.y;
 
-        const elements = this.state.elements;
+        const elements = cloneDeep(this.state.elements);
 
         elements.nodes.push({id: ++this.lastNodeId, label: "new", isAdmit: false, isInitial: false});
 
@@ -144,7 +145,7 @@ class App extends React.Component<appProps, appState> {
     }
 
     deleteNode = (id: number): void => {
-        const elements = this.state.elements;
+        const elements = cloneDeep(this.state.elements);
 
         for (let i = 0; i < elements.nodes.length; i++) {
             if (elements.nodes[i].id === id) {
@@ -166,7 +167,7 @@ class App extends React.Component<appProps, appState> {
     }
 
     addEdge = (from: number, to: number): void => {
-        const elements = this.state.elements;
+        const elements = cloneDeep(this.state.elements);
 
         elements.edges.push({from: from, to: to, label: "", transitions: new Set()});
 
@@ -203,7 +204,7 @@ class App extends React.Component<appProps, appState> {
     }
 
     changeEdgeLabel = (id: string, label: string): void => {
-        const elements = this.state.elements;
+        const elements = cloneDeep(this.state.elements);
 
         for (let i = 0; i < elements.edges.length; i++) {
             if (elements.edges[i].id === id) {
@@ -215,7 +216,7 @@ class App extends React.Component<appProps, appState> {
     }
 
     changeEdgeTransition = (id: string, transitions: Set<string>): void => {
-        const elements = this.state.elements;
+        const elements = cloneDeep(this.state.elements);
 
         for (let i = 0; i < elements.edges.length; i++) {
             if (elements.edges[i].id === id) {
@@ -228,7 +229,7 @@ class App extends React.Component<appProps, appState> {
     }
 
     deleteEdge = (id: string): void => {
-        const elements = this.state.elements;
+        const elements = cloneDeep(this.state.elements);
 
         for (let i = 0; i < elements.edges.length; i++) {
             if (elements.edges[i].id === id) {
