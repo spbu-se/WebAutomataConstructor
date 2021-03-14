@@ -21,6 +21,14 @@ class RunControl extends React.Component<runControlProps, runControlState> {
         this.setState({input: event.target.value});
     }
 
+    onStepClicked = (): void => {
+
+    }
+
+    onRunClicked = (): void => {
+
+    }
+
     render() {
         return (
             <div className="run-control__container">
@@ -29,6 +37,18 @@ class RunControl extends React.Component<runControlProps, runControlState> {
                     value={this.state.input}
                     onChange={this.onInputChanged}
                 />
+                <button
+                    className="run-control__step-button"
+                    onClick={this.onStepClicked}
+                >
+                    Step
+                </button>
+                <button
+                    className="run-control__run-button"
+                    onClick={this.onRunClicked}
+                >
+                    Run
+                </button>
             </div>
         )
     }
