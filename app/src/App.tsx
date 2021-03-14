@@ -28,10 +28,10 @@ interface appState {
 
 const initialElements: graph = {
     nodes: [
-        {id: 1, label: "label 1", isAdmit: false, isInitial: true, color: getStateColor(false, true)},
-        {id: 2, label: "label 2", isAdmit: false, isInitial: false, color: getStateColor(false, false)},
-        {id: 3, label: "label 3", isAdmit: true, isInitial: false, color: getStateColor(true, false)},
-        {id: 4, label: "label 4", isAdmit: true, isInitial: false, color: getStateColor(true, false)},
+        {id: 1, label: "label 1", isAdmit: false, isInitial: true, isCurrent: false, color: getStateColor(false, true, false)},
+        {id: 2, label: "label 2", isAdmit: false, isInitial: false, isCurrent: false, color: getStateColor(false, false, false)},
+        {id: 3, label: "label 3", isAdmit: true, isInitial: false, isCurrent: false, color: getStateColor(true, false, false)},
+        {id: 4, label: "label 4", isAdmit: true, isInitial: false, isCurrent: false, color: getStateColor(true, false, false)},
     ],
     edges: [
         {from: 1, to: 2, label: "0", transitions: new Set(["0"])},
@@ -96,7 +96,7 @@ class App extends React.Component<appProps, appState> {
         for (let i = 0; i < elements.nodes.length; i++) {
             if (elements.nodes[i].id === id) {
                 elements.nodes[i].isAdmit = isAdmit;
-                elements.nodes[i].color = getStateColor(isAdmit, elements.nodes[i].isInitial);
+                elements.nodes[i].color = getStateColor(isAdmit, elements.nodes[i].isInitial, elements.nodes[i].isCurrent);
             }
         }
 
@@ -109,12 +109,30 @@ class App extends React.Component<appProps, appState> {
         for (let i = 0; i < elements.nodes.length; i++) {
             if (elements.nodes[i].isInitial) {
                 elements.nodes[i].isInitial = false;
-                elements.nodes[i].color = getStateColor(elements.nodes[i].isAdmit, false);
+                elements.nodes[i].color = getStateColor(elements.nodes[i].isAdmit, false, elements.nodes[i].isCurrent);
             }
 
             if (elements.nodes[i].id === id) {
                 elements.nodes[i].isInitial = isInitial
-                elements.nodes[i].color = getStateColor(elements.nodes[i].isAdmit, isInitial);
+                elements.nodes[i].color = getStateColor(elements.nodes[i].isAdmit, isInitial, elements.nodes[i].isCurrent);
+            }
+        }
+
+        this.setState({elements: elements}, () => this.updateGraph());
+    }
+
+    changeStateIsCurrent = (id: number, isCurrent: boolean): void => {
+        const elements = cloneDeep(this.state.elements);
+
+        for (let i = 0; i < elements.nodes.length; i++) {
+            if (elements.nodes[i].isCurrent) {
+                elements.nodes[i].isCurrent = false;
+                elements.nodes[i].color = getStateColor(elements.nodes[i].isAdmit, elements.nodes[i].isInitial, false);
+            }
+
+            if (elements.nodes[i].id === id) {
+                elements.nodes[i].isCurrent = isCurrent
+                elements.nodes[i].color = getStateColor(elements.nodes[i].isAdmit, elements.nodes[i].isInitial, isCurrent);
             }
         }
 
@@ -257,6 +275,9 @@ class App extends React.Component<appProps, appState> {
                 border: "black",
                 background: "white"
             }
+        },
+        physics: {
+            enabled: true
         }
     };
 
@@ -302,6 +323,7 @@ class App extends React.Component<appProps, appState> {
                     />
                     <RunControl
                         elements={this.state.elements}
+                        changeStateIsCurrent={this.changeStateIsCurrent}
                     />
                 </div>
 
