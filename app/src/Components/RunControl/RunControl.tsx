@@ -1,7 +1,7 @@
 import React, {ChangeEvent} from "react";
 import {graph} from "../../react-graph-vis-types";
 import {DFA} from "../../Logic/DFA";
-import {nodeCore} from "../../Logic/IGraphTypes";
+import {NodeCore} from "../../Logic/IGraphTypes";
 import { isEqual } from "lodash";
 
 interface runControlProps {
@@ -13,7 +13,7 @@ interface runControlState {
     input: string,
     result: string,
     dfa: DFA | undefined,
-    current: nodeCore | undefined,
+    current: NodeCore | undefined,
     currentIndex: number
 }
 

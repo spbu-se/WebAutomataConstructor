@@ -41,7 +41,7 @@ const initialElements: graph = {
         {from: 1, to: 3, label: "1", transitions: new Set(["1"])},
         {from: 2, to: 4, label: "1", transitions: new Set(["1"])},
         {from: 3, to: 2, label: "1", transitions: new Set(["1"])},
-        {from: 4, to: 2, label: "1", transitions: new Set(["1"])},
+        {from: 4, to: 2, label: "1", transitions: new Set(["1", "0"])},
     ]
 }
 

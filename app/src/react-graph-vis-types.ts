@@ -1,7 +1,7 @@
-import {edgeCore, graphCore, nodeCore} from "./Logic/IGraphTypes";
+import {EdgeCore, GraphCore, NodeCore} from "./Logic/IGraphTypes";
 
-export interface node extends nodeCore{
-   // id: number,
+export interface node extends NodeCore{
+    id: number,
     label?: string,
     x?: number,
     y?: number,
@@ -11,7 +11,7 @@ export interface node extends nodeCore{
     isCurrent: boolean
 }
 
-export interface edge extends edgeCore {
+export interface edge extends EdgeCore {
     id?: string,
     //from: number,
    // to: number,
@@ -19,7 +19,7 @@ export interface edge extends edgeCore {
     //transitions: Set<string>//////
 }
 
-export interface graph extends graphCore {
+export interface graph extends GraphCore {
     nodes: node[],
     edges: edge[]
 }
