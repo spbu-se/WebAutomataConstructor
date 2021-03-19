@@ -7,7 +7,6 @@ export interface EdgeCore  {
     from: number
     to: number
     transitions: Set<string>
-    //localValue?: string[]
 }
 
 export interface GraphCore  {

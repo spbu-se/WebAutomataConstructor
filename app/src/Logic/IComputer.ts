@@ -1,13 +1,11 @@
-import {NodeCore} from "./IGraphTypes";
+import {statement, Step} from "./Types";
 
-export type Step = {
-    node: NodeCore
-    counter: number
-}
-
+// It will be abstract class
 export interface IComputer {
     setInput: (input: string[]) => void
     step: (input: string) => Step
     isAdmit: () => Step
     restart: () => void
 }
+
+export const eof: statement = {isAdmit: false, idLogic: -1, id: -1}
