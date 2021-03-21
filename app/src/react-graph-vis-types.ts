@@ -7,7 +7,8 @@ export interface node extends nodeCore{
     y?: number,
     color?: object,
    // isAdmit: boolean,
-    isInitial: boolean
+    isInitial: boolean,
+    isCurrent: boolean
 }
 
 export interface edge extends edgeCore {
