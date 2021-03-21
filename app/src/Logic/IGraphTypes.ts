@@ -1,17 +1,15 @@
-
-export interface nodeCore  {
+export interface NodeCore  {
     id: number
     isAdmit: boolean
 }
 
-export interface edgeCore  {
+export interface EdgeCore  {
     from: number
     to: number
     transitions: Set<string>
-    localValue?: string[]
 }
 
-export interface graphCore  {
-    nodes: nodeCore[]
-    edges: edgeCore[]
+export interface GraphCore  {
+    nodes: NodeCore[]
+    edges: EdgeCore[]
 }
