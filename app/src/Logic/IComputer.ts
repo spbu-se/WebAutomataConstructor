@@ -4,7 +4,7 @@ import {statement, Step} from "./Types";
 export interface IComputer {
     setInput: (input: string[]) => void
     step: (input: string) => Step
-    isAdmit: () => Step
+    run: () => Step
     restart: () => void
 }
 

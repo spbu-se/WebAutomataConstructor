@@ -102,7 +102,7 @@ export class DFA implements IComputer {
 
     // Get next node by edge symbol. (Nodes for visualization)
     public step = () : Step => {
-        if (!this.isPossibleTransition(this.currentNode, this.input[this.counterSteps].value)) {
+        if (this.counterSteps >= this.input.length || !this.isPossibleTransition(this.currentNode, this.input[this.counterSteps].value)) {
             return {node: this.currentNode, counter: this.counterSteps}
         }
         let currentStatement: statement = this.statements.get(this.currentNode.id)
@@ -120,7 +120,7 @@ export class DFA implements IComputer {
     }
 
     // Get information about admitting in result statement
-    public isAdmit = () : Step => {
+    public run = () : Step => {
         this.counterStepsForResult = 0
         let current: statement = this.statements.get(this.startStatement.id)
         let oldCurrent = current
