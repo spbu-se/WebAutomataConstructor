@@ -1,7 +1,7 @@
 import React, {ChangeEvent} from "react";
 import {graph} from "../../react-graph-vis-types";
 import {DFA} from "../../Logic/DFA";
-import {nodeCore} from "../../Logic/IGraphTypes";
+import {NodeCore} from "../../Logic/IGraphTypes";
 import { isEqual } from "lodash";
 
 interface runControlProps {
@@ -12,9 +12,7 @@ interface runControlProps {
 interface runControlState {
     input: string,
     result: string,
-    dfa: DFA | undefined,
-    current: nodeCore | undefined,
-    currentIndex: number
+    dfa: DFA | undefined
 }
 
 class RunControl extends React.Component<runControlProps, runControlState> {
@@ -24,9 +22,7 @@ class RunControl extends React.Component<runControlProps, runControlState> {
         this.state = {
             input: "",
             result: "undefined",
-            dfa: undefined,
-            current: undefined,
-            currentIndex: 0
+            dfa: undefined
         };
     }
 
@@ -53,8 +49,6 @@ class RunControl extends React.Component<runControlProps, runControlState> {
 
         this.setState({
             dfa: new DFA(this.props.elements, initialNode, input),
-            current: initialNode,
-            currentIndex: 0,
             result: "undefined"
         });
     }
@@ -100,26 +94,22 @@ class RunControl extends React.Component<runControlProps, runControlState> {
 
 
     onInputChanged = (event: ChangeEvent<HTMLInputElement>): void => {
-        this.setState({input: event.target.value}, () => this.initializeDFA());
+        const input = event.target.value;
+
+        this.state.dfa?.setInput(input.split(""));
+
+        this.setState({input: input});
     }
 
     onStepClicked = (): void => {
-        const input = this.state.input.split("");
-
-        if (this.state.dfa === undefined || this.state.current === undefined) {
+        if (this.state.dfa === undefined) {
             console.error("DFA is not initialized yet");
             return;
         }
-        if (this.state.currentIndex === this.state.input.length) {
-            console.info("DFA is over");
-            return;
-        }
 
-        const next = this.state.dfa.nextNode(this.state.current, input[this.state.currentIndex]);
+        const stepResult = this.state.dfa.step();
 
-        this.props.changeStateIsCurrent(next.id, true);
-
-        this.setState({current: next, currentIndex: this.state.currentIndex + 1});
+        this.props.changeStateIsCurrent(stepResult.node.id, true);
     }
 
     onRunClicked = (): void => {
@@ -128,9 +118,9 @@ class RunControl extends React.Component<runControlProps, runControlState> {
             return;
         }
 
-        const result = this.state.dfa.isAdmit();
+        const result = this.state.dfa.run();
 
-        this.setState({result: result ? "true" : "false"});
+        this.setState({result: result.node.isAdmit ? "true" : "false"});
     }
 
     render() {
