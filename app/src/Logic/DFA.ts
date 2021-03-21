@@ -5,7 +5,7 @@ import {Edge, elementOfAlphabet, statement, Step} from "./Types";
 export class DFA implements IComputer {
 
     private readonly matrix: statement[][] = []
-    private readonly input: elementOfAlphabet[] = []
+    private input: elementOfAlphabet[] = []
     private readonly alphabet = new Map()
     private readonly statements = new Map()
     private readonly nodes: NodeCore[]
@@ -63,7 +63,7 @@ export class DFA implements IComputer {
         }
         //console.log('EDGES: ', this.edges)
         this.getAlphabetFromEdges()
-        //console.log('ALPHABET: ', this.alphabet)
+        console.log('ALPHABET: ', this.alphabet)
         this.setInput(input)
         this.getStatementsFromNodes(graph.nodes)
         //console.log('STATEMENTS: ', this.statements)
@@ -93,18 +93,20 @@ export class DFA implements IComputer {
     }
 
     public setInput = (input: string[]): void => {
+        this.input = []
         input.forEach(value => {
             this.input.push({idLogic: this.alphabet.get(value), value: value})
         })
+        this.restart()
     }
 
     // Get next node by edge symbol. (Nodes for visualization)
-    public step = (input: string) : Step => {
-        if (!this.isPossibleTransition(this.currentNode, input)) {
+    public step = () : Step => {
+        if (!this.isPossibleTransition(this.currentNode, this.input[this.counterSteps].value)) {
             return {node: this.currentNode, counter: this.counterSteps}
         }
         let currentStatement: statement = this.statements.get(this.currentNode.id)
-        let transformedInput: number = this.alphabet.get(input)
+        let transformedInput: number = this.alphabet.get(this.input[this.counterSteps].value)
         this.counterSteps++
         this.currentNode = this.nodes[this.matrix[currentStatement.idLogic][transformedInput].idLogic]
         return {node: this.currentNode,
