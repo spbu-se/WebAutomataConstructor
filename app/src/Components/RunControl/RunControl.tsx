@@ -118,7 +118,7 @@ class RunControl extends React.Component<runControlProps, runControlState> {
             return;
         }
 
-        const result = this.state.dfa.isAdmit();
+        const result = this.state.dfa.run();
 
         this.setState({result: result.node.isAdmit ? "true" : "false"});
     }
