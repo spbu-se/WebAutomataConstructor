@@ -4,7 +4,7 @@ import Graph from "react-graph-vis";
 import {
     controlNodeDraggingEventArgs, deselectEdgeEventArgs,
     deselectNodeEventArgs,
-    doubleClickEventArgs, edge,
+    doubleClickEventArgs, dragEndEventArgs, edge,
     graph,
     node, selectEdgeEventArgs,
     selectNodeEventArgs
@@ -23,15 +23,17 @@ interface appState {
     selectedNode: node | null,
     selectedEdge: edge | null,
     inEdgeMode: boolean,
-    elements: graph
+    elements: graph,
+    options: any,
+    initiallyStabilized: boolean
 }
 
 const initialElements: graph = {
     nodes: [
-        {id: 1, label: "label 1", isAdmit: false, isInitial: true, isCurrent: false, color: getStateColor(false, true, false)},
-        {id: 2, label: "label 2", isAdmit: false, isInitial: false, isCurrent: false, color: getStateColor(false, false, false)},
-        {id: 3, label: "label 3", isAdmit: true, isInitial: false, isCurrent: false, color: getStateColor(true, false, false)},
-        {id: 4, label: "label 4", isAdmit: true, isInitial: false, isCurrent: false, color: getStateColor(true, false, false)},
+        {id: 1, x: 0, y: 20, label: "label 1", isAdmit: false, isInitial: true, isCurrent: false, color: getStateColor(false, true, false)},
+        {id: 2, x: 200, y: 0, label: "label 2", isAdmit: false, isInitial: false, isCurrent: false, color: getStateColor(false, false, false)},
+        {id: 3, x: 0, y: 180, label: "label 3", isAdmit: true, isInitial: false, isCurrent: false, color: getStateColor(true, false, false)},
+        {id: 4, x: 180, y: 200, label: "label 4", isAdmit: true, isInitial: false, isCurrent: false, color: getStateColor(true, false, false)},
     ],
     edges: [
         {from: 1, to: 2, label: "0", transitions: new Set(["0"])},
@@ -53,12 +55,33 @@ class App extends React.Component<appProps, appState> {
             selectedNode: null,
             selectedEdge: null,
             inEdgeMode: false,
-            elements: initialElements
+            elements: initialElements,
+            options: {
+                edges: {
+                    smooth: {
+                        enabled: true,
+                        type: "discrete",
+                        roundness: 0.5
+                    },
+                    length: 200
+                },
+                nodes: {
+                    shape: "circle",
+                    color: {
+                        border: "black",
+                        background: "white"
+                    }
+                },
+                physics: {
+                    enabled: false
+                }
+            },
+            initiallyStabilized: false
         };
     }
 
     componentDidMount() {
-        this.updateGraph()
+        this.updateGraph();
     }
 
     network: any;
@@ -133,6 +156,19 @@ class App extends React.Component<appProps, appState> {
             if (elements.nodes[i].id === id) {
                 elements.nodes[i].isCurrent = isCurrent
                 elements.nodes[i].color = getStateColor(elements.nodes[i].isAdmit, elements.nodes[i].isInitial, isCurrent);
+            }
+        }
+
+        this.setState({elements: elements}, () => this.updateGraph());
+    }
+
+    changeNodePosition = (id: number, x: number, y: number): void => {
+        const elements = cloneDeep(this.state.elements);
+
+        for (let i = 0; i < elements.nodes.length; i++) {
+            if (elements.nodes[i].id === id) {
+                elements.nodes[i].x = x;
+                elements.nodes[i].y = y;
             }
         }
 
@@ -260,26 +296,15 @@ class App extends React.Component<appProps, appState> {
         this.setState({elements: elements}, () => this.updateGraph());
     }
 
-    options = {
-        edges: {
-            smooth: {
-                enabled: true,
-                type: "discrete",
-                roundness: 0.5
-            },
-            length: 200
-        },
-        nodes: {
-            shape: "circle",
-            color: {
-                border: "black",
-                background: "white"
-            }
-        },
-        physics: {
-            enabled: true
+
+    onDragEnd = (args: dragEndEventArgs): void => {
+        if (args.nodes.length === 1) {
+            const node = args.nodes[0];
+            const {x, y} = args.pointer.canvas;
+
+            this.changeNodePosition(node, x, y);
         }
-    };
+    }
 
     events = {
         doubleClick: this.createNode,
@@ -287,7 +312,8 @@ class App extends React.Component<appProps, appState> {
         selectEdge: this.selectEdge,
         deselectNode: this.deselectNode,
         deselectEdge: this.deselectEdge,
-        controlNodeDragEnd: this.onEdgeDragEnd
+        controlNodeDragEnd: this.onEdgeDragEnd,
+        dragEnd: this.onDragEnd
     };
 
     render() {
@@ -297,7 +323,7 @@ class App extends React.Component<appProps, appState> {
                     <Graph
                         getNetwork={(network: any) => this.network = network}
                         graph={{nodes: [], edges: []}}
-                        options={this.options}
+                        options={this.state.options}
                         events={this.events}
                     />
                 </div>

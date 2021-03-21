@@ -39,6 +39,7 @@ export type clickEventArgs = {
         }
     }
 }
+export type dragEndEventArgs = clickEventArgs;
 export type doubleClickEventArgs = clickEventArgs;
 export type selectEventArgs = clickEventArgs;
 export type selectNodeEventArgs = selectEventArgs;
