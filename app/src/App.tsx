@@ -181,7 +181,7 @@ class App extends React.Component<appProps, appState> {
 
         const elements = cloneDeep(this.state.elements);
 
-        elements.nodes.push({id: ++this.lastNodeId, label: "new", isAdmit: false, isInitial: false});
+        elements.nodes.push({id: ++this.lastNodeId, x: x, y: y, label: "new", isAdmit: false, isInitial: false});
 
         this.setState({elements: elements}, () => this.updateGraph());
     }
