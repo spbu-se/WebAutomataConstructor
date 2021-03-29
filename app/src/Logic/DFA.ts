@@ -1,27 +1,28 @@
 import {GraphCore, NodeCore} from "./IGraphTypes";
-import {eof, IComputer} from "./IComputer";
-import {Edge, elementOfAlphabet, statement, Step} from "./Types";
+import {eof} from "./IComputer";
+import {statement, Step} from "./Types";
+import {Computer} from "./Computer";
 
-export class DFA implements IComputer {
+export class DFA extends Computer {
 
     private readonly matrix: statement[][] = []
-    private input: elementOfAlphabet[] = []
-    private readonly alphabet = new Map()
-    private readonly statements = new Map()
-    private readonly nodes: NodeCore[]
-    private readonly startStatement
-    private readonly edges: Edge[] = []
-    private currentNode: NodeCore
-    private counterSteps: number = 0
-    private counterStepsForResult: number = 0
+  //  private input: elementOfAlphabet[] = []
+  //  private readonly alphabet = new Map()
+  //  private readonly statements = new Map()
+  //  private readonly nodes: NodeCore[]
+  //  private readonly startStatement
+  //  private readonly edges: Edge[] = []
+  //  private currentNode: NodeCore
+  //  private counterSteps: number = 0
+  //  private counterStepsForResult: number = 0
 
-    private getStatementsFromNodes = (nodes: NodeCore[]): void => {
+/*    private getStatementsFromNodes = (nodes: NodeCore[]): void => {
         for (let i = 0; i < nodes.length; i++) {
             this.statements.set(nodes[i].id, {isAdmit: nodes[i].isAdmit, idLogic: i})
         }
-    }
+    }*/
 
-    private getAlphabetFromEdges = (): void => {
+/*    private getAlphabetFromEdges = (): void => {
         let alphabetSet: Set<string> = new Set()
         for (let i = 0; i < this.edges.length; i++) {
             this.edges[i].localValue.forEach(value => alphabetSet.add(value))
@@ -31,7 +32,7 @@ export class DFA implements IComputer {
             this.alphabet.set(value, i)
             i++
         })
-    }
+    }*/
 
     private createMatrix = (): void => {
         for (let i = 0; i < this.statements.size; i++) {
@@ -51,32 +52,26 @@ export class DFA implements IComputer {
     }
 
     constructor(graph: GraphCore, startStatement: NodeCore, input: string[]) {
-        graph.edges
-            .sort((a, b) => a.from - b.from)
-            .forEach(value => this.edges
-                .push({transitions: value.transitions, from: value.from, to: value.to, localValue: []}))
+        super(graph, startStatement)
 
-        for (let i = 0; i < this.edges.length; i++) {
-            this.edges[i].localValue = []
-            this.edges[i].transitions
-                .forEach(value => this.edges[i].localValue!.push(value))
-        }
-        //console.log('EDGES: ', this.edges)
-        this.getAlphabetFromEdges()
-        console.log('ALPHABET: ', this.alphabet)
         this.setInput(input)
-        this.getStatementsFromNodes(graph.nodes)
-        //console.log('STATEMENTS: ', this.statements)
+
         this.createMatrix()
-        //console.log('MATRIX ', this.matrix)
-        this.startStatement = startStatement
-        this.currentNode = startStatement
-        this.nodes = graph.nodes
-        //console.log(this.nodes, this.statements)
+
+        this.matrix.forEach(value => {
+            value.forEach(value1 => {
+                console.log(this.getNodeFromStatement(value1))
+            })
+            console.log('....')
+        })
+       // console.log(this.nodes, this.statements)
     }
 
-    private getCurrentNode = (current: statement) : NodeCore => {
-        return this.nodes[current.idLogic]
+    private getNodeFromStatement = (statement: statement) : NodeCore => {
+        //if (statement === eof) {
+        //    return {id: , isAdmit: false}
+        //}
+        return this.nodes[statement.idLogic]
     }
 
     private isPossibleTransition = (current: NodeCore, input: string) : boolean => {
@@ -131,23 +126,47 @@ export class DFA implements IComputer {
             console.log('Alphabet is empty, you should to enter edges')
             return {node: this.nodes[current.idLogic], counter: this.counterStepsForResult}
         }
-        console.log(this.getCurrentNode(current), 'NOW in', 'start statement')
+        console.log(this.getNodeFromStatement(current), 'NOW in', 'start statement')
         while (l < this.input.length) {
             j = this.input[l].idLogic
             if (this.matrix[i][j] === eof) {
-                console.log(this.getCurrentNode(current), 'FUBAR Aoutomata was stoped in ', current,
+                console.log(this.getNodeFromStatement(current), 'FUBAR Aoutomata was stoped in ', current,
                     'because string in matrix has only EOF values (noway from this statement)', ' in: ', i, ' ', j)
                 return {node: this.nodes[current.idLogic], counter: this.counterStepsForResult}
             }
             oldCurrent = current
             current = this.matrix[i][j]
             this.counterStepsForResult++
-            console.log(this.getCurrentNode(current), 'NOW in',  ' ~ ', i, ' ', j)
+            console.log(this.getNodeFromStatement(current), 'NOW in',  ' ~ ', i, ' ', j)
             i = this.matrix[i][j].idLogic
             l++
         }
-        console.log(this.getCurrentNode(current), 'Aoutomata was stoped in ', current, ' ~ ', i, ' ', j)
+        console.log(this.getNodeFromStatement(current), 'Aoutomata was stoped in ', current, ' ~ ', i, ' ', j)
         return {node: this.nodes[current.idLogic], counter: this.counterStepsForResult}
     }
 
 }
+
+let toSet = (str: string[]) => {
+    let set: Set<string> = new Set()
+    for (let i = 0; i < str.length; i++) {
+        set.add(str[i])
+    }
+    return set;
+}
+
+let dfa = new DFA(
+    {
+        nodes: [
+            {id: 1, isAdmit: false},
+            {id: -100, isAdmit: false},
+            {id: 44, isAdmit: true},
+        ],
+        edges: [
+            {from: 1, to: 1, transitions: toSet(['0'])},
+            {from: 1, to: -100, transitions: toSet(['0', '1'])},
+            //{from: -100, to: 44, transitions: toSet(['1'])}
+        ]
+    }, {id: 1, isAdmit: false}, ['0'])
+
+//let result = {node: {id: 44, isAdmit: true}, counter: 2}
