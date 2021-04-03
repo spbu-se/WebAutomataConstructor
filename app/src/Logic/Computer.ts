@@ -3,7 +3,7 @@ import {GraphCore, NodeCore} from "./IGraphTypes";
 
 export abstract class Computer {
 
-    protected input: elementOfAlphabet[] = []
+    input: elementOfAlphabet[] = []
     protected alphabet = new Map()
     protected statements = new Map()
     protected nodes: NodeCore[]
@@ -16,8 +16,8 @@ export abstract class Computer {
     protected  alphabetDBG: any = []
 
     public abstract restart: () => void
-   // public abstract run: () => Step
-    public abstract step: (input: string) => Step
+    public abstract run: () => Step
+    public abstract step: () => Step
 
     protected getAlphabetFromEdges = (): void => {
         let alphabetSet: Set<string> = new Set()
