@@ -1,5 +1,5 @@
-import {DFA} from "./DFA";
-import {Step} from "./Types";
+import {DFA} from "../DFA";
+import {Step} from "../Types";
 
 export {}
 
@@ -10,7 +10,6 @@ let toSet = (str: string[]) => {
     }
     return set;
 }
-
 
 test("{ q0 -> q1 -> (q2); A = {0, 1}}: 2 steps for 2 edges without loop", () => {
     let dfa = new DFA(

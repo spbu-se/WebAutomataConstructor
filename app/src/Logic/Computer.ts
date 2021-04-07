@@ -1,9 +1,11 @@
-import {Edge, elementOfAlphabet, Step} from "./Types";
+import {Edge, elementOfAlphabet, statement, Step} from "./Types";
 import {GraphCore, NodeCore} from "./IGraphTypes";
+
+export const eof: statement = {isAdmit: false, idLogic: -1, id: -1}
 
 export abstract class Computer {
 
-    input: elementOfAlphabet[] = []
+    protected input: elementOfAlphabet[] = []
     protected alphabet = new Map()
     protected statements = new Map()
     protected nodes: NodeCore[]
@@ -15,11 +17,11 @@ export abstract class Computer {
 
     protected  alphabetDBG: any = []
 
-    public abstract restart: () => void
-    public abstract run: () => Step
-    public abstract step: () => Step
+    public abstract restart(): void
+    public abstract run(): Step
+    public abstract step(): Step
 
-    protected getAlphabetFromEdges = (): void => {
+    protected getAlphabetFromEdges(): void {
         let alphabetSet: Set<string> = new Set()
         for (let i = 0; i < this.edges.length; i++) {
             this.edges[i].localValue.forEach(value => alphabetSet.add(value))
@@ -32,7 +34,7 @@ export abstract class Computer {
         })
     }
 
-    protected getStatementsFromNodes = (nodes: NodeCore[]): void => {
+    protected getStatementsFromNodes(nodes: NodeCore[]): void {
         for (let i = 0; i < nodes.length; i++) {
             this.statements.set(nodes[i].id, {isAdmit: nodes[i].isAdmit, idLogic: i})
         }

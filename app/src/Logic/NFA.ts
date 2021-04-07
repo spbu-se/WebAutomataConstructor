@@ -1,13 +1,6 @@
-import {eof} from "./IComputer";
-import {statement, Step} from "./Types";
+import {statement, statementNfa, Step} from "./Types";
 import {GraphCore, NodeCore} from "./IGraphTypes";
-import {Computer} from "./Computer";
-
-type statementNfa = {
-    value: statement[]
-    id: number
-    isAdmit: boolean
-}
+import {Computer, eof} from "./Computer";
 
 export class NFA extends Computer {
 
@@ -16,7 +9,7 @@ export class NFA extends Computer {
     private numbersStatementsNfa: Map<string, statementNfa> = new Map()
     private currentNodeNfa: statementNfa
 
-    private fromStatementsToStatementsNfa = () : void => {
+    private fromStatementsToStatementsNfa(): void {
         let i = 0
         this.statements.forEach((value) => {
             this.statementsNfa.push({value: [value], isAdmit: value.isAdmit, id: value.idLogic})
@@ -25,12 +18,12 @@ export class NFA extends Computer {
         })
     }
 
-    private keyOfStatementNfa = (statements: statement[]) : string => {
+    private keyOfStatementNfa(statements: statement[]): string {
         statements.sort((a, b) => a.idLogic - b.idLogic)
         return JSON.stringify(statements)
     }
 
-    private getIdStatementsNfa = (statements: statement[]) : number => {
+    private getIdStatementsNfa(statements: statement[]): number {
         let statementHelper = this.numbersStatementsNfa.get(this.keyOfStatementNfa(statements))
         if (statementHelper === undefined) {
             let lastId: number = this.statementsNfa.length
@@ -41,7 +34,7 @@ export class NFA extends Computer {
         return statementHelper.id
     }
 
-    private isAdmitStatementNfa = (statements: statement[]) : boolean => {
+    private isAdmitStatementNfa(statements: statement[]): boolean {
         for (let i = 0; i < statements.length; i++) {
             if (statements[i].isAdmit) {
                 let storageElement = this.numbersStatementsNfa.get(this.keyOfStatementNfa(statements))
@@ -56,19 +49,19 @@ export class NFA extends Computer {
         return false
     }
 
-    private deleteRepetitions = (statements: statement[]) : void => {
+    private deleteRepetitions(statements: statement[]): void {
         let set: Set<statement> = new Set()
         statements.forEach(value => set.add(value))
         statements = []
         set.forEach((value: statement) => statements.push(value))
     }
 
-    private pushValueStatmentNfa(statement: statementNfa, value: statement) : void {
+    private pushValueStatmentNfa(statement: statementNfa, value: statement): void {
         statement.value.push(value)
         this.deleteRepetitions(statement.value)
     }
 
-    private createMatrix = (): void => {
+    private createMatrix(): void {
         this.fromStatementsToStatementsNfa()
         for (let i = 0; i < this.statements.size; i++) {
             this.matrix[i] = []
@@ -93,7 +86,7 @@ export class NFA extends Computer {
         }
     }
 
-    public calculateTransition = (statement: statementNfa, letterValue: number) : statementNfa => {
+    private calculateTransition(statement: statementNfa, letterValue: number): statementNfa {
         let valOfNewStatement: statement[] = []
         let cell: statementNfa = {value: [], isAdmit: false, id: -1}
         statement.value.forEach(value => {
@@ -110,7 +103,7 @@ export class NFA extends Computer {
         return cell
     }
 
-    public nfaToDfa = (): void => {
+    private nfaToDfa(): void {
         if (this.matrix.length < this.statementsNfa.length) {
             let start = this.matrix.length
             for (let i = start; i < this.statementsNfa.length; i++) {
@@ -122,15 +115,6 @@ export class NFA extends Computer {
             }
         }
     }
-
-    public setInput = (input: string[]): void => {
-        this.input = []
-        input.forEach(value => {
-            this.input.push({idLogic: this.alphabet.get(value), value: value})
-        })
-        this.restart()
-    }
-
 
     constructor(graph: GraphCore, startStatement: NodeCore, input: string[]) {
         super(graph, startStatement)
@@ -149,25 +133,42 @@ export class NFA extends Computer {
        // console.log(this.statementsNfa)
     }
 
-    private getNodeFromStatement = (statement: statement) : NodeCore => {
+    private getNodeFromStatement(statement: statement): NodeCore {
         if (statement === eof) {
             return {id: -1, isAdmit: false}
         }
         return this.nodes[statement.idLogic]
     }
 
-    public restart = () : void => {
-        this.currentNodeNfa = this.statementsNfa[this.getIdStatementsNfa([this.statements.get(this.startStatement.id)])]
-        this.counterSteps = 0
-    }
-
-    private isPossibleTransition = (input: string) : boolean => {
+    private isPossibleTransition(input: string): boolean {
         let transformedInput: number = this.alphabet.get(input)
         return  !(this.matrix[this.currentNodeNfa.id][transformedInput].id === -1
                 || this.matrix[this.currentNodeNfa.id][transformedInput] === undefined)
     }
 
-    public step = () : Step => {
+    private toSteps(statement: statementNfa, counter: number): Step {
+        let retNodes: NodeCore[] = []
+        statement.value.forEach(value => {
+            let temp: NodeCore = this.nodes[value.idLogic]
+            retNodes.push(temp)
+        })
+        return {nodes: retNodes, counter: counter, isAdmit: statement.isAdmit}
+    }
+
+    public setInput(input: string[]): void {
+        this.input = []
+        input.forEach(value => {
+            this.input.push({idLogic: this.alphabet.get(value), value: value})
+        })
+        this.restart()
+    }
+
+    public restart(): void {
+        this.currentNodeNfa = this.statementsNfa[this.getIdStatementsNfa([this.statements.get(this.startStatement.id)])]
+        this.counterSteps = 0
+    }
+
+    public step(): Step {
         if (this.counterSteps >= this.input.length || !this.isPossibleTransition(this.input[this.counterSteps].value)) {
             return this.toSteps(this.currentNodeNfa, this.counterSteps)
         }
@@ -177,21 +178,11 @@ export class NFA extends Computer {
         return this.toSteps(this.currentNodeNfa, this.counterSteps)
     }
 
-    private toSteps = (statement: statementNfa, counter: number) : Step => {
-        let retNodes: NodeCore[] = []
-        statement.value.forEach(value => {
-            let temp: NodeCore = this.nodes[value.idLogic]
-            retNodes.push(temp)
-        })
-        return {nodes: retNodes, counter: counter, isAdmit: statement.isAdmit}
-    }
-
-    public getTrendyNode = () : Step => {
+    public getTrendyNode(): Step {
         return this.toSteps(this.currentNodeNfa, this.counterSteps)
     }
 
-    public run = () : Step => {
-        this.counterStepsForResult = 0
+    public run(): Step {
         this.counterStepsForResult = 0
         let current: statementNfa = this.statementsNfa[this.statements.get(this.startStatement.id).idLogic]
         let oldCurrent = current
@@ -225,3 +216,26 @@ export class NFA extends Computer {
         return this.toSteps(current, retCounter)
     }
 }
+
+let toSet = (str: string[]) => {
+    let set: Set<string> = new Set()
+    for (let i = 0; i < str.length; i++) {
+        set.add(str[i])
+    }
+    return set;
+}
+
+let nfa = new NFA(
+    {
+        nodes: [
+            {id: 1, isAdmit: false},
+            {id: 2, isAdmit: false},
+            {id: 3, isAdmit: true},
+        ],
+        edges: [
+            {from: 1, to: 1, transitions: toSet(['0', '1'])},
+            {from: 1, to: 2, transitions: toSet(['0'])},
+            {from: 2, to: 3, transitions: toSet(['0'])},
+        ]
+    }, {id: 1, isAdmit: false}, ['0', '0', '0', '0', '1', '1'])
+console.log(nfa.run())

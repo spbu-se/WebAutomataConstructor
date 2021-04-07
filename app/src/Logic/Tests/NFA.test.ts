@@ -1,5 +1,5 @@
-import {statement, Step} from "./Types";
-import {NFA} from "./NFA";
+import {Step} from "../Types";
+import {NFA} from "../NFA";
 
 export {}
 
