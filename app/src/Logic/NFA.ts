@@ -224,18 +224,3 @@ let toSet = (str: string[]) => {
     }
     return set;
 }
-
-let nfa = new NFA(
-    {
-        nodes: [
-            {id: 1, isAdmit: false},
-            {id: 2, isAdmit: false},
-            {id: 3, isAdmit: true},
-        ],
-        edges: [
-            {from: 1, to: 1, transitions: toSet(['0', '1'])},
-            {from: 1, to: 2, transitions: toSet(['0'])},
-            {from: 2, to: 3, transitions: toSet(['0'])},
-        ]
-    }, {id: 1, isAdmit: false}, ['0', '0', '0', '0', '1', '1'])
-console.log(nfa.run())
