@@ -14,6 +14,7 @@ export type statement = {
 } & NodeCore
 
 export type Step = {
-    node: NodeCore
+    nodes: NodeCore[]
     counter: number
+    isAdmit: boolean
 }
