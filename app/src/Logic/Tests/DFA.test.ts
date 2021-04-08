@@ -146,7 +146,7 @@ test("{ (q0)<=>q1; A = {0}}: is input length divided at 2", () => {
         .toBe(true)
 })
 let testFunc = (dfa: DFA) : Step => {
-    for (let i = 0; i < dfa.input.length; i++) {
+    for (let i = 0; i < dfa.getInput().length; i++) {
         dfa.step()
         //console.log(dfa.getTrendyNode())
     }

@@ -1,9 +1,10 @@
 import {statement, statementNfa, Step} from "./Types";
 import {GraphCore, NodeCore} from "./IGraphTypes";
-import {Computer, eof, EPS} from "./Computer";
-import {EpsilonNFA} from "./EpsilonNFA";
+import {Computer, eof} from "./Computer";
+import {NFA} from "./NFA";
 
-export class NFA extends Computer {
+export class EpsilonNFA extends Computer {
+
 
     private matrix: statementNfa[][] = []
     private statementsNfa: statementNfa[] = []
@@ -84,7 +85,7 @@ export class NFA extends Computer {
                         cell.value = []
                     }
                     this.pushValueStatmentNfa(cell, statementNumberTo)
-                  //  cell.value.push(statementNumberTo)
+                    //  cell.value.push(statementNumberTo)
                     cell.id = this.getIdStatementsNfa(cell.value)
                     cell.isAdmit = this.isAdmitStatementNfa(cell.value)
                 })
@@ -121,23 +122,40 @@ export class NFA extends Computer {
         }
     }
 
+    private enfaToNfa(): void {
+        let eps = this.alphabet.get('Epsilon')
+        for (let i = 0; i < this.matrix.length; i++) {
+           // console.log('------------------->', this.matrix[i][eps], this.statements.get(this.nodes[i].id))
+            if (this.matrix[i][eps].id === -1) {
+                this.matrix[i][eps].value = []
+            }
+            this.pushValueStatmentNfa(this.matrix[i][eps], this.statements.get(this.nodes[i].id))
+            this.matrix[i][eps].id = this.getIdStatementsNfa(this.matrix[i][eps].value)
+            this.matrix[i][eps].isAdmit = this.isAdmitStatementNfa(this.matrix[i][eps].value)
+        }
+    }
+
     constructor(graph: GraphCore, startStatement: NodeCore, input: string[]) {
         super(graph, startStatement)
         this.setInput(input)
         this.createMatrix()
+        if (this.alphabet.get('Epsilon') !== undefined) {
+            this.enfaToNfa()
+        }
         console.log(' . . .')
         this.matrix.forEach(value => {
             value.forEach(value1 => console.log(value1))
             console.log(' ')
         })
-        console.log(this.statementsNfa)
-        this.statementsNfa.forEach(value => console.log(value))
-        this.nfaToDfa()
-        this.currentNodeNfa = this.statementsNfa[this.getIdStatementsNfa([this.statements.get(this.startStatement.id)])]
-       // console.log(this.alphabet)
+        console.log(this.nodes)
+/*        console.log(this.statementsNfa)
+        this.statementsNfa.forEach(value => console.log(value))*/
+ ///!       this.nfaToDfa()
+ ///!       this.currentNodeNfa = this.statementsNfa[this.getIdStatementsNfa([this.statements.get(this.startStatement.id)])]
+        // console.log(this.alphabet)
 
-       // console.log(' ------------')
-       // console.log(this.currentNodeNfa)
+        // console.log(' ------------')
+        // console.log(this.currentNodeNfa)
 
     }
 
@@ -151,7 +169,7 @@ export class NFA extends Computer {
     private isPossibleTransition(input: string): boolean {
         let transformedInput: number = this.alphabet.get(input)
         return  !(this.matrix[this.currentNodeNfa.id][transformedInput].id === -1
-                || this.matrix[this.currentNodeNfa.id][transformedInput] === undefined)
+            || this.matrix[this.currentNodeNfa.id][transformedInput] === undefined)
     }
 
     private toSteps(statement: statementNfa, counter: number): Step {
@@ -207,7 +225,7 @@ export class NFA extends Computer {
         while (l < this.input.length) {
             j = this.input[l].idLogic
             if (this.matrix[i][j].id === -1) {
-               // console.log(this.numbersStatementsNfa.get(this.keyOfStatementNfa(current.value)))
+                // console.log(this.numbersStatementsNfa.get(this.keyOfStatementNfa(current.value)))
                 let retCounter: number = this.counterStepsForResult /// current.value.length
                 return this.toSteps(current, retCounter)
                 //return {node: this.nodes[current.idLogic], counter: this.counterStepsForResult}
@@ -223,6 +241,10 @@ export class NFA extends Computer {
         let retCounter: number = this.counterStepsForResult
         return this.toSteps(current, retCounter)
     }
+
+    isDeterministic() {
+        return this.statementsNfa.length === this.statements.size
+    }
 }
 
 let toSet = (str: string[]) => {
@@ -232,29 +254,43 @@ let toSet = (str: string[]) => {
     }
     return set;
 }
-let nfa = new NFA(
+
+let eps: string = 'Epsilon'
+
+/*let nfa = new EpsilonNFA(
     {
         nodes: [
-            {id: 0, isAdmit: false},
             {id: 1, isAdmit: false},
+            {id: 2, isAdmit: false},
+            {id: 3, isAdmit: true},
+        ],
+        edges: [
+            {from: 1, to: 1, transitions: toSet(['0', '1', eps])},
+            {from: 1, to: 2, transitions: toSet(['0'])},
+            {from: 2, to: 3, transitions: toSet(['0'])}
+        ]
+    }, {id: 1, isAdmit: false}, ['0'])*/
+
+
+let nfa = new EpsilonNFA(
+    {
+        nodes: [
+            {id: 1, isAdmit: true},
             {id: 2, isAdmit: false},
             {id: 3, isAdmit: false},
             {id: 4, isAdmit: false},
             {id: 5, isAdmit: false},
             {id: 6, isAdmit: false},
-            {id: 7, isAdmit: true},
         ],
         edges: [
-            {from: 0, to: 1, transitions: toSet([EPS])},
-            {from: 1, to: 1, transitions: toSet(['0', '1'])},
-            {from: 1, to: 2, transitions: toSet([EPS])},
+            {from: 1, to: 2, transitions: toSet(['0'])},
             {from: 2, to: 3, transitions: toSet(['0'])},
-            {from: 2, to: 4, transitions: toSet(['1'])},
-            {from: 3, to: 5, transitions: toSet(['0'])},
-            {from: 4, to: 5, transitions: toSet(['1'])},
-            {from: 5, to: 6, transitions: toSet([EPS])},
-            {from: 6, to: 6, transitions: toSet(['0', '1'])},
-            {from: 6, to: 7, transitions: toSet([EPS])},
-            /*{from: 6, to: 0, transitions: toSet(['eps'])}*/
+            {from: 2, to: 5, transitions: toSet(['1'])},
+            {from: 3, to: 4, transitions: toSet(['1'])},
+            {from: 4, to: 1, transitions: toSet([eps])},
+            {from: 5, to: 1, transitions: toSet([eps])},
+            {from: 5, to: 6, transitions: toSet(['0'])},
+            {from: 6, to: 1, transitions: toSet([eps])}
         ]
-    }, {id: 0, isAdmit: false}, ['0'])
+    }, {id: 1, isAdmit: true}, ['0'])
+
