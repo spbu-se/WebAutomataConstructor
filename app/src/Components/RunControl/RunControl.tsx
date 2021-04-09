@@ -109,7 +109,9 @@ class RunControl extends React.Component<runControlProps, runControlState> {
 
         const stepResult = this.state.dfa.step();
 
-        this.props.changeStateIsCurrent(stepResult.node.id, true);
+        stepResult.nodes.forEach(node =>
+            this.props.changeStateIsCurrent(node.id, true)
+        );
     }
 
     onRunClicked = (): void => {
@@ -120,7 +122,7 @@ class RunControl extends React.Component<runControlProps, runControlState> {
 
         const result = this.state.dfa.run();
 
-        this.setState({result: result.node.isAdmit ? "true" : "false"});
+        //this.setState({result: result.node.isAdmit ? "true" : "false"});
     }
 
     render() {

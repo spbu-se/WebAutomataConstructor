@@ -8,7 +8,9 @@ export interface node extends NodeCore{
     color?: object,
    // isAdmit: boolean,
     isInitial: boolean,
-    isCurrent: boolean
+    isCurrent: boolean,
+    borderWidth?: number,
+    borderWidthSelected?: number
 }
 
 export interface edge extends EdgeCore {

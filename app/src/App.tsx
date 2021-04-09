@@ -13,7 +13,7 @@ import { cloneDeep } from "lodash";
 import NodeControl from "./Components/NodeControl/NodeControl";
 import SettingsControl from "./Components/SettingsControl/SettingsControl";
 import EdgeControl from "./Components/EdgeControl/EdgeControl";
-import {getStateColor, transitionsToLabel} from "./utils";
+import {decorateGraph, transitionsToLabel} from "./utils";
 import RunControl from "./Components/RunControl/RunControl";
 
 interface appProps {
@@ -30,10 +30,10 @@ interface appState {
 
 const initialElements: graph = {
     nodes: [
-        {id: 1, x: 0, y: 20, label: "label 1", isAdmit: false, isInitial: true, isCurrent: false, color: getStateColor(false, true, false)},
-        {id: 2, x: 200, y: 0, label: "label 2", isAdmit: false, isInitial: false, isCurrent: false, color: getStateColor(false, false, false)},
-        {id: 3, x: 0, y: 180, label: "label 3", isAdmit: true, isInitial: false, isCurrent: false, color: getStateColor(true, false, false)},
-        {id: 4, x: 180, y: 200, label: "label 4", isAdmit: true, isInitial: false, isCurrent: false, color: getStateColor(true, false, false)},
+        {id: 1, x: 0, y: 20, label: "S0", isAdmit: false, isInitial: true, isCurrent: false},
+        {id: 2, x: 200, y: 0, label: "S1", isAdmit: false, isInitial: false, isCurrent: false},
+        {id: 3, x: 0, y: 180, label: "S2", isAdmit: true, isInitial: false, isCurrent: true},
+        {id: 4, x: 180, y: 200, label: "S3", isAdmit: true, isInitial: false, isCurrent: false},
     ],
     edges: [
         {from: 1, to: 2, label: "0", transitions: new Set(["0"])},
@@ -66,11 +66,11 @@ class App extends React.Component<appProps, appState> {
                     length: 200
                 },
                 nodes: {
-                    shape: "circle",
-                    color: {
-                        border: "black",
-                        background: "white"
-                    }
+                    shape: "box",
+                    font: "18px Roboto black",
+                    labelHighlightBold: false,
+                    widthConstraint: 40,
+                    heightConstraint: 40
                 },
                 physics: {
                     enabled: false
@@ -97,7 +97,7 @@ class App extends React.Component<appProps, appState> {
 
     updateGraph = (): void => {
         if (this.network !== null) {
-            this.network.setData(this.state.elements);
+            this.network.setData(decorateGraph(this.state.elements));
         }
     }
 
@@ -119,7 +119,6 @@ class App extends React.Component<appProps, appState> {
         for (let i = 0; i < elements.nodes.length; i++) {
             if (elements.nodes[i].id === id) {
                 elements.nodes[i].isAdmit = isAdmit;
-                elements.nodes[i].color = getStateColor(isAdmit, elements.nodes[i].isInitial, elements.nodes[i].isCurrent);
             }
         }
 
@@ -132,12 +131,10 @@ class App extends React.Component<appProps, appState> {
         for (let i = 0; i < elements.nodes.length; i++) {
             if (elements.nodes[i].isInitial) {
                 elements.nodes[i].isInitial = false;
-                elements.nodes[i].color = getStateColor(elements.nodes[i].isAdmit, false, elements.nodes[i].isCurrent);
             }
 
             if (elements.nodes[i].id === id) {
                 elements.nodes[i].isInitial = isInitial
-                elements.nodes[i].color = getStateColor(elements.nodes[i].isAdmit, isInitial, elements.nodes[i].isCurrent);
             }
         }
 
@@ -150,12 +147,10 @@ class App extends React.Component<appProps, appState> {
         for (let i = 0; i < elements.nodes.length; i++) {
             if (elements.nodes[i].isCurrent) {
                 elements.nodes[i].isCurrent = false;
-                elements.nodes[i].color = getStateColor(elements.nodes[i].isAdmit, elements.nodes[i].isInitial, false);
             }
 
             if (elements.nodes[i].id === id) {
                 elements.nodes[i].isCurrent = isCurrent
-                elements.nodes[i].color = getStateColor(elements.nodes[i].isAdmit, elements.nodes[i].isInitial, isCurrent);
             }
         }
 
@@ -347,10 +342,10 @@ class App extends React.Component<appProps, appState> {
                         changeEdgeTransitions={this.changeEdgeTransition}
                         deleteEdge={this.deleteEdge}
                     />
-                    <RunControl
-                        elements={this.state.elements}
-                        changeStateIsCurrent={this.changeStateIsCurrent}
-                    />
+                    {/*<RunControl*/}
+                    {/*    elements={this.state.elements}*/}
+                    {/*    changeStateIsCurrent={this.changeStateIsCurrent}*/}
+                    {/*/>*/}
                 </div>
 
             </div>
