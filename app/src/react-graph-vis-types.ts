@@ -2,7 +2,7 @@ import {EdgeCore, GraphCore, NodeCore} from "./Logic/IGraphTypes";
 
 export interface node extends NodeCore{
     id: number,
-    label?: string,
+    label: string,
     x?: number,
     y?: number,
     color?: object,

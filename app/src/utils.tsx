@@ -28,3 +28,15 @@ export const decorateGraph = (graph: graph): graph => {
 
     return graph;
 }
+
+export const getNodeNamePrefix = (graph: graph): string => {
+    let prefix = graph.nodes.length === 0 ? "" : graph.nodes[0].label;
+
+    graph.nodes.forEach(node => {
+        let i = 0;
+        while (i < node.label.length && i < prefix.length && node.label[i] === prefix[i]) {i++;}
+        prefix = prefix.substring(0, i);
+    });
+
+    return prefix;
+}

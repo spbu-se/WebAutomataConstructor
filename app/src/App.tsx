@@ -13,7 +13,7 @@ import { cloneDeep } from "lodash";
 import NodeControl from "./Components/NodeControl/NodeControl";
 import SettingsControl from "./Components/SettingsControl/SettingsControl";
 import EdgeControl from "./Components/EdgeControl/EdgeControl";
-import {decorateGraph, transitionsToLabel} from "./utils";
+import {decorateGraph, getNodeNamePrefix, transitionsToLabel} from "./utils";
 import RunControl from "./Components/RunControl/RunControl";
 
 interface appProps {
@@ -176,7 +176,7 @@ class App extends React.Component<appProps, appState> {
 
         const elements = cloneDeep(this.state.elements);
 
-        elements.nodes.push({id: ++this.lastNodeId, x: x, y: y, label: "new", isAdmit: false, isInitial: false});
+        elements.nodes.push({id: ++this.lastNodeId, x: x, y: y, label: getNodeNamePrefix(this.state.elements), isAdmit: false, isInitial: false});
 
         this.setState({elements: elements}, () => this.updateGraph());
     }
