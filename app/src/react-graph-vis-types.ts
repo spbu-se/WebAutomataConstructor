@@ -1,5 +1,14 @@
 import {EdgeCore, GraphCore, NodeCore} from "./Logic/IGraphTypes";
 
+export type ComputerType = "dfa" | "nfa";
+
+export type ComputerInfo = {
+    name: string
+    description: string,
+    preview: string,
+    defaultGraph: graph
+}
+
 export interface node extends NodeCore{
     id: number,
     label: string,

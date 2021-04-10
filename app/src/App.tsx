@@ -2,6 +2,7 @@ import React from 'react';
 import "./App.css"
 import Graph from "react-graph-vis";
 import {
+    ComputerType,
     controlNodeDraggingEventArgs, deselectEdgeEventArgs,
     deselectNodeEventArgs,
     doubleClickEventArgs, dragEndEventArgs, edge,
@@ -9,17 +10,20 @@ import {
     node, selectEdgeEventArgs,
     selectNodeEventArgs
 } from "./react-graph-vis-types";
-import { cloneDeep } from "lodash";
+import {cloneDeep} from "lodash";
 import NodeControl from "./Components/NodeControl/NodeControl";
 import SettingsControl from "./Components/SettingsControl/SettingsControl";
 import EdgeControl from "./Components/EdgeControl/EdgeControl";
-import {decorateGraph, getNodeNamePrefix, transitionsToLabel} from "./utils";
+import {computersInfo, decorateGraph, getNodeNamePrefix, transitionsToLabel} from "./utils";
 import RunControl from "./Components/RunControl/RunControl";
+import ComputerTypePopout from "./Components/ComputerTypePopout/ComputerTypePopout";
 
 interface appProps {
 }
 
 interface appState {
+    computerType: null | ComputerType
+
     selectedNode: node | null,
     selectedEdge: edge | null,
     inEdgeMode: boolean,
@@ -28,34 +32,17 @@ interface appState {
     initiallyStabilized: boolean
 }
 
-const initialElements: graph = {
-    nodes: [
-        {id: 1, x: 0, y: 20, label: "S0", isAdmit: false, isInitial: true, isCurrent: false},
-        {id: 2, x: 200, y: 0, label: "S1", isAdmit: false, isInitial: false, isCurrent: false},
-        {id: 3, x: 0, y: 180, label: "S2", isAdmit: true, isInitial: false, isCurrent: true},
-        {id: 4, x: 180, y: 200, label: "S3", isAdmit: true, isInitial: false, isCurrent: false},
-    ],
-    edges: [
-        {from: 1, to: 2, label: "0", transitions: new Set(["0"])},
-        {from: 2, to: 1, label: "0", transitions: new Set(["0"])},
-        {from: 3, to: 4, label: "0", transitions: new Set(["0"])},
-        {from: 4, to: 4, label: "0", transitions: new Set(["0"])},
-        {from: 1, to: 3, label: "1", transitions: new Set(["1"])},
-        {from: 2, to: 4, label: "1", transitions: new Set(["1"])},
-        {from: 3, to: 2, label: "1", transitions: new Set(["1"])},
-        {from: 4, to: 2, label: "1", transitions: new Set(["1", "0"])},
-    ]
-}
-
 class App extends React.Component<appProps, appState> {
     constructor(props: appProps) {
         super(props);
 
         this.state = {
+            computerType: null,
+
             selectedNode: null,
             selectedEdge: null,
             inEdgeMode: false,
-            elements: initialElements,
+            elements: {nodes: [], edges: []},
             options: {
                 edges: {
                     smooth: {
@@ -85,7 +72,7 @@ class App extends React.Component<appProps, appState> {
     }
 
     network: any;
-    lastNodeId = initialElements.nodes.length;
+    lastNodeId = 0;
 
     getNodeById = (id: number): node | undefined => {
         return this.state.elements.nodes.find(node => node.id === id);
@@ -176,7 +163,14 @@ class App extends React.Component<appProps, appState> {
 
         const elements = cloneDeep(this.state.elements);
 
-        elements.nodes.push({id: ++this.lastNodeId, x: x, y: y, label: getNodeNamePrefix(this.state.elements), isAdmit: false, isInitial: false});
+        elements.nodes.push({
+            id: ++this.lastNodeId,
+            x: x,
+            y: y,
+            label: getNodeNamePrefix(this.state.elements),
+            isAdmit: false,
+            isInitial: false
+        });
 
         this.setState({elements: elements}, () => this.updateGraph());
     }
@@ -314,6 +308,17 @@ class App extends React.Component<appProps, appState> {
     render() {
         return (
             <div className="app">
+                {
+                    this.state.computerType === null ?
+                        <ComputerTypePopout changeComputerType={computerType => {
+                            const { defaultGraph } = computersInfo[computerType!];
+
+                            this.lastNodeId = defaultGraph.nodes.length;
+                            this.setState({computerType: computerType, elements: defaultGraph}, () => this.updateGraph());
+                        }}/>
+                        : null
+                }
+
                 <div className="field__container">
                     <Graph
                         getNetwork={(network: any) => this.network = network}

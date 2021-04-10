@@ -3,6 +3,7 @@ import {graph} from "../../react-graph-vis-types";
 import {DFA} from "../../Logic/DFA";
 import {NodeCore} from "../../Logic/IGraphTypes";
 import { isEqual } from "lodash";
+import {IComputer} from "../../Logic/IComputer";
 
 interface runControlProps {
     elements: graph,
