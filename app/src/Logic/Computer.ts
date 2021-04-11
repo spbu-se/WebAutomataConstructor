@@ -1,9 +1,12 @@
-import {Edge, elementOfAlphabet, Step} from "./Types";
+import {Edge, elementOfAlphabet, statement, Step} from "./Types";
 import {GraphCore, NodeCore} from "./IGraphTypes";
+
+export const eof: statement = {isAdmit: false, idLogic: -1, id: -1}
+export const EPS: string = 'Epsilon'
 
 export abstract class Computer {
 
-    input: elementOfAlphabet[] = []
+    protected input: elementOfAlphabet[] = []
     protected alphabet = new Map()
     protected statements = new Map()
     protected nodes: NodeCore[]
@@ -12,17 +15,20 @@ export abstract class Computer {
     protected currentNode: NodeCore
     protected counterSteps: number = 0
     protected counterStepsForResult: number = 0
+    protected alphabetDBG: any = []
+  //  protected haveEpsilon: boolean = false
+    protected alphabetSize: number = 0;
 
-    protected  alphabetDBG: any = []
+    public abstract restart(): void
+    public abstract run(): Step
+    public abstract step(): Step
 
-    public abstract restart: () => void
-    public abstract run: () => Step
-    public abstract step: () => Step
-
-    protected getAlphabetFromEdges = (): void => {
+    protected getAlphabetFromEdges(): void {
         let alphabetSet: Set<string> = new Set()
         for (let i = 0; i < this.edges.length; i++) {
-            this.edges[i].localValue.forEach(value => alphabetSet.add(value))
+            this.edges[i].localValue.forEach(value => {
+                alphabetSet.add(value)
+            })
         }
         let i = 0
         alphabetSet.forEach(value => {
@@ -32,7 +38,7 @@ export abstract class Computer {
         })
     }
 
-    protected getStatementsFromNodes = (nodes: NodeCore[]): void => {
+    protected getStatementsFromNodes(nodes: NodeCore[]): void {
         for (let i = 0; i < nodes.length; i++) {
             this.statements.set(nodes[i].id, {isAdmit: nodes[i].isAdmit, idLogic: i})
         }
@@ -51,7 +57,7 @@ export abstract class Computer {
         }
      //   console.log('EDGES: ', this.edges)
         this.getAlphabetFromEdges()
-  //      console.log('ALPHABET: ', this.alphabet)
+        console.log('ALPHABET: ', this.alphabet)
         this.getStatementsFromNodes(graph.nodes)
     //    console.log('STATEMENTS: ', this.statements)
 
