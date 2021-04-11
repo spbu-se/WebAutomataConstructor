@@ -32,6 +32,8 @@ interface appState {
     initiallyStabilized: boolean
 }
 
+export const ComputerTypeContext = React.createContext<null | ComputerType>(null);
+
 class App extends React.Component<appProps, appState> {
     constructor(props: appProps) {
         super(props);
@@ -128,15 +130,17 @@ class App extends React.Component<appProps, appState> {
         this.setState({elements: elements}, () => this.updateGraph());
     }
 
-    changeStateIsCurrent = (id: number, isCurrent: boolean): void => {
+    changeStateIsCurrent = (ids: number[], isCurrent: boolean): void => {
         const elements = cloneDeep(this.state.elements);
 
         for (let i = 0; i < elements.nodes.length; i++) {
             if (elements.nodes[i].isCurrent) {
                 elements.nodes[i].isCurrent = false;
             }
+        }
 
-            if (elements.nodes[i].id === id) {
+        for (let i = 0; i < elements.nodes.length; i++) {
+            if (ids.includes(elements.nodes[i].id)) {
                 elements.nodes[i].isCurrent = isCurrent
             }
         }
@@ -307,53 +311,58 @@ class App extends React.Component<appProps, appState> {
 
     render() {
         return (
-            <div className="app">
-                {
-                    this.state.computerType === null ?
-                        <ComputerTypePopout changeComputerType={computerType => {
-                            const { defaultGraph } = computersInfo[computerType!];
+            <ComputerTypeContext.Provider value={this.state.computerType}>
+                <div className="app">
+                    {
+                        this.state.computerType === null ?
+                            <ComputerTypePopout changeComputerType={computerType => {
+                                const {defaultGraph} = computersInfo[computerType!];
 
-                            this.lastNodeId = defaultGraph.nodes.length;
-                            this.setState({computerType: computerType, elements: defaultGraph}, () => this.updateGraph());
-                        }}/>
-                        : null
-                }
+                                this.lastNodeId = defaultGraph.nodes.length;
+                                this.setState({
+                                    computerType: computerType,
+                                    elements: defaultGraph
+                                }, () => this.updateGraph());
+                            }}/>
+                            : null
+                    }
 
-                <div className="field__container">
-                    <Graph
-                        getNetwork={(network: any) => this.network = network}
-                        graph={{nodes: [], edges: []}}
-                        options={this.state.options}
-                        events={this.events}
-                    />
+                    <div className="field__container">
+                        <Graph
+                            getNetwork={(network: any) => this.network = network}
+                            graph={{nodes: [], edges: []}}
+                            options={this.state.options}
+                            events={this.events}
+                        />
+                    </div>
+
+                    <div className="app__right-menu">
+                        <NodeControl
+                            node={this.state.selectedNode}
+                            changeNodeLabel={this.changeNodeLabel}
+                            changeStateIsAdmit={this.changeStateIsAdmit}
+                            changeStateIsInitial={this.changeStateIsInitial}
+                            deleteNode={this.deleteNode}
+                        />
+                        <SettingsControl
+                            enterEdgeMode={this.enterEdgeMode}
+                            leaveEdgeMode={this.leaveEdgeMode}
+                            inEdgeMode={this.state.inEdgeMode}
+                        />
+                        <EdgeControl
+                            edge={this.state.selectedEdge}
+                            changeEdgeLabel={this.changeEdgeLabel}
+                            changeEdgeTransitions={this.changeEdgeTransition}
+                            deleteEdge={this.deleteEdge}
+                        />
+                        <RunControl
+                            elements={this.state.elements}
+                            changeStateIsCurrent={this.changeStateIsCurrent}
+                        />
+                    </div>
+
                 </div>
-
-                <div className="app__right-menu">
-                    <NodeControl
-                        node={this.state.selectedNode}
-                        changeNodeLabel={this.changeNodeLabel}
-                        changeStateIsAdmit={this.changeStateIsAdmit}
-                        changeStateIsInitial={this.changeStateIsInitial}
-                        deleteNode={this.deleteNode}
-                    />
-                    <SettingsControl
-                        enterEdgeMode={this.enterEdgeMode}
-                        leaveEdgeMode={this.leaveEdgeMode}
-                        inEdgeMode={this.state.inEdgeMode}
-                    />
-                    <EdgeControl
-                        edge={this.state.selectedEdge}
-                        changeEdgeLabel={this.changeEdgeLabel}
-                        changeEdgeTransitions={this.changeEdgeTransition}
-                        deleteEdge={this.deleteEdge}
-                    />
-                    {/*<RunControl*/}
-                    {/*    elements={this.state.elements}*/}
-                    {/*    changeStateIsCurrent={this.changeStateIsCurrent}*/}
-                    {/*/>*/}
-                </div>
-
-            </div>
+            </ComputerTypeContext.Provider>
         )
     }
 }

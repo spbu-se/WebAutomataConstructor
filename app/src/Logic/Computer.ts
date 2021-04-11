@@ -19,9 +19,11 @@ export abstract class Computer {
   //  protected haveEpsilon: boolean = false
     protected alphabetSize: number = 0;
 
-    public abstract restart(): void
-    public abstract run(): Step
-    public abstract step(): Step
+
+    public abstract restart: () => void
+    public abstract run: () => Step
+    public abstract step: () => Step
+    public abstract setInput: (input: string[]) => void
 
     protected getAlphabetFromEdges(): void {
         let alphabetSet: Set<string> = new Set()

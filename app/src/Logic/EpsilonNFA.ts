@@ -271,7 +271,7 @@ export class EpsilonNFA extends Computer {
         return {nodes: retNodes, counter: counter, isAdmit: statement.isAdmit}
     }
 
-    public setInput(input: string[]): void {
+    public setInput = (input: string[]): void => {
         this.input = []
         input.forEach(value => {
             this.input.push({idLogic: this.alphabet.get(value), value: value})
@@ -279,12 +279,12 @@ export class EpsilonNFA extends Computer {
         this.restart()
     }
 
-    public restart(): void {
+    public restart = (): void => {
         this.currentNodeNfa = this.statementsNfa[this.getIdStatementsNfa([this.statements.get(this.startStatement.id)])]
         this.counterSteps = 0
     }
 
-    public step(): Step {
+    public step = (): Step => {
         if (this.counterSteps >= this.input.length || !this.isPossibleTransition(this.input[this.counterSteps].value)) {
             return this.toSteps(this.currentNodeNfa, this.counterSteps)
         }
@@ -298,7 +298,7 @@ export class EpsilonNFA extends Computer {
         return this.toSteps(this.currentNodeNfa, this.counterSteps)
     }
 
-    public run(): Step {
+    public run = (): Step => {
         this.counterStepsForResult = 0
         let current: statementNfa = this.statementsNfa[this.statements.get(this.startStatement.id).idLogic]
         let oldCurrent = current

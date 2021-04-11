@@ -68,7 +68,7 @@ export const computersInfo: Record<ComputerType, ComputerInfo> = {
                 {from: 1, to: 3, transitions: new Set(["1"])},
                 {from: 2, to: 4, transitions: new Set(["1"])},
                 {from: 3, to: 2, transitions: new Set(["1"])},
-                {from: 4, to: 2, transitions: new Set(["1", "0"])},
+                {from: 4, to: 2, transitions: new Set(["1"])},
             ]
         }
     },

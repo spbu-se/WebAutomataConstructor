@@ -1,19 +1,30 @@
 import React, {ChangeEvent} from "react";
-import {graph} from "../../react-graph-vis-types";
+import {ComputerType, graph, node} from "../../react-graph-vis-types";
 import {DFA} from "../../Logic/DFA";
-import {NodeCore} from "../../Logic/IGraphTypes";
 import { isEqual } from "lodash";
-import {IComputer} from "../../Logic/IComputer";
+import {withComputerType} from "../../hoc";
+import {Computer} from "../../Logic/Computer";
+import {NFA} from "../../Logic/NFA";
 
 interface runControlProps {
+    computerType: ComputerType,
     elements: graph,
-    changeStateIsCurrent: (id: number, isCurrent: boolean) => void
+    changeStateIsCurrent: (ids: number[], isCurrent: boolean) => void
 }
 
 interface runControlState {
     input: string,
-    result: string,
-    dfa: DFA | undefined
+    result?: boolean,
+    computer: Computer | undefined
+}
+
+const getComputer = (computerType: ComputerType, graph: graph, initialNode: node, input: string[]): Computer => {
+    switch (computerType) {
+        case "dfa":
+            return new DFA(graph, initialNode, input);
+        case "nfa":
+            return new NFA(graph, initialNode, input);
+    }
 }
 
 class RunControl extends React.Component<runControlProps, runControlState> {
@@ -22,39 +33,39 @@ class RunControl extends React.Component<runControlProps, runControlState> {
 
         this.state = {
             input: "",
-            result: "undefined",
-            dfa: undefined
+            result: undefined,
+            computer: undefined
         };
     }
 
     componentDidMount() {
-        this.initializeDFA();
+        this.initializeComputer();
     }
 
     componentDidUpdate(prevProps: Readonly<runControlProps>, prevState: Readonly<runControlState>, snapshot?: any) {
-        if (this.DFAShouldBeUpdated(prevProps.elements, this.props.elements)) {
-            this.initializeDFA();
+        if (this.ComputerShouldBeUpdated(prevProps.elements, this.props.elements)) {
+            this.initializeComputer();
         }
     }
 
-    initializeDFA = () => {
-        console.warn("Reinitializing dfa");
+    initializeComputer = () => {
+        console.warn("Reinitializing computer");
 
         const initialNode = this.props.elements.nodes.find(node => node.isInitial);
         const input = this.state.input.split("");
 
         if (initialNode === undefined) {
-            console.warn("There is no initial node. DFA will not be initialized");
+            console.warn("There is no initial node. Computer will not be initialized");
             return;
         }
 
         this.setState({
-            dfa: new DFA(this.props.elements, initialNode, input),
-            result: "undefined"
+            computer: getComputer(this.props.computerType, this.props.elements, initialNode, input),
+            result: undefined
         });
     }
 
-    DFAShouldBeUpdated = (prev: graph, current: graph): boolean => {
+    ComputerShouldBeUpdated = (prev: graph, current: graph): boolean => {
         const compareNodes = (): boolean => {
             if (prev.nodes.length !== current.nodes.length) {
                 return true;
@@ -97,33 +108,31 @@ class RunControl extends React.Component<runControlProps, runControlState> {
     onInputChanged = (event: ChangeEvent<HTMLInputElement>): void => {
         const input = event.target.value;
 
-        this.state.dfa?.setInput(input.split(""));
+        this.state.computer?.setInput(input.split(""));
 
         this.setState({input: input});
     }
 
     onStepClicked = (): void => {
-        if (this.state.dfa === undefined) {
-            console.error("DFA is not initialized yet");
+        if (this.state.computer === undefined) {
+            console.error("Computer is not initialized yet");
             return;
         }
 
-        const stepResult = this.state.dfa.step();
+        const stepResult = this.state.computer.step();
 
-        stepResult.nodes.forEach(node =>
-            this.props.changeStateIsCurrent(node.id, true)
-        );
+        this.props.changeStateIsCurrent(stepResult.nodes.map(node => node.id), true);
     }
 
     onRunClicked = (): void => {
-        if (this.state.dfa === undefined) {
-            console.error("DFA is not initialized yet");
+        if (this.state.computer === undefined) {
+            console.error("Computer is not initialized yet");
             return;
         }
 
-        const result = this.state.dfa.run();
+        const result = this.state.computer.run();
 
-        //this.setState({result: result.node.isAdmit ? "true" : "false"});
+        this.setState({result: result.nodes.some(node => node.isAdmit)});
     }
 
     render() {
@@ -152,4 +161,4 @@ class RunControl extends React.Component<runControlProps, runControlState> {
     }
 }
 
-export default RunControl;
+export default withComputerType(RunControl);

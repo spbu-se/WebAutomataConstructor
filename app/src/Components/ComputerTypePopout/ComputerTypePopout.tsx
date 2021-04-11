@@ -30,8 +30,8 @@ class ComputerTypePopout extends React.Component<ComputerTypePopoutProps, {}> {
                             </div>
                             <div className="computer-type-popout__templates__container">
                                 {
-                                    Object.entries(computersInfo).map(entry =>
-                                        <div className="computer-type-popout__templates__card">
+                                    Object.entries(computersInfo).map((entry, index) =>
+                                        <div key={index} className="computer-type-popout__templates__card">
                                             <img className="computer-type-popout__templates__card__preview"
                                                  src={`/media/images/${entry[1].preview}`}
                                                  alt={`${entry[1].name} preview`}
