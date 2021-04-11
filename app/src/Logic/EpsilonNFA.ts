@@ -331,6 +331,10 @@ export class EpsilonNFA extends Computer {
         let retCounter: number = this.counterStepsForResult
         return this.toSteps(current, retCounter)
     }
+
+    isDeterministic() {
+        return this.statementsNfa.length === this.statements.size
+    }
 }
 
 let toSet = (str: string[]) => {
