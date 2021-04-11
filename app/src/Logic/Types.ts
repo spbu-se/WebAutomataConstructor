@@ -18,3 +18,9 @@ export type Step = {
     counter: number
     isAdmit: boolean
 }
+
+export type statementNfa = {
+    value: statement[]
+    id: number
+    isAdmit: boolean
+}

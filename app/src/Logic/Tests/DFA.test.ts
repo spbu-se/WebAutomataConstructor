@@ -1,5 +1,5 @@
-import {DFA} from "./DFA";
-import {Step} from "./Types";
+import {DFA} from "../DFA";
+import {Step} from "../Types";
 
 export {}
 
@@ -10,7 +10,6 @@ let toSet = (str: string[]) => {
     }
     return set;
 }
-
 
 test("{ q0 -> q1 -> (q2); A = {0, 1}}: 2 steps for 2 edges without loop", () => {
     let dfa = new DFA(
@@ -147,7 +146,7 @@ test("{ (q0)<=>q1; A = {0}}: is input length divided at 2", () => {
         .toBe(true)
 })
 let testFunc = (dfa: DFA) : Step => {
-    for (let i = 0; i < dfa.input.length; i++) {
+    for (let i = 0; i < dfa.getInput().length; i++) {
         dfa.step()
         //console.log(dfa.getTrendyNode())
     }
