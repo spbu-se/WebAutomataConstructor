@@ -16,7 +16,7 @@ export abstract class Computer {
     protected counterSteps: number = 0
     protected counterStepsForResult: number = 0
     protected alphabetDBG: any = []
-    protected haveEpsilon: boolean = false
+  //  protected haveEpsilon: boolean = false
     protected alphabetSize: number = 0;
 
     public abstract restart(): void
@@ -27,9 +27,6 @@ export abstract class Computer {
         let alphabetSet: Set<string> = new Set()
         for (let i = 0; i < this.edges.length; i++) {
             this.edges[i].localValue.forEach(value => {
-                if (value === 'Epsilon') {
-                    this.haveEpsilon = true
-                }
                 alphabetSet.add(value)
             })
         }
@@ -60,11 +57,6 @@ export abstract class Computer {
         }
      //   console.log('EDGES: ', this.edges)
         this.getAlphabetFromEdges()
-        if (this.haveEpsilon) {
-            this.alphabetSize = this.alphabet.size - 1
-        } else {
-            this.alphabetSize = this.alphabet.size
-        }
         console.log('ALPHABET: ', this.alphabet)
         this.getStatementsFromNodes(graph.nodes)
     //    console.log('STATEMENTS: ', this.statements)
