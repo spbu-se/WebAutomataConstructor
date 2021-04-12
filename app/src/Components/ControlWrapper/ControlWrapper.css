@@ -1,0 +1,23 @@
+.control-wrapper {
+    border: 0.5px solid var(--border);
+    border-radius: 8px;
+
+    padding: 16px;
+}
+
+.control-wrapper__title__row {
+    position: relative;
+}
+
+.control-wrapper__title {
+    font-weight: 500;
+    font-size: 18px;
+    line-height: 24px;
+}
+
+.control-wrapper__visibility-icon {
+    position: absolute;
+    top: 0;
+    right: 0;
+    color: var(--icon-secondary);
+}

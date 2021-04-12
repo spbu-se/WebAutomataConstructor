@@ -1,6 +1,7 @@
 import React, {ChangeEvent} from "react";
 import "./NodeControl.css";
 import {node} from "../../react-graph-vis-types";
+import ControlWrapper from "../ControlWrapper/ControlWrapper";
 
 interface nodeControlProps {
     node: node | null,
@@ -69,38 +70,40 @@ class NodeControl extends React.Component<nodeControlProps, nodeControlState> {
 
     render() {
         return (
-            <div className="node-control__container">
-                <input
-                    className="node-control__label-input"
-                    disabled={this.props.node === null}
-                    type="text"
-                    value={this.state.label}
-                    onChange={this.onLabelChange}
-                />
+            <ControlWrapper title={"State"}>
+                <div className="node-control__container">
+                    <input
+                        className="node-control__label-input"
+                        disabled={this.props.node === null}
+                        type="text"
+                        value={this.state.label}
+                        onChange={this.onLabelChange}
+                    />
 
-                <input
-                    className="node-control__is-admit-checkbox"
-                    type="checkbox"
-                    checked={this.state.isAdmit}
-                    onChange={this.onIsAdmitChanged}
-                />
+                    <input
+                        className="node-control__is-admit-checkbox"
+                        type="checkbox"
+                        checked={this.state.isAdmit}
+                        onChange={this.onIsAdmitChanged}
+                    />
 
-                <input
-                    className="node-control__is-initial-checkbox"
-                    type="checkbox"
-                    checked={this.state.isInitial}
-                    onChange={this.onIsInitialChanged}
-                />
+                    <input
+                        className="node-control__is-initial-checkbox"
+                        type="checkbox"
+                        checked={this.state.isInitial}
+                        onChange={this.onIsInitialChanged}
+                    />
 
 
-                <button
-                    className={"node-control__delete-button"}
-                    disabled={this.props.node === null}
-                    onClick={this.onDeleteClick}
-                >
-                    delete
-                </button>
-            </div>
+                    <button
+                        className={"node-control__delete-button"}
+                        disabled={this.props.node === null}
+                        onClick={this.onDeleteClick}
+                    >
+                        delete
+                    </button>
+                </div>
+            </ControlWrapper>
         )
     }
 }

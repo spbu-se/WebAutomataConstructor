@@ -9,3 +9,8 @@ code {
     font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+:root {
+    --border: #9f9f9f;
+    --icon-secondary: #9f9f9f;
+}

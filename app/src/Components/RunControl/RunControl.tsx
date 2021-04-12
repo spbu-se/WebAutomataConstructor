@@ -1,10 +1,11 @@
 import React, {ChangeEvent} from "react";
 import {ComputerType, graph, node} from "../../react-graph-vis-types";
 import {DFA} from "../../Logic/DFA";
-import { isEqual } from "lodash";
+import {isEqual} from "lodash";
 import {withComputerType} from "../../hoc";
 import {Computer} from "../../Logic/Computer";
 import {NFA} from "../../Logic/NFA";
+import ControlWrapper from "../ControlWrapper/ControlWrapper";
 
 interface runControlProps {
     computerType: ComputerType,
@@ -137,26 +138,28 @@ class RunControl extends React.Component<runControlProps, runControlState> {
 
     render() {
         return (
-            <div className="run-control__container">
-                <input
-                    className="run-control__input"
-                    value={this.state.input}
-                    onChange={this.onInputChanged}
-                />
-                <button
-                    className="run-control__step-button"
-                    onClick={this.onStepClicked}
-                >
-                    Step
-                </button>
-                <button
-                    className="run-control__run-button"
-                    onClick={this.onRunClicked}
-                >
-                    Run
-                </button>
-                <span>{this.state.result}</span>
-            </div>
+            <ControlWrapper title={"Run"}>
+                <div className="run-control__container">
+                    <input
+                        className="run-control__input"
+                        value={this.state.input}
+                        onChange={this.onInputChanged}
+                    />
+                    <button
+                        className="run-control__step-button"
+                        onClick={this.onStepClicked}
+                    >
+                        Step
+                    </button>
+                    <button
+                        className="run-control__run-button"
+                        onClick={this.onRunClicked}
+                    >
+                        Run
+                    </button>
+                    <span>{this.state.result}</span>
+                </div>
+            </ControlWrapper>
         )
     }
 }

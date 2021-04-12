@@ -1,6 +1,7 @@
 import React, {ChangeEvent} from "react";
 import {edge} from "../../react-graph-vis-types";
 import {transitionsToLabel} from "../../utils";
+import ControlWrapper from "../ControlWrapper/ControlWrapper";
 
 interface EdgeControlProps {
     edge: edge | null,
@@ -64,42 +65,44 @@ class EdgeControl extends React.Component<EdgeControlProps, EdgeControlState> {
 
     render() {
         return (
-            <div className="edge-control__container">
-                <input
-                    className="edge-control__label"
-                    type="text"
-                    value={transitionsToLabel(this.state.transitions)}
-                    disabled
-                />
-                <input
-                    className="edge-control__transition-input"
-                    disabled={this.props.edge === null}
-                    type="text"
-                    value={this.state.transition}
-                    onChange={this.onTransitionChange}
-                />
-                <button
-                    className="edge-control__add-transition-button"
-                    disabled={this.props.edge === null}
-                    onClick={this.onAddTransitionClick}
-                >
-                    +
-                </button>
-                <button
-                    className="edge-control__delete-transition-button"
-                    disabled={this.props.edge === null}
-                    onClick={this.onDeleteTransitionClick}
-                >
-                    -
-                </button>
-                <button
-                    className="edge-control__delete-button"
-                    disabled={this.props.edge === null}
-                    onClick={this.onEdgeDeleteClick}
-                >
-                    delete
-                </button>
-            </div>
+            <ControlWrapper title={"Transition"}>
+                <div className="edge-control__container">
+                    <input
+                        className="edge-control__label"
+                        type="text"
+                        value={transitionsToLabel(this.state.transitions)}
+                        disabled
+                    />
+                    <input
+                        className="edge-control__transition-input"
+                        disabled={this.props.edge === null}
+                        type="text"
+                        value={this.state.transition}
+                        onChange={this.onTransitionChange}
+                    />
+                    <button
+                        className="edge-control__add-transition-button"
+                        disabled={this.props.edge === null}
+                        onClick={this.onAddTransitionClick}
+                    >
+                        +
+                    </button>
+                    <button
+                        className="edge-control__delete-transition-button"
+                        disabled={this.props.edge === null}
+                        onClick={this.onDeleteTransitionClick}
+                    >
+                        -
+                    </button>
+                    <button
+                        className="edge-control__delete-button"
+                        disabled={this.props.edge === null}
+                        onClick={this.onEdgeDeleteClick}
+                    >
+                        delete
+                    </button>
+                </div>
+            </ControlWrapper>
         );
     }
 }
