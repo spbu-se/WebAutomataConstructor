@@ -157,7 +157,7 @@ class RunControl extends React.Component<runControlProps, runControlState> {
                     >
                         Run
                     </button>
-                    <span>{this.state.result}</span>
+                    <span>{this.state.result ? "true" : "false"}</span>
                 </div>
             </ControlWrapper>
         )
