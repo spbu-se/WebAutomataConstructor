@@ -1,0 +1,29 @@
+.transition {
+    position: relative;
+
+    height: 32px;
+    min-width: 16px;
+
+    padding-left: 8px;
+    padding-right: 8px;
+
+    font-size: 16px;
+    font-weight: 500;
+    line-height: 32px;
+    text-align: center;
+
+    border: var(--accent) 1px solid;
+    border-radius: 6px;
+
+    cursor: pointer;
+    user-select: none;
+}
+
+.transition__remove {
+    position: absolute;
+    top: -12px;
+    right: -12px;
+
+    background-color: white;
+    border-radius: 99px;
+}

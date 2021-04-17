@@ -23,15 +23,15 @@ class ControlWrapper extends React.Component<ControlWrapperProps, {}> {
                    {...restProps}
             >
                 <div className="control-wrapper--content">
-                <div>
-                    <Typography variant="h6">
-                        {title}
-                    </Typography>
-                </div>
+                    <div>
+                        <Typography variant="h6">
+                            {title}
+                        </Typography>
+                    </div>
 
-                <div>
-                    {children}
-                </div>
+                    <div className="control-wrapper--child">
+                        {children}
+                    </div>
                 </div>
             </Paper>
         );

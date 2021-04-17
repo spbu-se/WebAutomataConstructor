@@ -351,7 +351,6 @@ class App extends React.Component<appProps, appState> {
                         />
                         <EdgeControl
                             edge={this.state.selectedEdge}
-                            changeEdgeLabel={this.changeEdgeLabel}
                             changeEdgeTransitions={this.changeEdgeTransition}
                             deleteEdge={this.deleteEdge}
                         />
