@@ -16,7 +16,9 @@ import EdgeControl from "./Components/EdgeControl/EdgeControl";
 import {computersInfo, decorateGraph, getNodeNamePrefix, transitionsToLabel} from "./utils";
 import RunControl from "./Components/RunControl/RunControl";
 import ComputerTypePopout from "./Components/ComputerTypePopout/ComputerTypePopout";
-import {Paper} from "@material-ui/core";
+import Button from "@material-ui/core/Button";
+import Paper from "@material-ui/core/Paper";
+import MenuIcon from '@material-ui/icons/Menu';
 
 interface appProps {
 }
@@ -349,6 +351,19 @@ class App extends React.Component<appProps, appState> {
                         <Paper className="hint" variant="outlined">
                             Double click to create a node
                         </Paper>
+                    </div>
+
+                    <div className="menu-button">
+                        <Button
+                            variant="contained"
+                            color="primary"
+                            startIcon={<MenuIcon/>}
+                            onClick={() => {
+                                this.setState({computerType: null})
+                            }}
+                        >
+                            Menu
+                        </Button>
                     </div>
 
                     <div className="field__container">

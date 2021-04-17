@@ -9,6 +9,10 @@
     background-color: white;
 }
 
+.app__right-menu > div:not(:last-child) {
+    margin-bottom: 8px;
+}
+
 .field__container {
     position: fixed;
     width: 80%;
@@ -31,4 +35,12 @@
 
 .hint:not(:last-child) {
     margin-bottom: 8px;
+}
+
+.menu-button {
+    position: absolute;
+    left: 16px;
+    top: 16px;
+
+    z-index: 2;
 }
