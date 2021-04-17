@@ -1,52 +1,39 @@
 import React, {AllHTMLAttributes} from "react";
 import "./ControlWrapper.css";
-import VisibilityIcon from '@material-ui/icons/Visibility';
-import VisibilityOffIcon from '@material-ui/icons/VisibilityOff';
+import Paper from "@material-ui/core/Paper";
+import Typography from "@material-ui/core/Typography";
 
 export interface ControlWrapperProps extends AllHTMLAttributes<HTMLElement> {
     title: string,
-}
-
-interface ControlWrapperState {
     visible: boolean
 }
 
 class ControlWrapper extends React.Component<ControlWrapperProps, {}> {
-    state = {
+    static defaultProps = {
         visible: true
     }
 
-    changeVisibility = (): void => {
-        this.setState({visible: !this.state.visible});
-    }
-
     render() {
-        const {title, style, className, children, ...restProps} = this.props;
-        const {visible} = this.state;
+        const {visible, title, style, className, children, ...restProps} = this.props;
 
         return (
-            <div className={"control-wrapper " + className}
-                 style={style}
-                 {...restProps}
+            <Paper className={`control-wrapper${visible ? "" : "--hidden"} ${className}`}
+                   variant="outlined"
+                   style={style}
+                   {...restProps}
             >
-
-                <div className={"control-wrapper__title__row"}>
-                    <div className={"control-wrapper__title"}>
+                <div className="control-wrapper--content">
+                <div>
+                    <Typography variant="h6">
                         {title}
-                    </div>
-                    <div className={"control-wrapper__visibility-icon"}
-                         onClick={this.changeVisibility}
-                    >
-                        {visible ? <VisibilityOffIcon/> : <VisibilityIcon/>}
-                    </div>
+                    </Typography>
                 </div>
 
-                <div className={"control-wrapper__content"}
-                     style={{display: visible ? "block" : "none"}}
-                >
+                <div>
                     {children}
                 </div>
-            </div>
+                </div>
+            </Paper>
         );
     }
 }

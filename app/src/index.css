@@ -13,4 +13,10 @@ code {
 :root {
     --border: #9f9f9f;
     --icon-secondary: #9f9f9f;
+    --text-secondary: #7e7e7e;
+    --accent: #0041d0;
+    --light-accent: #94abde;
+    --secondary: #767676;
+    --light-secondary: #c2c2c2;
+    --destructive: #e44f4f;
 }

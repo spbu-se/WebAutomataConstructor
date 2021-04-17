@@ -3,6 +3,12 @@ import "./NodeControl.css";
 import {node} from "../../react-graph-vis-types";
 import ControlWrapper from "../ControlWrapper/ControlWrapper";
 
+import Switch from "@material-ui/core/Switch";
+import TextField from "@material-ui/core/TextField";
+import Button from "@material-ui/core/Button";
+import FormControlLabel from "@material-ui/core/FormControlLabel";
+import FormControl from "@material-ui/core/FormControl";
+
 interface nodeControlProps {
     node: node | null,
     changeNodeLabel: (id: number, label: string) => void,
@@ -70,39 +76,51 @@ class NodeControl extends React.Component<nodeControlProps, nodeControlState> {
 
     render() {
         return (
-            <ControlWrapper title={"State"}>
-                <div className="node-control__container">
-                    <input
-                        className="node-control__label-input"
-                        disabled={this.props.node === null}
-                        type="text"
-                        value={this.state.label}
-                        onChange={this.onLabelChange}
-                    />
+            <ControlWrapper title="State" visible={this.props.node !== null}>
+                <FormControl>
 
-                    <input
-                        className="node-control__is-admit-checkbox"
-                        type="checkbox"
-                        checked={this.state.isAdmit}
-                        onChange={this.onIsAdmitChanged}
-                    />
+                    <div className="node-control__item">
+                        <TextField
+                            label="Имя"
+                            value={this.state.label}
+                            onChange={this.onLabelChange}
+                        />
+                    </div>
 
-                    <input
-                        className="node-control__is-initial-checkbox"
-                        type="checkbox"
-                        checked={this.state.isInitial}
-                        onChange={this.onIsInitialChanged}
-                    />
+                    <div className="node-control__item">
+                        <FormControlLabel
+                            control={
+                                <Switch
+                                    checked={this.state.isInitial}
+                                    onChange={this.onIsInitialChanged}
+                                />
+                            }
+                            label={"Начальное"}
+                        />
+                    </div>
 
+                    <div className="node-control__item">
+                        <FormControlLabel
+                            control={
+                                <Switch
+                                    checked={this.state.isAdmit}
+                                    onChange={this.onIsAdmitChanged}
+                                />
+                            }
+                            label="Допускающее"
+                        />
+                    </div>
 
-                    <button
-                        className={"node-control__delete-button"}
-                        disabled={this.props.node === null}
-                        onClick={this.onDeleteClick}
-                    >
-                        delete
-                    </button>
-                </div>
+                    <div className="node-control__item">
+                        <Button
+                            color="secondary"
+                            onClick={this.onDeleteClick}
+                        >
+                            Удалить
+                        </Button>
+                    </div>
+
+                </FormControl>
             </ControlWrapper>
         )
     }
