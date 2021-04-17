@@ -12,11 +12,11 @@ import {
 } from "./react-graph-vis-types";
 import {cloneDeep} from "lodash";
 import NodeControl from "./Components/NodeControl/NodeControl";
-import SettingsControl from "./Components/SettingsControl/SettingsControl";
 import EdgeControl from "./Components/EdgeControl/EdgeControl";
 import {computersInfo, decorateGraph, getNodeNamePrefix, transitionsToLabel} from "./utils";
 import RunControl from "./Components/RunControl/RunControl";
 import ComputerTypePopout from "./Components/ComputerTypePopout/ComputerTypePopout";
+import {Paper} from "@material-ui/core";
 
 interface appProps {
 }
@@ -71,10 +71,25 @@ class App extends React.Component<appProps, appState> {
 
     componentDidMount() {
         this.updateGraph();
+        this.subscribeToShift();
     }
 
     network: any;
     lastNodeId = 0;
+
+    subscribeToShift = () => {
+        document.addEventListener("keydown", (event: KeyboardEvent) => {
+            if (event.key === "Shift" && !this.state.inEdgeMode) {
+                this.enterEdgeMode();
+            }
+        })
+
+        document.addEventListener("keyup", (event: KeyboardEvent) => {
+            if (event.key === "Shift" && this.state.inEdgeMode) {
+                this.leaveEdgeMode();
+            }
+        })
+    }
 
     getNodeById = (id: number): node | undefined => {
         return this.state.elements.nodes.find(node => node.id === id);
@@ -327,6 +342,15 @@ class App extends React.Component<appProps, appState> {
                             : null
                     }
 
+                    <div className="hint-container">
+                        <Paper className="hint" variant="outlined">
+                            Hold shift to create an edge
+                        </Paper>
+                        <Paper className="hint" variant="outlined">
+                            Double click to create a node
+                        </Paper>
+                    </div>
+
                     <div className="field__container">
                         <Graph
                             getNetwork={(network: any) => this.network = network}
@@ -343,11 +367,6 @@ class App extends React.Component<appProps, appState> {
                             changeStateIsAdmit={this.changeStateIsAdmit}
                             changeStateIsInitial={this.changeStateIsInitial}
                             deleteNode={this.deleteNode}
-                        />
-                        <SettingsControl
-                            enterEdgeMode={this.enterEdgeMode}
-                            leaveEdgeMode={this.leaveEdgeMode}
-                            inEdgeMode={this.state.inEdgeMode}
                         />
                         <EdgeControl
                             edge={this.state.selectedEdge}

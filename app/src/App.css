@@ -16,3 +16,19 @@
 
     background-color: #fff;
 }
+
+.hint-container {
+    position: absolute;
+    left: 16px;
+    bottom: 16px;
+
+    z-index: 1;
+}
+
+.hint {
+    padding: 16px;
+}
+
+.hint:not(:last-child) {
+    margin-bottom: 8px;
+}
