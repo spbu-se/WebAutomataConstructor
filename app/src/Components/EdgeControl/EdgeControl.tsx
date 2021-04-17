@@ -6,6 +6,7 @@ import Button from "@material-ui/core/Button";
 import "./EdgeControl.css";
 import Transition from "./Transition/Transition";
 import EditIcon from '@material-ui/icons/Edit';
+import TextField from "@material-ui/core/TextField";
 
 interface EdgeControlProps {
     edge: edge | null,
@@ -37,7 +38,8 @@ class EdgeControl extends React.Component<EdgeControlProps, EdgeControlState> {
             this.setState({
                 transitions: this.props.edge?.transitions || new Set(),
                 prevEdgeId: this.props.edge?.id,
-                activeTransition: null
+                activeTransition: null,
+                editMode: false
             });
         }
     }
@@ -85,9 +87,11 @@ class EdgeControl extends React.Component<EdgeControlProps, EdgeControlState> {
                     <div className="edge-control__item edge-control__transitions">
                         {
                             this.state.editMode ?
-                                <input
+                                <TextField
+                                    label="Transitions"
                                     value={transitionsToLabel(this.state.transitions)}
                                     onChange={this.changeTransitions}
+                                    helperText="Comma-separated list of characters"
                                 />
                                 :
                                 Array.from(this.state.transitions || []).map((transition, index) => (
