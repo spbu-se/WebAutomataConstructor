@@ -2,6 +2,8 @@ import {elementOfAlphabet, statement, statementNfa, Step} from "./Types";
 import {GraphCore, NodeCore} from "./IGraphTypes";
 import {Computer, eof, EPS} from "./Computer";
 import {NFA} from "./NFA";
+import {Simulate} from "react-dom/test-utils";
+import input = Simulate.input;
 
 type computational = {
     statements: statementNfa[]
@@ -500,11 +502,13 @@ export class EpsilonNFA extends Computer {
         let id: number = 0
         for (let i = 0; i < this.statementsNfa.length; i++) {
             for (let j = 0; j < this.statementsNfa[i].value.length; j++) {
-                if (this.statementsNfa[i].value[j] === this.startStatement) {
+                if (this.statementsNfa[i].value[j] === this.statements.get(this.startStatement.id)) {
                     id = i
+                   // console.log(this.statementsNfa[i].value[j],'-' , this.statements.get(this.startStatement.id))
                 }
             }
         }
+       // console.log(this.startStatement, this.statementsNfa[id])
         return this.statementsNfa[id]
     }
 
@@ -598,6 +602,9 @@ export class EpsilonNFA extends Computer {
     }
 
     public step(): Step {
+        if (this.input.length === 0) {
+            return this.toSteps(this.startStatementNfa(), 0)
+        }
         if (this.counterSteps >= this.input.length || !this.isPossibleTransition(this.input[this.counterSteps].value)) {
             return this.toSteps(this.currentNodeNfa, this.counterSteps)
         }
@@ -612,6 +619,10 @@ export class EpsilonNFA extends Computer {
     }
 
     public run(): Step {
+        if (this.input.length === 0) {
+            console.log('!!!!!!',this.startStatementNfa() )
+            return this.toSteps(this.startStatementNfa(), 0)
+        }
         this.counterStepsForResult = 0
         let current: statementNfa = this.startStatementNfa()
         let oldCurrent = current
@@ -653,14 +664,14 @@ export class EpsilonNFA extends Computer {
     }
 }
 
-/*let toSet = (str: string[]) => {
+let toSet = (str: string[]) => {
     let set: Set<string> = new Set()
     for (let i = 0; i < str.length; i++) {
         set.add(str[i])
     }
     return set;
 }
-let nfa = new EpsilonNFA(
+/*let nfa = new EpsilonNFA(
     {
         nodes: [
             {id: 0, isAdmit: false},
@@ -673,8 +684,12 @@ let nfa = new EpsilonNFA(
             {from: 1, to: 2, transitions: toSet(['b'])},
             {from: 0, to: 3, transitions: toSet(['a'])}
         ]
-    }, {id: 0, isAdmit: false}, ['a'])
+    }, {id: 0, isAdmit: false}, [])
+console.log('...')
 console.log(nfa.run())*/
+// nfa.restart()
+
+
 /*let nfa = new EpsilonNFA(
     {
         nodes: [
@@ -765,8 +780,7 @@ let nfa = new EpsilonNFA(
 */
 
 ///(a*|b*)*
-/*
-let nfa = new EpsilonNFA(
+/*let nfa = new EpsilonNFA(
     {
         nodes: [
             {id: 0, isAdmit: false},
@@ -802,10 +816,9 @@ let nfa = new EpsilonNFA(
             {from: 10, to: 11, transitions: toSet([EPS])},
             {from: 10, to: 1, transitions: toSet([EPS])},
         ]
-    }, {id: 0, isAdmit: false}, ['a', 'b'])
-console.log(nfa.run())
+    }, {id: 0, isAdmit: false}, [])
+console.log(nfa.run())*/
 
-*/
 
 /*let nfa = new EpsilonNFA(
     {
