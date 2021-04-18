@@ -1,0 +1,37 @@
+.run-control__item:not(:last-child) {
+    margin-bottom: 8px;
+}
+
+.run-control__buttons {
+    display: flex;
+}
+
+.run-control__button:not(:last-child) {
+    margin-right: 16px;
+}
+
+.run-control__input__row {
+    display: flex;
+}
+
+.run-control__input-value {
+    height: 48px;
+    line-height: 48px;
+    font-size: 24px;
+}
+
+.run-control__input__span--current {
+    font-weight: 600;
+    padding-left: 6px;
+    padding-right: 6px;
+}
+
+.run-control__result{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    height: 48px;
+
+    margin-left: auto;
+}
