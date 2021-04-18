@@ -11,6 +11,8 @@ import Button from "@material-ui/core/Button";
 import TextField from "@material-ui/core/TextField";
 import DoneIcon from '@material-ui/icons/Done';
 import CloseIcon from '@material-ui/icons/Close';
+import {NodeCore} from "../../Logic/IGraphTypes";
+import Typography from "@material-ui/core/Typography";
 
 interface runControlProps {
     computerType: ComputerType,
@@ -23,7 +25,8 @@ interface runControlState {
     result?: boolean,
     computer: Computer | undefined,
     editMode: boolean,
-    currentInputIndex: number
+    currentInputIndex: number,
+    history: node[][]
 }
 
 const getComputer = (computerType: ComputerType, graph: graph, initialNode: node, input: string[]): Computer => {
@@ -36,6 +39,9 @@ const getComputer = (computerType: ComputerType, graph: graph, initialNode: node
 }
 
 class RunControl extends React.Component<runControlProps, runControlState> {
+
+    historyEndRef = React.createRef<HTMLDivElement>();
+
     constructor(props: runControlProps) {
         super(props);
 
@@ -45,6 +51,7 @@ class RunControl extends React.Component<runControlProps, runControlState> {
             computer: undefined,
             editMode: true,
             currentInputIndex: -1,
+            history: []
         };
     }
 
@@ -136,12 +143,19 @@ class RunControl extends React.Component<runControlProps, runControlState> {
 
         this.props.changeStateIsCurrent(stepResult.nodes.map(node => node.id), true);
 
-        if (this.state.currentInputIndex + 1 === this.state.input.length - 1) {
-            const result = stepResult.nodes.some(node => node.isAdmit);
-            this.setState({result: result, currentInputIndex: this.state.currentInputIndex + 1});
-        } else {
-            this.setState({result: undefined, currentInputIndex: this.state.currentInputIndex + 1});
-        }
+        const result = this.state.currentInputIndex + 1 === this.state.input.length - 1
+            ? stepResult.nodes.some(node => node.isAdmit)
+            : undefined;
+
+        const nodes = stepResult.nodes
+            .map(nodeCore => this.props.elements.nodes.find(node => node.id == nodeCore.id))
+            .filter((node): node is node => node !== undefined);
+
+        this.setState({
+            result: result,
+            currentInputIndex: this.state.currentInputIndex + 1,
+            history: [...this.state.history, nodes]
+        }, () => this.historyEndRef?.current?.scrollIntoView({behavior: 'smooth'}));
     }
 
     run = (): void => {
@@ -158,7 +172,7 @@ class RunControl extends React.Component<runControlProps, runControlState> {
     reset = (): void => {
         this.state.computer?.restart();
         this.props.changeStateIsCurrent([], true); // resets all nodes
-        this.setState({result: undefined, currentInputIndex: -1});
+        this.setState({result: undefined, currentInputIndex: -1, history: []});
     }
 
 
@@ -239,6 +253,39 @@ class RunControl extends React.Component<runControlProps, runControlState> {
                                 Сбросить
                             </Button>
                         </div>
+                    </div>
+
+                    <div className="run-control__item run-control__history">
+                        <div className="run-control__history__header">
+                            <Typography variant="h6">История</Typography>
+                        </div>
+                        {
+                            this.state.history.length !== 0 ?
+                                <div className="run-control__history__scroll">
+                                    {
+                                        this.state.history.map((nodes, index) => (
+                                            <div className="run-control__history__row" key={index}>
+                                                <span className="run-control__history__index">{index + 1}</span>
+                                                {
+                                                    nodes.map((node, index) => (
+                                                        <div
+                                                            className="run-control__history__node"
+                                                            style={{border: `${node.isInitial ? "var(--accent)" : node.isAdmit ? "var(--second-accent)" : "#000000"} 2px solid`}}
+                                                        >
+                                                            {node.label}
+                                                        </div>
+                                                    ))
+                                                }
+                                            </div>
+                                        ))
+                                    }
+                                    <div ref={this.historyEndRef}/>
+                                </div>
+                                :
+                                <div className="run-control__history__placeholder">
+                                    Run computer step by step to see the history
+                                </div>
+                        }
                     </div>
 
                 </div>
