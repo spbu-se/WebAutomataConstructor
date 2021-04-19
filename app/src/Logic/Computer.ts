@@ -36,6 +36,9 @@ export abstract class Computer {
             this.alphabetDBG.push(value)
             i++
         })
+/*        if (this.alphabet.get(EPS) === undefined) {/////////////////////////???
+            this.alphabet.set(EPS, this.alphabet.size)
+        }*/
     }
 
     protected getStatementsFromNodes(nodes: NodeCore[]): void {

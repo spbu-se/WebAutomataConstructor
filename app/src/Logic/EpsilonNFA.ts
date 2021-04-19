@@ -4,6 +4,7 @@ import {Computer, eof, EPS} from "./Computer";
 import {NFA} from "./NFA";
 import {Simulate} from "react-dom/test-utils";
 import input = Simulate.input;
+import {DFA} from "./DFA";
 
 type computational = {
     statements: statementNfa[]
@@ -204,18 +205,6 @@ export class EpsilonNFA extends Computer {
                 this.matrix[i][eps].id = this.getIdStatementsNfa(this.matrix[i][eps].value)
                 this.matrix[i][eps].isAdmit = this.isAdmitStatementNfa(this.matrix[i][eps].value)
             }
-
-
-/*            if (cell.id === -1) {
-                cell.value = []
-                this.pushValueStatmentNfa(cell, statementNumberTo)
-                //  cell.value.push(statementNumberTo)
-                cell.id = this.getIdStatementsNfa(cell.value)
-                cell.isAdmit = this.isAdmitStatementNfa(cell.value)
-            } else {
-                this.addSts(cell, [statementNumberTo])
-                cell.isAdmit = this.isAdmitStatementNfa(cell.value)
-            }*/
         }
     }
 
@@ -519,7 +508,6 @@ export class EpsilonNFA extends Computer {
 
         if (this.haveEpsilon()) {
             this.addEpsilonCycles()
-
             for (let i = 0; i < this.statements.size; i++) {
                 let isVisited: boolean[] = []
                 for (let i = 0; i < this.statements.size; i++) {
@@ -527,43 +515,45 @@ export class EpsilonNFA extends Computer {
                 }
                 this.dfsForEpsiolon(this.statementsNfa[i], isVisited, this.statementsNfa[i])
             }
-
             this.enfaToNfa()
-
-            this.nfaToDfa()
-            this.correctionEmptyNodes()
-
-            //this.currentNodeNfa = this.statementsNfa[this.getIdStatementsNfa([this.statements.get(this.startStatement.id)])]
-
-            let smallMatrixStatements = this.groupUp(this.createSmallMatrix())
-
-            this.matrix = smallMatrixStatements.matrix
-            this.statementsNfa = smallMatrixStatements.statements
-            this.currentNodeNfa = this.startStatementNfa()
-        } else {
-            this.nfaToDfa()
-            this.correctionEmptyNodes()
-            let small = this.groupUp({matrix: this.matrix, statements: this.statementsNfa})
-            console.log('*-*-*-*-*-*-*-*-*-')
-            small.matrix.forEach(value => {
-                value.forEach(value1 => console.log(value1))
-                console.log(' ')
-            })
-            console.log('*-*-*-*-*-*-*-*-*-')
-            small.statements.forEach(value => console.log(value))
-/*            let smallMatrixStatements = this.createSmallMatrix()
-            this.matrix = smallMatrixStatements.matrix
-            this.statementsNfa = smallMatrixStatements.statements*/
-            this.currentNodeNfa = this.startStatementNfa()
+            //this.deleteEpsilonColumn()
         }
-/*        console.log('{{{{{{{{{{{{{{{{{')
-        this.matrix.forEach(value => {
-            value.forEach(value1 => console.log(value1))
-            console.log(' ')
-        })
-        console.log('{{{{{{{{{{{{{{{{{')
-        this.statementsNfa.forEach(value => console.log(value))
-        console.log('{{{{{{{{{{{{{{{{{')*/
+
+        this.nfaToDfa()
+        this.correctionEmptyNodes()
+
+        this.currentNodeNfa = this.statementsNfa[this.getIdStatementsNfa([this.statements.get(this.startStatement.id)])]
+
+        let isVisited: boolean[] = []
+        let ret: statementNfa[] = []
+        this.statementsNfa.forEach(value => isVisited.push(false))
+        this.createSmallMatrix000(this.currentNodeNfa, this.matrix, isVisited, ret)
+
+        let sup: statementNfa[] = []
+        ret.forEach(value => sup.push({value: value.value, id: value.id, isAdmit: value.isAdmit}))
+
+        let map: Map<number, number> = new Map<number, number>()
+        for (let i = 0; i < ret.length; i++) {
+            map.set(ret[i].id, i)
+            ret[i].id = i
+        }
+
+        let smallMatrix: statementNfa[][] = []
+        for (let i = 0; i < sup.length; i++) {
+            let tmp: statementNfa[] = []
+            for (let j = 0; j < this.matrix[sup[i].id].length; j++) {
+                //tmp.push(ret[map.get(this.matrix[sup[i].id][j])!])
+                let id = map.get(this.matrix[sup[i].id][j].id)
+                if (id === undefined) {
+                    tmp.push({value: [eof], isAdmit: false, id: -1})
+                } else {
+                    tmp.push(ret[id])
+                }
+            }
+            smallMatrix.push(tmp)
+        }
+        this.matrix = smallMatrix
+        this.statementsNfa = ret
     }
 
     private getNodeFromStatement(statement: statement): NodeCore {
@@ -597,19 +587,22 @@ export class EpsilonNFA extends Computer {
     }
 
     public restart(): void {
-        this.currentNodeNfa = this.startStatementNfa()
+        this.currentNodeNfa = this.statementsNfa[this.getIdStatementsNfa([this.statements.get(this.startStatement.id)])] //this.startStatementNfa()
         this.counterSteps = 0
     }
 
     public step(): Step {
         if (this.input.length === 0) {
-            return this.toSteps(this.startStatementNfa(), 0)
+            this.setInput([EPS])
+            //return this.toSteps(this.startStatementNfa(), 0)
         }
         if (this.counterSteps >= this.input.length || !this.isPossibleTransition(this.input[this.counterSteps].value)) {
             return this.toSteps(this.currentNodeNfa, this.counterSteps)
         }
         let transformedInput: number = this.alphabet.get(this.input[this.counterSteps].value)
-        this.counterSteps++
+        if (this.input[0].value !== EPS) {
+            this.counterSteps++
+        }
         this.currentNodeNfa = this.matrix[this.currentNodeNfa.id][transformedInput]
         return this.toSteps(this.currentNodeNfa, this.counterSteps)
     }
@@ -620,11 +613,11 @@ export class EpsilonNFA extends Computer {
 
     public run(): Step {
         if (this.input.length === 0) {
-            console.log('!!!!!!',this.startStatementNfa() )
-            return this.toSteps(this.startStatementNfa(), 0)
+/*            console.log("!!!")*/
+            this.setInput([EPS])
         }
         this.counterStepsForResult = 0
-        let current: statementNfa = this.startStatementNfa()
+        let current: statementNfa = this.statementsNfa[this.getIdStatementsNfa([this.statements.get(this.startStatement.id)])]//this.startStatementNfa()
         let oldCurrent = current
         let l = 0
         //console.log(current)
@@ -636,11 +629,11 @@ export class EpsilonNFA extends Computer {
             return this.toSteps(current, retCounter)
         }
         //console.log(this.numbersStatementsNfa.get(this.keyOfStatementNfa(current.value)), 'NOW in', 'start statement')
-        while (l < this.input.length) {
+        while (l < this.input.length && this.input[0].value !== EPS) {
             j = this.input[l].idLogic
-            if (j > this.alphabet.get(EPS)) {
+/*            if (j > this.alphabet.get(EPS)) {
                 j--
-            }
+            }*/
             if (this.matrix[i][j].id === -1) {
                 // console.log(this.numbersStatementsNfa.get(this.keyOfStatementNfa(current.value)))
                 let retCounter: number = this.counterStepsForResult /// current.value.length
@@ -662,391 +655,17 @@ export class EpsilonNFA extends Computer {
     public isDeterministic(): boolean {
         return this.statementsNfa.length === this.statements.size
     }
-}
 
-let toSet = (str: string[]) => {
-    let set: Set<string> = new Set()
-    for (let i = 0; i < str.length; i++) {
-        set.add(str[i])
+    private createSmallMatrix000(statement: statementNfa, matrix: statementNfa[][], isVisited: boolean[], ret: statementNfa[]): void {
+        isVisited[statement.id] = true
+        ret.push(this.statementsNfa[statement.id])
+        for (let i = 0; i < matrix[statement.id].length; i++) {
+            if (!isVisited[matrix[statement.id][i].id] && matrix[statement.id][i].id !== -1) {
+                //console.log(matrix[statement.id][i].id], )
+                this.createSmallMatrix000(matrix[statement.id][i], matrix, isVisited, ret)
+            }
+        }
     }
-    return set;
 }
-/*let nfa = new EpsilonNFA(
-    {
-        nodes: [
-            {id: 0, isAdmit: false},
-            {id: 1, isAdmit: false},
-            {id: 2, isAdmit: true},
-            {id: 3, isAdmit: true},
-        ],
-        edges: [
-            {from: 0, to: 1, transitions: toSet(['a'])},
-            {from: 1, to: 2, transitions: toSet(['b'])},
-            {from: 0, to: 3, transitions: toSet(['a'])}
-        ]
-    }, {id: 0, isAdmit: false}, [])
-console.log('...')
-console.log(nfa.run())*/
-// nfa.restart()
-
-
-/*let nfa = new EpsilonNFA(
-    {
-        nodes: [
-            {id: 1, isAdmit: false},
-            {id: -100, isAdmit: false},
-            {id: 44, isAdmit: true},
-        ],
-        edges: [
-            {from: 1, to: -100, transitions: toSet(['0', 'a'])},
-            {from: -100, to: 44, transitions: toSet(['a'])}
-        ]
-    }, {id: 1, isAdmit: false}, ['a', 'a'])*/
-
-
-/*let nfa = new EpsilonNFA(
-    {
-        nodes: [
-            {id: 0, isAdmit: false},
-            {id: 1, isAdmit: false},
-            {id: 2, isAdmit: false},
-            {id: 3, isAdmit: false},
-            {id: 4, isAdmit: false},
-            {id: 5, isAdmit: false},
-
-        ],
-        edges: [
-            {from: 0, to: 1, transitions: toSet([EPS])},
-            {from: 1, to: 2, transitions: toSet([EPS])},
-            {from: 2, to: 3, transitions: toSet(['a'])},
-            {from: 4, to: 5, transitions: toSet([EPS])},
-            {from: 3, to: 4, transitions: toSet([EPS])},
-
-        ]
-    }, {id: 0, isAdmit: false}, ['a'])*/
-
-///(a|b)
-/*
-let nfa = new EpsilonNFA(
-    {
-        nodes: [
-            {id: 0, isAdmit: false},
-            {id: 1, isAdmit: false},
-            {id: 2, isAdmit: false},
-            {id: 3, isAdmit: false},
-            {id: 4, isAdmit: false},
-            {id: 5, isAdmit: false},
-
-        ],
-        edges: [
-            {from: 0, to: 1, transitions: toSet([EPS])},
-            {from: 0, to: 3, transitions: toSet([EPS])},
-            {from: 1, to: 2, transitions: toSet(['a'])},
-            {from: 2, to: 5, transitions: toSet([EPS])},
-            {from: 3, to: 4, transitions: toSet(['b'])},
-            {from: 4, to: 5, transitions: toSet([EPS])},
-        ]
-    }, {id: 0, isAdmit: false}, [EPS])
-*/
-
-
-//(a|b)*
-/*
-let nfa = new EpsilonNFA(
-    {
-        nodes: [
-            {id: 0, isAdmit: false},
-            {id: 1, isAdmit: false},
-            {id: 2, isAdmit: false},
-            {id: 3, isAdmit: false},
-            {id: 4, isAdmit: false},
-            {id: 5, isAdmit: false},
-            {id: 6, isAdmit: false},
-            {id: 7, isAdmit: false},
-        ],
-        edges: [
-            {from: 0, to: 1, transitions: toSet([EPS])},
-            {from: 0, to: 7, transitions: toSet([EPS])},
-            {from: 1, to: 2, transitions: toSet([EPS])},
-            {from: 1, to: 4, transitions: toSet([EPS])},
-            {from: 2, to: 3, transitions: toSet(['a'])},
-            {from: 3, to: 6, transitions: toSet([EPS])},
-            {from: 4, to: 5, transitions: toSet(['b'])},
-            {from: 5, to: 6, transitions: toSet([EPS])},
-            {from: 6, to: 1, transitions: toSet([EPS])},
-            {from: 6, to: 7, transitions: toSet([EPS])},
-        ]
-    }, {id: 0, isAdmit: false}, ['a','b', 'a'])
-*/
-
-///(a*|b*)*
-/*let nfa = new EpsilonNFA(
-    {
-        nodes: [
-            {id: 0, isAdmit: false},
-            {id: 1, isAdmit: false},
-            {id: 2, isAdmit: false},
-            {id: 3, isAdmit: false},
-            {id: 4, isAdmit: false},
-            {id: 5, isAdmit: false},
-            {id: 6, isAdmit: false},
-            {id: 7, isAdmit: false},
-            {id: 8, isAdmit: false},
-            {id: 9, isAdmit: false},
-            {id: 10, isAdmit: false},
-            {id: 11, isAdmit: true},
-        ],
-        edges: [
-            {from: 0, to: 1, transitions: toSet([EPS])},
-            {from: 0, to: 11, transitions: toSet([EPS])},
-            {from: 1, to: 2, transitions: toSet([EPS])},
-            {from: 1, to: 6, transitions: toSet([EPS])},
-            {from: 2, to: 3, transitions: toSet([EPS])},
-            {from: 2, to: 5, transitions: toSet([EPS])},
-            {from: 3, to: 4, transitions: toSet(['a'])},
-            {from: 4, to: 3, transitions: toSet([EPS])},
-            {from: 4, to: 5, transitions: toSet([EPS])},
-            {from: 5, to: 10, transitions: toSet([EPS])},
-            {from: 6, to: 7, transitions: toSet([EPS])},
-            {from: 6, to: 9, transitions: toSet([EPS])},
-            {from: 7, to: 8, transitions: toSet(['b'])},
-            {from: 8, to: 7, transitions: toSet([EPS])},
-            {from: 8, to: 9, transitions: toSet([EPS])},
-            {from: 9, to: 10, transitions: toSet([EPS])},
-            {from: 10, to: 11, transitions: toSet([EPS])},
-            {from: 10, to: 1, transitions: toSet([EPS])},
-        ]
-    }, {id: 0, isAdmit: false}, [])
-console.log(nfa.run())*/
-
-
-/*let nfa = new EpsilonNFA(
-    {
-        nodes: [
-            {id: 1, isAdmit: false},
-            {id: 2, isAdmit: false},
-            {id: 3, isAdmit: true},
-        ],
-        edges: [
-            {from: 1, to: 1, transitions: toSet(['0', '1'])},
-            {from: 1, to: 2, transitions: toSet(['0'])},
-            {from: 2, to: 3, transitions: toSet(['0'])}
-        ]
-    }, {id: 1, isAdmit: false}, ['0', '0'])*/
-
-
-
-/*let nfa = new EpsilonNFA(
-    {
-        nodes: [
-            {id: 0, isAdmit: false},
-            {id: 1, isAdmit: false},
-            {id: 2, isAdmit: false},
-            {id: 3, isAdmit: false},
-            {id: 4, isAdmit: false},
-        ],
-        edges: [
-            {from: 0, to: 1, transitions: toSet([EPS])},
-            {from: 0, to: 2, transitions: toSet([EPS])},
-            {from: 0, to: 3, transitions: toSet([EPS])},
-            {from: 0, to: 4, transitions: toSet([EPS])},
-        ]
-    }, {id: 0, isAdmit: false}, [EPS])*/
-
-/*let nfa = new EpsilonNFA(
-    {
-        nodes: [
-            {id: 0, isAdmit: false},
-            {id: 1, isAdmit: false},
-            {id: 2, isAdmit: false},
-            {id: 3, isAdmit: false}
-        ],
-        edges: [
-            {from: 0, to: 1, transitions: toSet([EPS])},
-            {from: 0, to: 3, transitions: toSet([EPS])},
-            {from: 1, to: 2, transitions: toSet(['a'])},
-            {from: 2, to: 1, transitions: toSet([EPS])},
-            {from: 2, to: 3, transitions: toSet([EPS])},
-        ]
-    }, {id: 0, isAdmit: false}, ['a'])*/
-//console.log(nfa.run())
-//console.log('->', nfa.run())
-
-/*
-
-let nfa = new EpsilonNFAa(
-    {
-        nodes: [
-            {id: 0, isAdmit: false},
-            {id: 1, isAdmit: false},
-            {id: 2, isAdmit: true},
-        ],
-        edges: [
-            {from: 0, to: 0, transitions: toSet(['0'])},
-            {from: 0, to: 1, transitions: toSet([EPS])},
-            {from: 1, to: 1, transitions: toSet(['1'])},
-            {from: 1, to: 2, transitions: toSet([EPS])},
-            {from: 2, to: 2, transitions: toSet(['0', '1'])},
-        ]
-    }, {id: 0, isAdmit: false}, ['0'])
-*/
-
-
-
-/*
-let nfa = new EpsilonNFAa(
-    {
-        nodes: [
-            {id: 0, isAdmit: false},
-            {id: 1, isAdmit: false},
-            {id: 2, isAdmit: false},
-            {id: 3, isAdmit: false},
-            {id: 4, isAdmit: false},
-            {id: 5, isAdmit: false},
-            {id: 6, isAdmit: false},
-            {id: 7, isAdmit: true},
-        ],
-        edges: [
-            {from: 0, to: 1, transitions: toSet([EPS])},
-            {from: 1, to: 1, transitions: toSet(['0', '1'])},
-            {from: 1, to: 2, transitions: toSet([EPS])},
-            {from: 2, to: 3, transitions: toSet(['0'])},
-            {from: 2, to: 4, transitions: toSet(['1'])},
-            {from: 3, to: 5, transitions: toSet(['0'])},
-            {from: 4, to: 5, transitions: toSet(['1'])},
-            {from: 5, to: 6, transitions: toSet([EPS])},
-            {from: 6, to: 6, transitions: toSet(['0', '1'])},
-            {from: 6, to: 7, transitions: toSet([EPS])},
-            /!*{from: 6, to: 0, transitions: toSet(['eps'])}*!/
-        ]
-    }, {id: 0, isAdmit: false}, ['0'])
-*/
-
-
-/*
-let nfa = new EpsilonNFAa(
-    {
-        nodes: [
-            {id: 0, isAdmit: false},
-            {id: 1, isAdmit: false},
-            {id: 2, isAdmit: true},
-        ],
-        edges: [
-            {from: 0, to: 0, transitions: toSet(['0'])},
-            {from: 0, to: 1, transitions: toSet([eps])},
-            {from: 1, to: 1, transitions: toSet(['1'])},
-            {from: 1, to: 2, transitions: toSet([eps])},
-            {from: 2, to: 2, transitions: toSet(['0', '1'])},
-        ]
-    }, {id: 0, isAdmit: false}, ['0'])
-*/
-
-
-
-/*let nfa = new EpsilonNFA(
-    {
-        nodes: [
-            {id: 1, isAdmit: true},
-            {id: 2, isAdmit: false},
-            {id: 3, isAdmit: false},
-            {id: 4, isAdmit: false},
-            {id: 5, isAdmit: false},
-            {id: 6, isAdmit: false},
-        ],
-        edges: [
-            {from: 1, to: 2, transitions: toSet(['0'])},
-            {from: 2, to: 3, transitions: toSet(['0'])},
-            {from: 2, to: 5, transitions: toSet(['1'])},
-            {from: 3, to: 4, transitions: toSet(['1'])},
-            {from: 4, to: 1, transitions: toSet([EPS])},
-            {from: 5, to: 1, transitions: toSet([EPS])},
-            {from: 5, to: 6, transitions: toSet(['0'])},
-            {from: 6, to: 1, transitions: toSet([EPS])}
-        ]
-    }, {id: 1, isAdmit: true}, ['0', '0', '1', '0', '1', '0'])
-
-console.log(nfa.run())*/
-/*
-let nfa = new EpsilonNFA(
-    {
-        nodes: [
-            {id: 1, isAdmit: false},
-            {id: 2, isAdmit: false},
-            {id: 3, isAdmit: false},
-            {id: 4, isAdmit: true},
-        ],
-        edges: [
-            {from: 1, to: 2, transitions: toSet(['0', '1'])},
-            {from: 1, to: 2, transitions: toSet(['1'])},
-            {from: 2, to: 3, transitions: toSet(['0'])},
-            {from: 3, to: 4, transitions: toSet(['1'])},
-            {from: 4, to: 4, transitions: toSet(['0', '1'])}
-        ]
-    }, {id: 3, isAdmit: false}, ['1', '1', '1', '1', '1', '1', '1', '1', '1', '1'])
-
-*/
-
-/*let nfa = new EpsilonNFA(
-    {
-        nodes: [
-            {id: 1, isAdmit: false},
-            {id: 2, isAdmit: true},
-            {id: 3, isAdmit: false},
-        ],
-        edges: [
-            {from: 1, to: 2, transitions: toSet(['a'])},
-            {from: 1, to: 3, transitions: toSet(['a'])},
-            {from: 2, to: 2, transitions: toSet(['b'])},
-            {from: 2, to: 1, transitions: toSet([EPS])},
-            {from: 2, to: 3, transitions: toSet(['b'])},
-            {from: 3, to: 2, transitions: toSet(['a'])},
-        ]
-    }, {id: 1, isAdmit: false}, ['b'])*/
-
-
-//console.log(nfa.run())
-
-//(a*|b*)*
-/*
-let nfa = new EpsilonNFA(
-    {
-        nodes: [
-            {id: 0, isAdmit: false},
-            {id: 1, isAdmit: false},
-            {id: 2, isAdmit: false},
-            {id: 3, isAdmit: false},
-            {id: 4, isAdmit: false},
-            {id: 5, isAdmit: false},
-            {id: 6, isAdmit: false},
-            {id: 7, isAdmit: false},
-            {id: 8, isAdmit: false},
-            {id: 9, isAdmit: false},
-            {id: 10, isAdmit: false},
-            {id: 11, isAdmit: false},
-        ],
-        edges: [
-            {from: 0, to: 1, transitions: toSet([EPS])},
-            {from: 0, to: 11, transitions: toSet([EPS])},
-            {from: 1, to: 2, transitions: toSet([EPS])},
-            {from: 1, to: 6, transitions: toSet([EPS])},
-            {from: 2, to: 3, transitions: toSet([EPS])},
-            {from: 2, to: 5, transitions: toSet([EPS])},
-            {from: 3, to: 4, transitions: toSet(['a'])},
-            {from: 4, to: 3, transitions: toSet([EPS])},
-            {from: 4, to: 5, transitions: toSet([EPS])},
-            {from: 5, to: 10, transitions: toSet([EPS])},
-            {from: 10, to: 11, transitions: toSet([EPS])},
-            {from: 10, to: 1, transitions: toSet([EPS])},
-            {from: 6, to: 7, transitions: toSet([EPS])},
-            {from: 6, to: 9, transitions: toSet([EPS])},
-            {from: 7, to: 8, transitions: toSet(['b'])},
-            {from: 8, to: 7, transitions: toSet([EPS])},
-            {from: 8, to: 9, transitions: toSet([EPS])},
-            {from: 9, to: 10, transitions: toSet([EPS])},
-
-        ]
-    }, {id: 0, isAdmit: false}, ['a','a','b','b'])
-
-*/
 
 
