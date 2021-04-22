@@ -10,7 +10,7 @@ export abstract class Computer {
     protected alphabet = new Map()
     protected statements = new Map()
     protected nodes: NodeCore[]
-    protected startStatement
+    protected startStatements: NodeCore[] = []
     protected edges: Edge[] = []
     protected currentNode: NodeCore
     protected counterSteps: number = 0
@@ -47,7 +47,18 @@ export abstract class Computer {
         }
     }
 
-    protected constructor(graph: GraphCore, startStatement: NodeCore) {
+    private setStartStatements(graph: GraphCore, startStatements: NodeCore[]) {
+        if (startStatements.length > 1 && this.alphabet.get(EPS) === undefined) {
+            this.alphabet.set(EPS, this.alphabet.size)
+            startStatements.forEach(value => startStatements.forEach(value1 => {
+                graph.edges.push({from: value.id, to: value1.id, transitions: new Set<string>([EPS])})
+            }))
+        }
+    }
+
+    protected constructor(graph: GraphCore, startStatements: NodeCore[]) {
+        this.setStartStatements(graph, startStatements)
+
         graph.edges
             .sort((a, b) => a.from - b.from)
             .forEach(value => this.edges
@@ -64,8 +75,8 @@ export abstract class Computer {
         this.getStatementsFromNodes(graph.nodes)
     //    console.log('STATEMENTS: ', this.statements)
 
-        this.startStatement = startStatement
-        this.currentNode = startStatement
+        this.startStatements = startStatements
+        this.currentNode = startStatements[0]
         this.nodes = graph.nodes
     }
 

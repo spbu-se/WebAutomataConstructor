@@ -1,4 +1,4 @@
-import {elementOfAlphabet, statement, statementNfa, Step} from "./Types";
+import {elementOfAlphabet, History, statement, statementNfa, Step} from "./Types";
 import {GraphCore, NodeCore} from "./IGraphTypes";
 import {Computer, eof, EPS} from "./Computer";
 import {NFA} from "./NFA";
@@ -18,6 +18,8 @@ export class EpsilonNFA extends Computer {
     private statementsNfa: statementNfa[] = []
     private numbersStatementsNfa: Map<string, statementNfa> = new Map()
     private currentNodeNfa: statementNfa
+    public historiStep: History[] = []
+    public historiRun: History[] = []
 
     private fromStatementsToStatementsNfa(): void {
         this.statementsNfa = []
@@ -45,24 +47,6 @@ export class EpsilonNFA extends Computer {
         return statementHelper.id
     }
 
-    private addSts(cell: statementNfa, statements: statement[]): void {
-        this.numbersStatementsNfa.delete(this.keyOfStatementNfa(cell.value))
-
-        let set: Set<statement> = new Set()
-
-        cell.value.forEach(value => set.add(value))
-        statements.forEach(value => set.add(value))
-
-        //console.log(set)
-
-        cell.value = []
-        set.forEach(value => cell.value.push(value))
-
-        this.numbersStatementsNfa.set(this.keyOfStatementNfa(cell.value), cell)
-        this.statementsNfa[cell.id] = cell
-
-    }
-
     private isAdmitStatementNfa(statements: statement[]): boolean {
         for (let i = 0; i < statements.length; i++) {
             if (statements[i].isAdmit) {
@@ -86,11 +70,6 @@ export class EpsilonNFA extends Computer {
     }
 
     private pushValueStatmentNfa(statement: statementNfa, value: statement): void {
-        /*        statement.value.push(value)
-                let set: Set<statement> = new Set()
-                statement.value.forEach(value => set.add(value))
-                statement.value = []
-                set.forEach((value: statement) => statement.value.push(value))*/
         let set: Set<statement> = new Set()
         set.add(value)
         statement.value.forEach(value => set.add(value))
@@ -137,7 +116,6 @@ export class EpsilonNFA extends Computer {
             this.matrix[value.idLogic][letterValue].value.forEach(value1 => {
                 if (value1.idLogic != -1) {
                     this.pushValueStatmentNfa(cell, value1)
-
                     /*                    cell.id = this.getIdStatementsNfa(cell.value)
                                         cell.isAdmit = this.isAdmitStatementNfa(cell.value)*/
                     //cell.value.push(value1)
@@ -145,9 +123,6 @@ export class EpsilonNFA extends Computer {
                 }
             })
         })
-        /*        if (cell.value.length === 0) {
-                    console.log("pushValue WTF :", cell.value)
-                }*/
         cell.id = this.getIdStatementsNfa(cell.value)
         cell.isAdmit = this.isAdmitStatementNfa(cell.value)
         return cell
@@ -183,8 +158,6 @@ export class EpsilonNFA extends Computer {
                 let idNode = this.nodes[itNode].id
                 this.dfsForEpsiolon(this.statementsNfa[this.statements.get(idNode).idLogic], isVisited, statementPush)
             }
-
-
         }
     }
 
@@ -240,31 +213,17 @@ export class EpsilonNFA extends Computer {
                             })
                         })
                     }
-                    /*                    console.log('       ',secondEpsilon)
-                                        console.log(i)*/
                     secondEpsilon.forEach(value => {
                         if (this.matrix[i][j].id === -1) {
                             this.matrix[i][j].value = []
                             this.pushValueStatmentNfa(this.matrix[i][j], value)
-                            //  cell.value.push(statementNumberTo)
                             this.matrix[i][j].id = this.getIdStatementsNfa(this.matrix[i][j].value)
                             this.matrix[i][j].isAdmit = this.isAdmitStatementNfa(this.matrix[i][j].value)
                         } else {
-
-                            // cell.value.push(statementNumberTo)
-
-
                             this.pushValueStatmentNfa(this.matrix[i][j], value)
                             this.matrix[i][j].id = this.getIdStatementsNfa(this.matrix[i][j].value)
                             this.matrix[i][j].isAdmit = this.isAdmitStatementNfa(this.matrix[i][j].value)
-
-                            /*                            this.addSts(this.matrix[i][j], [value])
-                                                        this.matrix[i][j].isAdmit = this.isAdmitStatementNfa(this.matrix[i][j].value)*/
-
-                            //console.log('-------------------0', this.matrix[i][j].id)
                         }
-
-
                     })
                 }
             }
@@ -285,7 +244,7 @@ export class EpsilonNFA extends Computer {
     }
 
     public haveEpsilon(): boolean {
-        return this.alphabet.get('Epsilon') !== undefined
+        return this.alphabet.get(EPS) !== undefined
     }
 
     private creatMatrixWithoutEColumn(matrix: statementNfa[][]): statementNfa[][] {
@@ -321,8 +280,6 @@ export class EpsilonNFA extends Computer {
 
     private groupUp(computational: computational): computational {
         computational.statements.sort((a, b) => b.value.length - a.value.length)
-        console.log('GROUP------------*-*-*-*')
-        // computational.statements.forEach(value => console.log(value))
         for (let i = 0; i < computational.statements.length-1; i++) {
             let cur: number[] = []
             computational.statements[i].value.forEach(value => cur.push(value.idLogic))
@@ -336,9 +293,6 @@ export class EpsilonNFA extends Computer {
                 }
             }
         }
-        /*computational.statements.forEach(value => console.log(value))*/
-        console.log('/*/*')
-        // console.log([0,1,2,4,7].toString().indexOf([1,2,4].toString()))
         let statementsRet: statementNfa[] = []
         computational.statements.forEach(value => {
             if (value.id !== -1) {
@@ -346,7 +300,6 @@ export class EpsilonNFA extends Computer {
             }
         })
         statementsRet.forEach(value => console.log(value))
-        console.log('<3')
         let eps: number | undefined = this.alphabet.get(EPS)
         let matrixRet: statementNfa[][] = []
         statementsRet.forEach(value => {
@@ -359,32 +312,6 @@ export class EpsilonNFA extends Computer {
             }
             matrixRet.push(push)
         })
-        console.log('<3<3<3<3<3<3<3<3<3<3')
-        matrixRet.forEach(value => {
-            value.forEach(value1 => console.log(value1))
-            console.log(' ')
-        })
-        console.log('<3<3<3<3<3<3<3<3<3<3')
-        /*        statementsRet.forEach(value => {
-                    let cur: number[] = []
-                    value.value.forEach(value1 => cur.push(value1.idLogic))
-                    let isExist: boolean = false
-                    for (let i = 0; i < matrixRet.length; i++) {
-                        //if (matrixRet.... === ....) ПЕРЕСЧИТАЙ ВСЕ ИД ДЛЯ НОВОГО
-                        for (let j = 0; j < matrixRet[i].length; j++) {
-                            let tmp: number[] = []
-                            matrixRet[i][j].value.forEach(value1 => tmp.push(value1.idLogic))
-                            if (statementsRet[j].id != -1 && cur.toString().indexOf(tmp.toString()) !== -1) {
-                                isExist = true
-                                break;
-                            }
-                        }
-                        if (!isExist) {
-                            value.id = -1
-                        }
-                    }
-                })*/
-
         let map: Map<number, statementNfa> = new Map<number, statementNfa>()
         statementsRet.forEach((value, index) => {
             let id = value.id
@@ -402,98 +329,14 @@ export class EpsilonNFA extends Computer {
                 }
             }
         }
-
-        console.log('/*/*---')
-        // console.log([0,1,2,4,7].toString().indexOf([1,2,4].toString()))
-        matrixRet.forEach(value => {
-            value.forEach(value1 => console.log(value1))
-            console.log(' ')
-        })
-        console.log('/*/*---')
-        statementsRet.forEach(value => {
-            console.log(value)
-        })
-        console.log('...')
-
         return {statements: statementsRet, matrix: matrixRet}
     }
 
-/*    private createSmallMatrix(): computational {
-        let eps: number | undefined = this.alphabet.get(EPS)
-        let matrix: statementNfa[][] = []
-        let statements: statementNfa[] = []
-        let set: Set<number> = new Set<number>()
-        /!*
-                let map: Map<number, statementNfa> = new Map<number, statementNfa>()
-                let id: number = 0
-                for (let i = 0; i < this.matrix.length; i++) {
-                    if (this.matrix[i][eps].id !== -1 && this.matrix[i][eps].value.length !== 0) { //if isNot eof* (eof && newEof)
-                        set.add(this.matrix[i][eps].id)
-                        if (set.size > statements.length) {
-                            statements.push(this.matrix[i][eps])
-                            statements[id].id = id
-                            map.set(this.matrix[i][eps].id, statements[id])
-                            id++
-                        }
-                    }
-                }
-                //map.forEach((value, key) => console.log(key, '->', value))
-                for (let i = 0; i < this.matrix.length; i++) {
-                    if (this.matrix[i][eps].id !== -1 && this.matrix[i][eps].value.length !== 0) { //if isNot eof* (eof && newEof)
-                        set.add(this.matrix[i][eps].id)
-                        if (set.size > statements.length) {
-                            let temp: statementNfa[] = []
-                            for (let j = 0; j < this.matrix[i].length; j++) {
-                                if (j != eps) {
-                                    temp.push(map.get(this.matrix[i][j].id)!)
-                                }
-                            }
-                            matrix.push(temp)
-                        }
-                    }
-                }*!/
-        console.log('-()--()--()--()--()-')
-        this.matrix.forEach(value => {
-            value.forEach(value1 => console.log(value1))
-            console.log(' ')
-        })
-        /!*        console.log('-()--()--()--()--()-')
-                this.statementsNfa.forEach(value => console.log(value))
-                console.log('-()--()--()--()--()-')*!/
-
-        for (let i = 0; i < this.matrix.length; i++) {
-            if (eps !== undefined && this.matrix[i][eps].id !== -1 && this.matrix[i][eps].value.length !== 0) { //if isNot eof* (eof && newEof)
-                set.add(this.matrix[i][eps].id)
-                if (set.size > statements.length) {
-                    statements.push(this.matrix[i][eps])
-                    let temp: statementNfa[] = []
-                    for (let j = 0; j < this.matrix[i].length; j++) {
-                        if (j != eps) {
-                            temp.push(this.matrix[i][j])
-                        }
-                    }
-                    matrix.push(temp)
-                }
-            }
-        }
-
-        /!*        console.log('()()()()()()()()()()()()()()')
-                matrix.forEach(value => {
-                    value.forEach(value1 => console.log(value1))
-                    console.log(' ')
-                })
-                console.log('()()()()()()()()()()()()()()')
-                statements.forEach(value => console.log(value))
-                console.log('()()()()()()()()()()()()()()')*!/
-
-        return {matrix: matrix, statements: statements}
-    }*/
-
-    startStatementNfa(): statementNfa {
+    private startStatementNfa(): statementNfa {
         let id: number = 0
         for (let i = 0; i < this.statementsNfa.length; i++) {
             for (let j = 0; j < this.statementsNfa[i].value.length; j++) {
-                if (this.statementsNfa[i].value[j] === this.statements.get(this.startStatement.id)) {
+                if (this.statementsNfa[i].value[j] === this.statements.get(this.startStatements[0].id)) {
                     id = i
                     // console.log(this.statementsNfa[i].value[j],'-' , this.statements.get(this.startStatement.id))
                 }
@@ -503,11 +346,8 @@ export class EpsilonNFA extends Computer {
         return this.statementsNfa[id]
     }
 
-    constructor(graph: GraphCore, startStatement: NodeCore, input: string[]) {
-        super(graph, startStatement)
-
-        //this.edges.push EPS for starts...
-
+    constructor(graph: GraphCore, startStatements: NodeCore[], input: string[]) {
+        super(graph, startStatements)
         this.setInput(input)
         this.createMatrix()
         if (this.haveEpsilon()) {
@@ -519,21 +359,17 @@ export class EpsilonNFA extends Computer {
                 }
                 this.dfsForEpsiolon(this.statementsNfa[i], isVisited, this.statementsNfa[i])
             }
-            this.statementsNfa.forEach(value => console.log(value))
-            console.log(' ')
             this.enfaToNfa()
         }
         this.nfaToDfa()
         this.correctionEmptyNodes()
-        this.currentNodeNfa = this.statementsNfa[this.getIdStatementsNfa([this.statements.get(this.startStatement.id)])]
+        this.currentNodeNfa = this.statementsNfa[this.getIdStatementsNfa([this.statements.get(this.startStatements[0].id)])]
         this.createSmallMatrix()
-        console.log(';;;')
-        this.matrix.forEach(value => {
-            value.forEach(value1 => console.log(value1))
-            console.log(' ')
-        })
-        console.log(';;;')
-        this.statementsNfa.forEach(value => console.log(value))
+        if (!this.isDeterministic()) {
+            this.currentNodeNfa = this.matrix[this.currentNodeNfa.id][this.alphabet.get(EPS)]
+        }
+        this.historiStep.push({nodes: this.toNodes(this.currentNodeNfa), by: EPS})
+        this.historiRun.push({nodes: this.toNodes(this.currentNodeNfa), by: EPS})
     }
 
     private getNodeFromStatement(statement: statement): NodeCore {
@@ -549,13 +385,22 @@ export class EpsilonNFA extends Computer {
             || this.matrix[this.currentNodeNfa.id][transformedInput] === undefined)
     }
 
-    private toSteps(statement: statementNfa, counter: number): Step {
+    private toSteps(statement: statementNfa, counter: number, history: History[]): Step {
         let retNodes: NodeCore[] = []
         statement.value.forEach(value => {
             let temp: NodeCore = this.nodes[value.idLogic]
             retNodes.push(temp)
         })
-        return {nodes: retNodes, counter: counter, isAdmit: statement.isAdmit}
+        return {nodes: retNodes, counter: counter, isAdmit: statement.isAdmit, history: history}
+    }
+
+    private toNodes(statement: statementNfa): NodeCore[] {
+        let retNodes: NodeCore[] = []
+        statement.value.forEach(value => {
+            let temp: NodeCore = this.nodes[value.idLogic]
+            retNodes.push(temp)
+        })
+        return retNodes
     }
 
     public setInput(input: string[]): void {
@@ -567,83 +412,97 @@ export class EpsilonNFA extends Computer {
     }
 
     public restart(): void {
-        this.currentNodeNfa = this.statementsNfa[this.getIdStatementsNfa([this.statements.get(this.startStatement.id)])] //this.startStatementNfa()
+        this.currentNodeNfa = this.statementsNfa[this.getIdStatementsNfa([this.statements.get(this.startStatements[0].id)])] //this.startStatementNfa()
         this.counterSteps = 0
+        //hist
     }
+
+    private wasStopped: boolean = false
 
     public step(): Step {
-        if (this.input.length === 0) {
-            this.setInput([EPS])
-            //return this.toSteps(this.startStatementNfa(), 0)
-        }
         if (this.counterSteps >= this.input.length || !this.isPossibleTransition(this.input[this.counterSteps].value)) {
-            return this.toSteps(this.currentNodeNfa, this.counterSteps)
+            if (!this.wasStopped) {
+              //  this.shit.push(this.toNodes(this.currentNodeNfa))////
+                this.wasStopped = true
+            }
+            return this.toSteps(this.currentNodeNfa, this.counterSteps, this.historiStep)
         }
+
         let transformedInput: number = this.alphabet.get(this.input[this.counterSteps].value)
-        if (this.input[0].value !== EPS) {
-            this.counterSteps++
-        }
+        this.counterSteps++
+        let by = this.getLetterFromAlphabet(transformedInput)
         this.currentNodeNfa = this.matrix[this.currentNodeNfa.id][transformedInput]
-        return this.toSteps(this.currentNodeNfa, this.counterSteps)
+        this.historiStep.push({nodes: this.toNodes(this.currentNodeNfa), by: by})/////////////////////
+
+        return this.toSteps(this.currentNodeNfa, this.counterSteps, this.historiStep)
     }
 
-    public getTrendyNode(): Step {
-        return this.toSteps(this.currentNodeNfa, this.counterSteps)
+    private getLetterFromAlphabet(numb: number): string {
+        let by: string = '!?'
+        this.alphabet.forEach((value, key) => {
+            if (this.alphabet.get(key) === numb) {
+                by = value
+            }
+        })
+        if (by === '!?') {
+            throw new Error('!?')
+        }
+        return by
     }
+/*    public getTrendyNode(): Step {
+        return this.toSteps(this.currentNodeNfa, this.counterSteps)
+    }*/
 
     public run(): Step {
+        let isEmptyInput: boolean = false /////////////////////////////////<-
         if (this.input.length === 0) {
-            /*            console.log("!!!")*/
-            this.setInput(['Empty'])
+            isEmptyInput = true
         }
+
         this.counterStepsForResult = 0
-        let current: statementNfa = this.statementsNfa[this.getIdStatementsNfa([this.statements.get(this.startStatement.id)])]//this.startStatementNfa()
+        let current: statementNfa = this.statementsNfa[this.getIdStatementsNfa([this.statements.get(this.startStatements[0].id)])]//this.startStatementNfa()
         let oldCurrent = current
         let l = 0
-        //console.log(current)
         let i = current.id
         let j = -1 //now we see at left column of table of def statements
+
         if (this.alphabet.size < 1) {
             console.log('Alphabet is empty, you should to enter edges')
             let retCounter: number = this.counterStepsForResult
-            return this.toSteps(current, retCounter)
+            return this.toSteps(current, retCounter, this.historiRun)
         }
         //console.log(this.numbersStatementsNfa.get(this.keyOfStatementNfa(current.value)), 'NOW in', 'start statement')
-        while (l < this.input.length && this.input[0].value !== 'Empty') {
+        while (l < this.input.length && !isEmptyInput) {
             j = this.input[l].idLogic
-            /*            if (j > this.alphabet.get(EPS)) {
-                            j--
-                        }*/
             if (this.matrix[i][j].id === -1) {
-                // console.log(this.numbersStatementsNfa.get(this.keyOfStatementNfa(current.value)))
                 let retCounter: number = this.counterStepsForResult /// current.value.length
-                return this.toSteps(current, retCounter)
+                return this.toSteps(current, retCounter, this.historiRun)
                 //return {node: this.nodes[current.idLogic], counter: this.counterStepsForResult}
             }
             oldCurrent = current
             current = this.matrix[i][j]
             this.counterStepsForResult++
-            //console.log(this.numbersStatementsNfa.get(this.keyOfStatementNfa(current.value)))
             i = this.matrix[i][j].id
+
+            let by: string = this.getLetterFromAlphabet(j)
+            this.historiRun.push({nodes: this.toNodes(current), by: by})/////////////////////
+
             l++
-        } if (this.input[0].value === 'Empty') {
-            j = this.alphabet.get(EPS) !== undefined ? this.alphabet.get(EPS) : this.input[l].idLogic
-            /*            if (j > this.alphabet.get(EPS)) {
-                            j--
-                        }*/
-            if (this.matrix[i][j].id === -1) {
-                // console.log(this.numbersStatementsNfa.get(this.keyOfStatementNfa(current.value)))
-                let retCounter: number = this.counterStepsForResult /// current.value.length
-                return this.toSteps(current, retCounter)
-                //return {node: this.nodes[current.idLogic], counter: this.counterStepsForResult}
+        } if (isEmptyInput) {
+            j = this.alphabet.get(EPS) !== undefined ? this.alphabet.get(EPS) : -1
+            if (j !== -1) {
+                if (this.matrix[i][j].id === -1) {
+                    // console.log(this.numbersStatementsNfa.get(this.keyOfStatementNfa(current.value)))
+                    let retCounter: number = this.counterStepsForResult /// current.value.length
+                    return this.toSteps(current, retCounter, this.historiRun)
+                    //return {node: this.nodes[current.idLogic], counter: this.counterStepsForResult}
+                }
+                current = this.matrix[i][j]
             }
-            current = this.matrix[i][j]
-            //console.log(this.numbersStatementsNfa.get(this.keyOfStatementNfa(current.value)))
-            l++
         }
         //console.log(this.numbersStatementsNfa.get(this.keyOfStatementNfa(current.value)))//, 'Aoutomata was stoped in ', current, ' ~ ', i, ' ', j)
         let retCounter: number = this.counterStepsForResult
-        return this.toSteps(current, retCounter)
+        return this.toSteps(current, retCounter, this.historiRun)
     }
 
     public isDeterministic(): boolean {
@@ -692,6 +551,7 @@ export class EpsilonNFA extends Computer {
     }
 }
 
+/*
 
 let toSet = (str: string[]) => {
     let set: Set<string> = new Set()
@@ -700,8 +560,7 @@ let toSet = (str: string[]) => {
     }
     return set;
 }
-
-let nfa = new EpsilonNFA(
+/!*let nfa = new EpsilonNFA(
     {
         nodes: [
             {id: 0, isAdmit: false},
@@ -737,9 +596,9 @@ let nfa = new EpsilonNFA(
             {from: 10, to: 11, transitions: toSet([EPS])},
             {from: 10, to: 1, transitions: toSet([EPS])},
         ]
-    }, {id: 0, isAdmit: false}, [])
+    }, [{id: 0, isAdmit: false}], [/!*'a', 'b'*!/])*!/
 
-/*let nfa = new EpsilonNFA(
+let nfa = new EpsilonNFA(
     {
         nodes: [
             {id: 0, isAdmit: false},
@@ -749,15 +608,28 @@ let nfa = new EpsilonNFA(
             {id: 4, isAdmit: true},
         ],
         edges: [
-            {from: 0, to: 1, transitions: toSet([EPS])},
+/!*            {from: 0, to: 1, transitions: toSet([EPS])},
             {from: 0, to: 3, transitions: toSet([EPS])},
             {from: 0, to: 0, transitions: toSet([EPS])},
-            {from: 0, to: 2, transitions: toSet([EPS])},
+            {from: 0, to: 2, transitions: toSet([EPS])},*!/
+
+            {from: 0, to: 1, transitions: toSet([EPS])},
             {from: 0, to: 1, transitions: toSet(['a'])},
             {from: 0, to: 3, transitions: toSet(['a'])},
             {from: 1, to: 2, transitions: toSet(['b'])},
-
+/!*            {from: 0, to: 1, transitions: toSet([EPS])},
+            {from: 1, to: 0, transitions: toSet([EPS])},
+            {from: 0, to: 0, transitions: toSet([EPS])},
+            {from: 1, to: 1, transitions: toSet([EPS])},*!/
         ]
-    }, {id: 0, isAdmit: false}, ['a'])*/
-
-console.log(nfa.run())
+    }, [{id: 0, isAdmit: false}], [])
+console.log(nfa.step())
+console.log(nfa.step())
+console.log(nfa.step())
+console.log(nfa.step())
+/!*console.log(nfa.run())*!/
+nfa.historiStep.forEach(value => {
+    console.log(' ')
+    console.log(value)
+})
+*/
