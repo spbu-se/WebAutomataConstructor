@@ -32,7 +32,7 @@ test("step by step: { q0 <- -> q1 -> (q2); A = {0, 1}}: 1 steps for 2 edges with
                 {from: 1, to: 2, transitions: toSet(['0'])},
                 {from: 2, to: 3, transitions: toSet(['0'])}
             ]
-        }, {id: 1, isAdmit: false}, ['0'])
+        }, [{id: 1, isAdmit: false}], ['0'])
 
     let result = testFunc(nfa)
 
@@ -54,7 +54,7 @@ test("step by step: { q0 <- -> q1 -> (q2); A = {0, 1}}: 2 steps for 2 edges with
                 {from: 1, to: 2, transitions: toSet(['0'])},
                 {from: 2, to: 3, transitions: toSet(['0'])}
             ]
-        }, {id: 1, isAdmit: false}, ['0', '0'])
+        }, [{id: 1, isAdmit: false}], ['0', '0'])
 
     let result = testFunc(nfa)
 
@@ -77,7 +77,7 @@ test("step by step:", () => {
                 {from: 1, to: 2, transitions: toSet(['b'])},
                 {from: 0, to: 3, transitions: toSet(['a'])}
             ]
-        }, {id: 0, isAdmit: false}, ['a'])
+        }, [{id: 0, isAdmit: false}], ['a'])
 
     let result = testFunc(nfa)
 
@@ -101,7 +101,7 @@ test("step by step:", () => {
                 {from: 1, to: 2, transitions: toSet(['b'])},
                 {from: 0, to: 3, transitions: toSet(['a'])}
             ]
-        }, {id: 0, isAdmit: false}, ['a', 'a', 'a', 'a', 'a', 'a', 'a', 'a'])
+        }, [{id: 0, isAdmit: false}], ['a', 'a', 'a', 'a', 'a', 'a', 'a', 'a'])
 
     let result = testFunc(nfa)
 
@@ -124,7 +124,7 @@ test("step by step:", () => {
                 {from: 1, to: 2, transitions: toSet(['b'])},
                 {from: 0, to: 3, transitions: toSet(['a'])}
             ]
-        }, {id: 0, isAdmit: false}, ['b', 'b'])
+        }, [{id: 0, isAdmit: false}], ['b', 'b'])
 
     let result = testFunc(nfa)
 
@@ -149,7 +149,7 @@ test("step by step:", () => {
                 {from: 3, to: 4, transitions: toSet(['1'])},
                 {from: 4, to: 4, transitions: toSet(['0', '1'])}
             ]
-        }, {id: 1, isAdmit: false}, ['0','1','1','0','0'])
+        }, [{id: 1, isAdmit: false}], ['0','1','1','0','0'])
 
     let result = testFunc(nfa)
 
@@ -174,7 +174,7 @@ test("step by step:", () => {
                 {from: 3, to: 4, transitions: toSet(['1'])},
                 {from: 4, to: 4, transitions: toSet(['0', '1'])}
             ]
-        }, {id: 1, isAdmit: false}, ['0','1','0','1','0','0','0','0','0','0','0'])
+        }, [{id: 1, isAdmit: false}], ['0','1','0','1','0','0','0','0','0','0','0'])
 
     let result = testFunc(nfa)
 
@@ -199,7 +199,7 @@ test("step by step:", () => {
                 {from: 3, to: 4, transitions: toSet(['1'])},
                 {from: 4, to: 4, transitions: toSet(['0', '1'])}
             ]
-        }, {id: 3, isAdmit: false}, ['1', '1', '1', '1', '1', '1', '1', '1', '1', '1'])
+        }, [{id: 3, isAdmit: false}], ['1', '1', '1', '1', '1', '1', '1', '1', '1', '1'])
 
     let result = testFunc(nfa)
 

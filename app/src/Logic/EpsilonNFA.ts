@@ -361,12 +361,23 @@ export class EpsilonNFA extends Computer {
         this.nfaToDfa()
         this.correctionEmptyNodes()
         this.currentNodeNfa = this.statementsNfa[this.getIdStatementsNfa([this.statements.get(this.startStatements[0].id)])]
+      //  console.log('!!!',  this.currentNodeNfa)
         this.createSmallMatrix()
-        if (!this.isDeterministic()) {
+        if (this.haveEpsilon()) {
             this.currentNodeNfa = this.matrix[this.currentNodeNfa.id][this.alphabet.get(EPS)]
         }
+
+        this.matrix.forEach(value => {
+            console.log(' ')
+            value.forEach(value1 => console.log(value1))
+        })
+        console.log('****')
+        this.statementsNfa.forEach(value => console.log(value))
+        console.log('****')
+        console.log(this.currentNodeNfa)
+        console.log('****')
         this.historiStep.push({nodes: this.toNodes(this.currentNodeNfa), by: EPS})
-        this.historiRun.push({nodes: this.toNodes(this.currentNodeNfa), by: EPS})
+        //this.historiRun.push({nodes: this.toNodes(this.currentNodeNfa), by: EPS})
     }
 
     private getNodeFromStatement(statement: statement): NodeCore {
@@ -412,9 +423,10 @@ export class EpsilonNFA extends Computer {
         }
         return by
     }
-/*    public getTrendyNode(): Step {
-        return this.toSteps(this.currentNodeNfa, this.counterSteps)
-    }*/
+
+    public getTrendyNode(): Step {
+        return this.toSteps(this.currentNodeNfa, this.counterSteps, this.historiStep)
+    }
 
     private createSmallMatrix(): void {
         let isVisited: boolean[] = []
@@ -462,14 +474,21 @@ export class EpsilonNFA extends Computer {
     }
 
     public run(): Step {
-        this.historiRun = []
+       // this.historiRun = []
         let isEmptyInput: boolean = false /////////////////////////////////<-
         if (this.input.length === 0) {
             isEmptyInput = true
         }
 
         this.counterStepsForResult = 0
-        let current: statementNfa = this.statementsNfa[this.getIdStatementsNfa([this.statements.get(this.startStatements[0].id)])]//this.startStatementNfa()
+       // let current: statementNfa = this.statementsNfa[this.getIdStatementsNfa([this.statements.get(this.startStatements[0].id)])]//this.startStatementNfa()
+
+        let current = this.statementsNfa[this.getIdStatementsNfa([this.statements.get(this.startStatements[0].id)])]
+        if (this.haveEpsilon()) {
+            current = this.matrix[this.currentNodeNfa.id][this.alphabet.get(EPS)]
+        }
+        this.historiRun.push({nodes: this.toNodes(current), by: EPS})
+
         let oldCurrent = current
         let l = 0
         let i = current.id
@@ -547,8 +566,6 @@ export class EpsilonNFA extends Computer {
     }
 }
 
-/*
-
 let toSet = (str: string[]) => {
     let set: Set<string> = new Set()
     for (let i = 0; i < str.length; i++) {
@@ -556,6 +573,23 @@ let toSet = (str: string[]) => {
     }
     return set;
 }
+
+let nfa = new EpsilonNFA(
+    {
+        nodes: [
+            {id: 0, isAdmit: false},
+            {id: 1, isAdmit: false},
+            {id: 2, isAdmit: true},
+            {id: 3, isAdmit: true},
+        ],
+        edges: [
+            {from: 0, to: 1, transitions: toSet(['a'])},
+            {from: 1, to: 2, transitions: toSet(['b'])},
+            {from: 0, to: 3, transitions: toSet(['a'])}
+        ]
+    }, [{id: 0, isAdmit: false}], ['b', 'b'])
+
+/*
 /!*let nfa = new EpsilonNFA(
     {
         nodes: [
