@@ -243,9 +243,6 @@ export class EpsilonNFA extends Computer {
         })
     }
 
-    public haveEpsilon(): boolean {
-        return this.alphabet.get(EPS) !== undefined
-    }
 
     private creatMatrixWithoutEColumn(matrix: statementNfa[][]): statementNfa[][] {
         let eps: number = this.alphabet.get(EPS)
@@ -403,40 +400,6 @@ export class EpsilonNFA extends Computer {
         return retNodes
     }
 
-    public setInput(input: string[]): void {
-        this.input = []
-        input.forEach(value => {
-            this.input.push({idLogic: this.alphabet.get(value), value: value})
-        })
-        this.restart()
-    }
-
-    public restart(): void {
-        this.currentNodeNfa = this.statementsNfa[this.getIdStatementsNfa([this.statements.get(this.startStatements[0].id)])] //this.startStatementNfa()
-        this.counterSteps = 0
-        //hist
-    }
-
-    private wasStopped: boolean = false
-
-    public step(): Step {
-        if (this.counterSteps >= this.input.length || !this.isPossibleTransition(this.input[this.counterSteps].value)) {
-            if (!this.wasStopped) {
-              //  this.shit.push(this.toNodes(this.currentNodeNfa))////
-                this.wasStopped = true
-            }
-            return this.toSteps(this.currentNodeNfa, this.counterSteps, this.historiStep)
-        }
-
-        let transformedInput: number = this.alphabet.get(this.input[this.counterSteps].value)
-        this.counterSteps++
-        let by = this.getLetterFromAlphabet(transformedInput)
-        this.currentNodeNfa = this.matrix[this.currentNodeNfa.id][transformedInput]
-        this.historiStep.push({nodes: this.toNodes(this.currentNodeNfa), by: by})/////////////////////
-
-        return this.toSteps(this.currentNodeNfa, this.counterSteps, this.historiStep)
-    }
-
     private getLetterFromAlphabet(numb: number): string {
         let by: string = '!?'
         this.alphabet.forEach((value, key) => {
@@ -452,62 +415,6 @@ export class EpsilonNFA extends Computer {
 /*    public getTrendyNode(): Step {
         return this.toSteps(this.currentNodeNfa, this.counterSteps)
     }*/
-
-    public run(): Step {
-        let isEmptyInput: boolean = false /////////////////////////////////<-
-        if (this.input.length === 0) {
-            isEmptyInput = true
-        }
-
-        this.counterStepsForResult = 0
-        let current: statementNfa = this.statementsNfa[this.getIdStatementsNfa([this.statements.get(this.startStatements[0].id)])]//this.startStatementNfa()
-        let oldCurrent = current
-        let l = 0
-        let i = current.id
-        let j = -1 //now we see at left column of table of def statements
-
-        if (this.alphabet.size < 1) {
-            console.log('Alphabet is empty, you should to enter edges')
-            let retCounter: number = this.counterStepsForResult
-            return this.toSteps(current, retCounter, this.historiRun)
-        }
-        //console.log(this.numbersStatementsNfa.get(this.keyOfStatementNfa(current.value)), 'NOW in', 'start statement')
-        while (l < this.input.length && !isEmptyInput) {
-            j = this.input[l].idLogic
-            if (this.matrix[i][j].id === -1) {
-                let retCounter: number = this.counterStepsForResult /// current.value.length
-                return this.toSteps(current, retCounter, this.historiRun)
-                //return {node: this.nodes[current.idLogic], counter: this.counterStepsForResult}
-            }
-            oldCurrent = current
-            current = this.matrix[i][j]
-            this.counterStepsForResult++
-            i = this.matrix[i][j].id
-
-            let by: string = this.getLetterFromAlphabet(j)
-            this.historiRun.push({nodes: this.toNodes(current), by: by})/////////////////////
-
-            l++
-        } if (isEmptyInput) {
-            j = this.alphabet.get(EPS) !== undefined ? this.alphabet.get(EPS) : -1
-            if (j !== -1) {
-                if (this.matrix[i][j].id === -1) {
-                    // console.log(this.numbersStatementsNfa.get(this.keyOfStatementNfa(current.value)))
-                    let retCounter: number = this.counterStepsForResult /// current.value.length
-                    return this.toSteps(current, retCounter, this.historiRun)
-                    //return {node: this.nodes[current.idLogic], counter: this.counterStepsForResult}
-                }
-                current = this.matrix[i][j]
-            }
-        }
-        //console.log(this.numbersStatementsNfa.get(this.keyOfStatementNfa(current.value)))//, 'Aoutomata was stoped in ', current, ' ~ ', i, ' ', j)
-        let retCounter: number = this.counterStepsForResult
-        return this.toSteps(current, retCounter, this.historiRun)
-    }
-
-    public isDeterministic(): boolean {
-        return this.statementsNfa.length === this.statements.size
-    }
 
     private createSmallMatrix(): void {
         let isVisited: boolean[] = []
@@ -548,6 +455,95 @@ export class EpsilonNFA extends Computer {
                 this.createSmallMatrixDfs(matrix[statement.id][i], matrix, isVisited, ret)
             }
         }
+    }
+
+    public isDeterministic(): boolean {
+        return this.statementsNfa.length === this.statements.size
+    }
+
+    public run(): Step {
+        this.historiRun = []
+        let isEmptyInput: boolean = false /////////////////////////////////<-
+        if (this.input.length === 0) {
+            isEmptyInput = true
+        }
+
+        this.counterStepsForResult = 0
+        let current: statementNfa = this.statementsNfa[this.getIdStatementsNfa([this.statements.get(this.startStatements[0].id)])]//this.startStatementNfa()
+        let oldCurrent = current
+        let l = 0
+        let i = current.id
+        let j = -1 //now we see at left column of table of def statements
+
+        if (this.alphabet.size < 1) {
+            console.log('Alphabet is empty, you should to enter edges')
+            let retCounter: number = this.counterStepsForResult
+            return this.toSteps(current, retCounter, this.historiRun)
+        }
+        //console.log(this.numbersStatementsNfa.get(this.keyOfStatementNfa(current.value)), 'NOW in', 'start statement')
+        while (l < this.input.length && !isEmptyInput) {
+            j = this.input[l].idLogic
+            if (this.matrix[i][j].id === -1) {
+                let retCounter: number = this.counterStepsForResult /// current.value.length
+                return this.toSteps(current, retCounter, this.historiRun)
+                //return {node: this.nodes[current.idLogic], counter: this.counterStepsForResult}
+            }
+            oldCurrent = current
+            current = this.matrix[i][j]
+            this.counterStepsForResult++
+            i = this.matrix[i][j].id
+
+            let by: string = this.getLetterFromAlphabet(j)
+            this.historiRun.push({nodes: this.toNodes(current), by: by})/////////////////////
+            l++
+        } if (isEmptyInput) {
+            j = this.alphabet.get(EPS) !== undefined ? this.alphabet.get(EPS) : -1
+            if (j !== -1) {
+                if (this.matrix[i][j].id === -1) {
+                    // console.log(this.numbersStatementsNfa.get(this.keyOfStatementNfa(current.value)))
+                    let retCounter: number = this.counterStepsForResult /// current.value.length
+                    return this.toSteps(current, retCounter, this.historiRun)
+                    //return {node: this.nodes[current.idLogic], counter: this.counterStepsForResult}
+                }
+                current = this.matrix[i][j]
+            }
+        }
+        //console.log(this.numbersStatementsNfa.get(this.keyOfStatementNfa(current.value)))//, 'Aoutomata was stoped in ', current, ' ~ ', i, ' ', j)
+        let retCounter: number = this.counterStepsForResult
+        return this.toSteps(current, retCounter, this.historiRun)
+    }
+
+    public step(): Step {
+        if (this.counterSteps >= this.input.length || !this.isPossibleTransition(this.input[this.counterSteps].value)) {
+            return this.toSteps(this.currentNodeNfa, this.counterSteps, this.historiStep)
+        }
+
+        let transformedInput: number = this.alphabet.get(this.input[this.counterSteps].value)
+        this.counterSteps++
+        let by = this.getLetterFromAlphabet(transformedInput)
+        this.currentNodeNfa = this.matrix[this.currentNodeNfa.id][transformedInput]
+        this.historiStep.push({nodes: this.toNodes(this.currentNodeNfa), by: by})/////////////////////
+
+        return this.toSteps(this.currentNodeNfa, this.counterSteps, this.historiStep)
+    }
+
+    public restart(): void {
+        this.currentNodeNfa = this.statementsNfa[this.getIdStatementsNfa([this.statements.get(this.startStatements[0].id)])] //this.startStatementNfa()
+        this.counterSteps = 0
+        this.historiStep = []
+        //hist
+    }
+
+    public setInput(input: string[]): void {
+        this.input = []
+        input.forEach(value => {
+            this.input.push({idLogic: this.alphabet.get(value), value: value})
+        })
+        this.restart()
+    }
+
+    public haveEpsilon(): boolean {
+        return this.alphabet.get(EPS) !== undefined
     }
 }
 
