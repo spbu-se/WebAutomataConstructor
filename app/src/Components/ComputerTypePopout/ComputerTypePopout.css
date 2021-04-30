@@ -81,3 +81,25 @@
     text-decoration: none;
     color: #000000;
 }
+
+.computer-type-popout__savings__container {
+    display: flex;
+    overflow-x: auto;
+}
+
+.computer-type-popout__saving {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+
+    overflow: hidden;
+    height: 52px;
+    min-width: 100px;
+
+    cursor: pointer
+}
+
+.computer-type-popout__saving:not(:last-child) {
+    margin-right: 8px;
+}

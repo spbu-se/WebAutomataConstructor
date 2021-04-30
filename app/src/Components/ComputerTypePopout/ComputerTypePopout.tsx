@@ -3,15 +3,38 @@ import "./ComputerTypePopout.css";
 import PopoutWrapper from "../PopoutWrapper/PopoutWrapper";
 import GitHubIcon from '@material-ui/icons/GitHub';
 import {computersInfo} from "../../utils";
-import {ComputerType} from "../../react-graph-vis-types";
+import {ComputerType, graph} from "../../react-graph-vis-types";
+import {Paper} from "@material-ui/core";
+import Loader, {Saving} from "../../Loader";
 
 interface ComputerTypePopoutProps extends AllHTMLAttributes<HTMLElement> {
-    changeComputerType: (computerType: null | ComputerType) => void;
+    changeComputerType: (computerType: null | ComputerType, graph: graph | null) => void
 }
 
-class ComputerTypePopout extends React.Component<ComputerTypePopoutProps, {}> {
+interface ComputerTypePopoutState {
+    savings: Saving[]
+}
+
+class ComputerTypePopout extends React.Component<ComputerTypePopoutProps, ComputerTypePopoutState> {
+    constructor(props: ComputerTypePopoutProps) {
+        super(props);
+
+        this.state = {
+            savings: [],
+        }
+    }
+
+    componentDidMount() {
+        this.setState({savings: Loader.GetSavings()});
+    }
+
+    loadSaving = (saving: Saving) => {
+        this.props.changeComputerType(saving.type, saving.graph);
+    }
+
     render() {
         const {changeComputerType, className, style, ...restProps} = this.props;
+        const {savings} = this.state;
 
         return (
             <PopoutWrapper
@@ -24,6 +47,25 @@ class ComputerTypePopout extends React.Component<ComputerTypePopoutProps, {}> {
                         Computer workbench
                     </div>
                     <div className="computer-type-popout__sections">
+                        <div className="computer-type-popout__savings">
+                            <div className="computer-type-popout__section__header">
+                                Сохранения
+                            </div>
+                            <div className="computer-type-popout__savings__container">
+                                {
+                                    savings.map((saving, index) => (
+                                        <Paper
+                                            key={index}
+                                            className="computer-type-popout__saving"
+                                            variant="outlined"
+                                            onClick={() => this.loadSaving(saving)}
+                                        >
+                                            {saving.name}
+                                        </Paper>
+                                    ))
+                                }
+                            </div>
+                        </div>
                         <div className="computer-type-popout__templates">
                             <div className="computer-type-popout__section__header">
                                 Templates
@@ -43,7 +85,7 @@ class ComputerTypePopout extends React.Component<ComputerTypePopoutProps, {}> {
                                                 {entry[1].description}
                                             </div>
                                             <button className="computer-type-popout__templates__card__create-button"
-                                                    onClick={() => this.props.changeComputerType(entry[0] as ComputerType)}
+                                                    onClick={() => this.props.changeComputerType(entry[0] as ComputerType, null)}
                                             >
                                                 Create
                                             </button>

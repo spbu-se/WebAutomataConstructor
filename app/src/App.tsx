@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {ReactNode} from 'react';
 import "./App.css"
 import Graph from "react-graph-vis";
 import {
@@ -19,6 +19,7 @@ import ComputerTypePopout from "./Components/ComputerTypePopout/ComputerTypePopo
 import Button from "@material-ui/core/Button";
 import Paper from "@material-ui/core/Paper";
 import MenuIcon from '@material-ui/icons/Menu';
+import SavingPopout from "./Components/SavingPopout/SavingPopout";
 
 interface appProps {
 }
@@ -31,7 +32,8 @@ interface appState {
     inEdgeMode: boolean,
     elements: graph,
     options: any,
-    initiallyStabilized: boolean
+    initiallyStabilized: boolean,
+    popout: ReactNode | null
 }
 
 export const ComputerTypeContext = React.createContext<null | ComputerType>(null);
@@ -67,7 +69,8 @@ class App extends React.Component<appProps, appState> {
                     enabled: false
                 }
             },
-            initiallyStabilized: false
+            initiallyStabilized: false,
+            popout: null
         };
     }
 
@@ -84,6 +87,13 @@ class App extends React.Component<appProps, appState> {
             if (event.key === "Shift" && !this.state.inEdgeMode) {
                 this.enterEdgeMode();
             }
+            if (event.key === "s" && event.altKey) {
+                if (!this.state.computerType) return;
+                this.setState({
+                    popout: <SavingPopout computerType={this.state.computerType} graph={this.state.elements}
+                                          changePopout={this.changePopout}/>
+                })
+            }
         })
 
         document.addEventListener("keyup", (event: KeyboardEvent) => {
@@ -91,6 +101,10 @@ class App extends React.Component<appProps, appState> {
                 this.leaveEdgeMode();
             }
         })
+    }
+
+    changePopout = (popout: ReactNode | null) => {
+        this.setState({popout: popout});
     }
 
     getNodeById = (id: number): node | undefined => {
@@ -332,17 +346,25 @@ class App extends React.Component<appProps, appState> {
                 <div className="app">
                     {
                         this.state.computerType === null ?
-                            <ComputerTypePopout changeComputerType={computerType => {
-                                const {defaultGraph} = computersInfo[computerType!];
+                            <ComputerTypePopout
+                                changeComputerType={(computerType, graph: graph | null) => {
 
-                                this.lastNodeId = defaultGraph.nodes.length;
-                                this.setState({
-                                    computerType: computerType,
-                                    elements: defaultGraph
-                                }, () => this.updateGraph());
-                            }}/>
+                                    const defaultGraph = graph || computersInfo[computerType!].defaultGraph;
+
+                                    console.log(defaultGraph);
+                                    console.log(defaultGraph["nodes"]);
+
+                                    this.lastNodeId = defaultGraph.nodes.length;
+                                    this.setState({
+                                        computerType: computerType,
+                                        elements: defaultGraph
+                                    }, () => this.updateGraph());
+                                }}
+                            />
                             : null
                     }
+
+                    {this.state.popout}
 
                     <div className="hint-container">
                         <Paper className="hint" variant="outlined">
