@@ -17,6 +17,7 @@ interface EdgeControlProps {
 interface EdgeControlState {
     prevEdgeId: string | undefined,
     transitions: Set<string>,
+    transitionsText: string,
     activeTransition: string | null,
     editMode: boolean
 }
@@ -28,6 +29,7 @@ class EdgeControl extends React.Component<EdgeControlProps, EdgeControlState> {
         this.state = {
             prevEdgeId: this.props.edge?.id,
             transitions: this.props.edge?.transitions || new Set(),
+            transitionsText: transitionsToLabel(this.props.edge?.transitions || new Set()),
             activeTransition: null,
             editMode: false
         }
@@ -38,6 +40,7 @@ class EdgeControl extends React.Component<EdgeControlProps, EdgeControlState> {
             this.setState({
                 transitions: this.props.edge?.transitions || new Set(),
                 prevEdgeId: this.props.edge?.id,
+                transitionsText: transitionsToLabel(this.props.edge?.transitions || new Set()),
                 activeTransition: null,
                 editMode: false
             });
@@ -52,10 +55,12 @@ class EdgeControl extends React.Component<EdgeControlProps, EdgeControlState> {
 
     changeTransitions = (event: React.ChangeEvent<HTMLInputElement>) => {
         const value = event.target.value;
-        const transitions = new Set(value.split(","));
 
-        this.props.changeEdgeTransitions(this.props.edge!.id!, transitions);
-        this.setState({transitions: transitions});
+        this.setState({transitionsText: value});
+
+        if (value.slice(-1) === ",") {
+            this.props.changeEdgeTransitions(this.props.edge!.id!, new Set(value.split(",")));
+        }
     }
 
     deleteTransition = (): void => {
@@ -78,6 +83,14 @@ class EdgeControl extends React.Component<EdgeControlProps, EdgeControlState> {
 
     changeEditMode = () => {
         this.setState({editMode: !this.state.editMode});
+        this.updateTransitions();
+    }
+
+    updateTransitions = () => {
+        const transitions = new Set(this.state.transitionsText.split(","));
+
+        this.props.changeEdgeTransitions(this.props.edge!.id!, transitions);
+        this.setState({transitionsText: transitionsToLabel(transitions), transitions: transitions})
     }
 
     render() {
@@ -89,9 +102,10 @@ class EdgeControl extends React.Component<EdgeControlProps, EdgeControlState> {
                             this.state.editMode ?
                                 <TextField
                                     label="Transitions"
-                                    value={transitionsToLabel(this.state.transitions)}
+                                    value={this.state.transitionsText}
                                     onChange={this.changeTransitions}
                                     helperText="Comma-separated list of characters"
+                                    onBlur={this.updateTransitions}
                                 />
                                 :
                                 Array.from(this.state.transitions || []).map((transition, index) => (
