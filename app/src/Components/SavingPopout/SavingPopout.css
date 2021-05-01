@@ -1,0 +1,17 @@
+.saving-popout {
+    width: 280px;
+}
+
+.saving-popout__name {
+    margin-bottom: 16px;
+    width: 280px;
+}
+
+.saving-popout__buttons {
+    display: flex;
+    float: right;
+}
+
+.saving-popout__button:not(:last-child) {
+    margin-right: 16px;
+}

@@ -1,14 +1,25 @@
 import {EdgeCore, GraphCore, NodeCore} from "./Logic/IGraphTypes";
 
+export type ComputerType = "dfa" | "nfa";
+
+export type ComputerInfo = {
+    name: string
+    description: string,
+    preview: string,
+    defaultGraph: graph
+}
+
 export interface node extends NodeCore{
     id: number,
-    label?: string,
+    label: string,
     x?: number,
     y?: number,
     color?: object,
    // isAdmit: boolean,
     isInitial: boolean,
-    isCurrent: boolean
+    isCurrent: boolean,
+    borderWidth?: number,
+    borderWidthSelected?: number
 }
 
 export interface edge extends EdgeCore {
@@ -39,6 +50,7 @@ export type clickEventArgs = {
         }
     }
 }
+export type dragEndEventArgs = clickEventArgs;
 export type doubleClickEventArgs = clickEventArgs;
 export type selectEventArgs = clickEventArgs;
 export type selectNodeEventArgs = selectEventArgs;

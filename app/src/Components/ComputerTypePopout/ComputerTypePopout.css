@@ -1,0 +1,105 @@
+.computer-type-popout__content {
+    width: 800px;
+    margin-bottom: 24px;
+}
+
+.computer-type-popout__header {
+    font-size: 24px;
+    font-weight: 500;
+}
+
+.computer-type-popout__sections {
+    margin-left: 12px;
+}
+
+.computer-type-popout__section__header {
+    font-size: 18px;
+    margin-top: 24px;
+    margin-bottom: 12px;
+}
+
+.computer-type-popout__templates__container {
+    display: flex;
+    overflow-x: scroll;
+}
+
+.computer-type-popout__templates__container::-webkit-scrollbar {
+    display: none;
+}
+
+.computer-type-popout__templates__card {
+    width: 140px;
+    margin-right: 16px;
+    display: flex;
+    flex-direction: column;
+}
+
+.computer-type-popout__templates__card__preview {
+    object-fit: cover;
+    width: 140px;
+    height: 140px;
+}
+
+.computer-type-popout__templates__card__name {
+    margin-top: 8px;
+    font-size: 18px;
+    text-align: center;
+}
+
+.computer-type-popout__templates__card__description {
+    color: #767676;
+    margin-top: 4px;
+    font-size: 11px;
+    font-weight: 300;
+    text-align: center;
+    margin-bottom: 16px;
+}
+
+.computer-type-popout__templates__card__create-button {
+    height: 28px;
+    width: 140px;
+    border: none;
+    border-radius: 6px;
+    background-color: #0041dd;
+    font-size: 12px;
+    font-weight: 500;
+    color: #ffffff;
+    cursor: pointer;
+    margin-top: auto;
+}
+
+.computer-type-popout__credits__line {
+    display: flex;
+}
+
+.computer-type-popout__credits__line__link {
+    margin-left: 8px;
+    margin-top: 2px;
+}
+
+.computer-type-popout__credits__line__link a {
+    text-decoration: none;
+    color: #000000;
+}
+
+.computer-type-popout__savings__container {
+    display: flex;
+    overflow-x: auto;
+}
+
+.computer-type-popout__saving {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+
+    overflow: hidden;
+    height: 52px;
+    min-width: 100px;
+
+    cursor: pointer
+}
+
+.computer-type-popout__saving:not(:last-child) {
+    margin-right: 8px;
+}

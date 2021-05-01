@@ -1,68 +1,111 @@
-import React from 'react';
+import React, {ReactNode} from 'react';
 import "./App.css"
 import Graph from "react-graph-vis";
 import {
+    ComputerType,
     controlNodeDraggingEventArgs, deselectEdgeEventArgs,
     deselectNodeEventArgs,
-    doubleClickEventArgs, edge,
+    doubleClickEventArgs, dragEndEventArgs, edge,
     graph,
     node, selectEdgeEventArgs,
     selectNodeEventArgs
 } from "./react-graph-vis-types";
-import { cloneDeep } from "lodash";
+import {cloneDeep} from "lodash";
 import NodeControl from "./Components/NodeControl/NodeControl";
-import SettingsControl from "./Components/SettingsControl/SettingsControl";
 import EdgeControl from "./Components/EdgeControl/EdgeControl";
-import {getStateColor, transitionsToLabel} from "./utils";
+import {computersInfo, decorateGraph, getNodeNamePrefix, transitionsToLabel} from "./utils";
 import RunControl from "./Components/RunControl/RunControl";
+import ComputerTypePopout from "./Components/ComputerTypePopout/ComputerTypePopout";
+import Button from "@material-ui/core/Button";
+import Paper from "@material-ui/core/Paper";
+import MenuIcon from '@material-ui/icons/Menu';
+import SavingPopout from "./Components/SavingPopout/SavingPopout";
 
 interface appProps {
 }
 
 interface appState {
+    computerType: null | ComputerType
+
     selectedNode: node | null,
     selectedEdge: edge | null,
     inEdgeMode: boolean,
-    elements: graph
+    elements: graph,
+    options: any,
+    initiallyStabilized: boolean,
+    popout: ReactNode | null
 }
 
-const initialElements: graph = {
-    nodes: [
-        {id: 1, label: "label 1", isAdmit: false, isInitial: true, isCurrent: false, color: getStateColor(false, true, false)},
-        {id: 2, label: "label 2", isAdmit: false, isInitial: false, isCurrent: false, color: getStateColor(false, false, false)},
-        {id: 3, label: "label 3", isAdmit: true, isInitial: false, isCurrent: false, color: getStateColor(true, false, false)},
-        {id: 4, label: "label 4", isAdmit: true, isInitial: false, isCurrent: false, color: getStateColor(true, false, false)},
-    ],
-    edges: [
-        {from: 1, to: 2, label: "0", transitions: new Set(["0"])},
-        {from: 2, to: 1, label: "0", transitions: new Set(["0"])},
-        {from: 3, to: 4, label: "0", transitions: new Set(["0"])},
-        {from: 4, to: 4, label: "0", transitions: new Set(["0"])},
-        {from: 1, to: 3, label: "1", transitions: new Set(["1"])},
-        {from: 2, to: 4, label: "1", transitions: new Set(["1"])},
-        {from: 3, to: 2, label: "1", transitions: new Set(["1"])},
-        {from: 4, to: 2, label: "1", transitions: new Set(["1", "0"])},
-    ]
-}
+export const ComputerTypeContext = React.createContext<null | ComputerType>(null);
 
 class App extends React.Component<appProps, appState> {
     constructor(props: appProps) {
         super(props);
 
         this.state = {
+            computerType: null,
+
             selectedNode: null,
             selectedEdge: null,
             inEdgeMode: false,
-            elements: initialElements
+            elements: {nodes: [], edges: []},
+            options: {
+                edges: {
+                    smooth: {
+                        enabled: true,
+                        type: "discrete",
+                        roundness: 0.5
+                    },
+                    length: 200
+                },
+                nodes: {
+                    shape: "box",
+                    font: "18px Roboto black",
+                    labelHighlightBold: false,
+                    widthConstraint: 40,
+                    heightConstraint: 40
+                },
+                physics: {
+                    enabled: false
+                }
+            },
+            initiallyStabilized: false,
+            popout: null
         };
     }
 
     componentDidMount() {
-        this.updateGraph()
+        this.updateGraph();
+        this.subscribeToShift();
     }
 
     network: any;
-    lastNodeId = initialElements.nodes.length;
+    lastNodeId = 0;
+
+    subscribeToShift = () => {
+        document.addEventListener("keydown", (event: KeyboardEvent) => {
+            if (event.key === "Shift" && !this.state.inEdgeMode) {
+                this.enterEdgeMode();
+            }
+            if (event.key === "s" && event.altKey) {
+                if (!this.state.computerType) return;
+                this.setState({
+                    popout: <SavingPopout computerType={this.state.computerType} graph={this.state.elements}
+                                          changePopout={this.changePopout}/>
+                })
+            }
+        })
+
+        document.addEventListener("keyup", (event: KeyboardEvent) => {
+            if (event.key === "Shift" && this.state.inEdgeMode) {
+                this.leaveEdgeMode();
+            }
+        })
+    }
+
+    changePopout = (popout: ReactNode | null) => {
+        this.setState({popout: popout});
+    }
 
     getNodeById = (id: number): node | undefined => {
         return this.state.elements.nodes.find(node => node.id === id);
@@ -74,7 +117,7 @@ class App extends React.Component<appProps, appState> {
 
     updateGraph = (): void => {
         if (this.network !== null) {
-            this.network.setData(this.state.elements);
+            this.network.setData(decorateGraph(this.state.elements));
         }
     }
 
@@ -96,7 +139,6 @@ class App extends React.Component<appProps, appState> {
         for (let i = 0; i < elements.nodes.length; i++) {
             if (elements.nodes[i].id === id) {
                 elements.nodes[i].isAdmit = isAdmit;
-                elements.nodes[i].color = getStateColor(isAdmit, elements.nodes[i].isInitial, elements.nodes[i].isCurrent);
             }
         }
 
@@ -109,30 +151,41 @@ class App extends React.Component<appProps, appState> {
         for (let i = 0; i < elements.nodes.length; i++) {
             if (elements.nodes[i].isInitial) {
                 elements.nodes[i].isInitial = false;
-                elements.nodes[i].color = getStateColor(elements.nodes[i].isAdmit, false, elements.nodes[i].isCurrent);
             }
 
             if (elements.nodes[i].id === id) {
                 elements.nodes[i].isInitial = isInitial
-                elements.nodes[i].color = getStateColor(elements.nodes[i].isAdmit, isInitial, elements.nodes[i].isCurrent);
             }
         }
 
         this.setState({elements: elements}, () => this.updateGraph());
     }
 
-    changeStateIsCurrent = (id: number, isCurrent: boolean): void => {
+    changeStateIsCurrent = (ids: number[], isCurrent: boolean): void => {
         const elements = cloneDeep(this.state.elements);
 
         for (let i = 0; i < elements.nodes.length; i++) {
             if (elements.nodes[i].isCurrent) {
                 elements.nodes[i].isCurrent = false;
-                elements.nodes[i].color = getStateColor(elements.nodes[i].isAdmit, elements.nodes[i].isInitial, false);
             }
+        }
 
-            if (elements.nodes[i].id === id) {
+        for (let i = 0; i < elements.nodes.length; i++) {
+            if (ids.includes(elements.nodes[i].id)) {
                 elements.nodes[i].isCurrent = isCurrent
-                elements.nodes[i].color = getStateColor(elements.nodes[i].isAdmit, elements.nodes[i].isInitial, isCurrent);
+            }
+        }
+
+        this.setState({elements: elements}, () => this.updateGraph());
+    }
+
+    changeNodePosition = (id: number, x: number, y: number): void => {
+        const elements = cloneDeep(this.state.elements);
+
+        for (let i = 0; i < elements.nodes.length; i++) {
+            if (elements.nodes[i].id === id) {
+                elements.nodes[i].x = x;
+                elements.nodes[i].y = y;
             }
         }
 
@@ -145,7 +198,14 @@ class App extends React.Component<appProps, appState> {
 
         const elements = cloneDeep(this.state.elements);
 
-        elements.nodes.push({id: ++this.lastNodeId, label: "new", isAdmit: false, isInitial: false});
+        elements.nodes.push({
+            id: ++this.lastNodeId,
+            x: x,
+            y: y,
+            label: getNodeNamePrefix(this.state.elements),
+            isAdmit: false,
+            isInitial: false
+        });
 
         this.setState({elements: elements}, () => this.updateGraph());
     }
@@ -260,26 +320,15 @@ class App extends React.Component<appProps, appState> {
         this.setState({elements: elements}, () => this.updateGraph());
     }
 
-    options = {
-        edges: {
-            smooth: {
-                enabled: true,
-                type: "discrete",
-                roundness: 0.5
-            },
-            length: 200
-        },
-        nodes: {
-            shape: "circle",
-            color: {
-                border: "black",
-                background: "white"
-            }
-        },
-        physics: {
-            enabled: true
+
+    onDragEnd = (args: dragEndEventArgs): void => {
+        if (args.nodes.length === 1) {
+            const node = args.nodes[0];
+            const {x, y} = args.pointer.canvas;
+
+            this.changeNodePosition(node, x, y);
         }
-    };
+    }
 
     events = {
         doubleClick: this.createNode,
@@ -287,47 +336,88 @@ class App extends React.Component<appProps, appState> {
         selectEdge: this.selectEdge,
         deselectNode: this.deselectNode,
         deselectEdge: this.deselectEdge,
-        controlNodeDragEnd: this.onEdgeDragEnd
+        controlNodeDragEnd: this.onEdgeDragEnd,
+        dragEnd: this.onDragEnd
     };
 
     render() {
         return (
-            <div className="app">
-                <div className="field__container">
-                    <Graph
-                        getNetwork={(network: any) => this.network = network}
-                        graph={{nodes: [], edges: []}}
-                        options={this.options}
-                        events={this.events}
-                    />
-                </div>
+            <ComputerTypeContext.Provider value={this.state.computerType}>
+                <div className="app">
+                    {
+                        this.state.computerType === null ?
+                            <ComputerTypePopout
+                                changeComputerType={(computerType, graph: graph | null) => {
 
-                <div className="app__right-menu">
-                    <NodeControl
-                        node={this.state.selectedNode}
-                        changeNodeLabel={this.changeNodeLabel}
-                        changeStateIsAdmit={this.changeStateIsAdmit}
-                        changeStateIsInitial={this.changeStateIsInitial}
-                        deleteNode={this.deleteNode}
-                    />
-                    <SettingsControl
-                        enterEdgeMode={this.enterEdgeMode}
-                        leaveEdgeMode={this.leaveEdgeMode}
-                        inEdgeMode={this.state.inEdgeMode}
-                    />
-                    <EdgeControl
-                        edge={this.state.selectedEdge}
-                        changeEdgeLabel={this.changeEdgeLabel}
-                        changeEdgeTransitions={this.changeEdgeTransition}
-                        deleteEdge={this.deleteEdge}
-                    />
-                    <RunControl
-                        elements={this.state.elements}
-                        changeStateIsCurrent={this.changeStateIsCurrent}
-                    />
-                </div>
+                                    const defaultGraph = graph || computersInfo[computerType!].defaultGraph;
 
-            </div>
+                                    console.log(defaultGraph);
+                                    console.log(defaultGraph["nodes"]);
+
+                                    this.lastNodeId = defaultGraph.nodes.length;
+                                    this.setState({
+                                        computerType: computerType,
+                                        elements: defaultGraph
+                                    }, () => this.updateGraph());
+                                }}
+                            />
+                            : null
+                    }
+
+                    {this.state.popout}
+
+                    <div className="hint-container">
+                        <Paper className="hint" variant="outlined">
+                            Hold shift to create an edge
+                        </Paper>
+                        <Paper className="hint" variant="outlined">
+                            Double click to create a node
+                        </Paper>
+                    </div>
+
+                    <div className="menu-button">
+                        <Button
+                            variant="contained"
+                            color="primary"
+                            startIcon={<MenuIcon/>}
+                            onClick={() => {
+                                this.setState({computerType: null})
+                            }}
+                        >
+                            Menu
+                        </Button>
+                    </div>
+
+                    <div className="field__container">
+                        <Graph
+                            getNetwork={(network: any) => this.network = network}
+                            graph={{nodes: [], edges: []}}
+                            options={this.state.options}
+                            events={this.events}
+                        />
+                    </div>
+
+                    <div className="app__right-menu">
+                        <NodeControl
+                            node={this.state.selectedNode}
+                            changeNodeLabel={this.changeNodeLabel}
+                            changeStateIsAdmit={this.changeStateIsAdmit}
+                            changeStateIsInitial={this.changeStateIsInitial}
+                            deleteNode={this.deleteNode}
+                        />
+                        <EdgeControl
+                            edge={this.state.selectedEdge}
+                            changeEdgeTransitions={this.changeEdgeTransition}
+                            deleteEdge={this.deleteEdge}
+                        />
+                        <RunControl
+                            elements={this.state.elements}
+                            changeStateIsCurrent={this.changeStateIsCurrent}
+                        />
+                    </div>
+
+                </div>
+            </ComputerTypeContext.Provider>
         )
     }
 }

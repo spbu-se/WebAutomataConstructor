@@ -1,22 +1,95 @@
+import {ComputerInfo, ComputerType, graph} from "./react-graph-vis-types";
+import {DFA} from "./Logic/DFA";
+
 export const transitionsToLabel = (transitions: Set<string>): string => {
     return Array.from(transitions).join(",");
 }
 
-export const getStateColor = (isAdmit: boolean, isInitial: boolean, isCurrent: boolean): object => {
-    const getColorObject = (background: string): object => {
-        return {
+export const decorateGraph = (graph: graph): graph => {
+    graph.nodes.forEach(node => {
+        const border = node.isInitial ? "#0041d0" : node.isAdmit ? "#ff0072" : "#000000"
+        const background = node.isCurrent ? "#ffff55" : "#ffffff";
+        const borderWidth = {
+            default: 1.5,
+            primary: 2,
+            highlight: 4
+        };
+
+        node.color = {
             background: background,
-            border: isCurrent ? "#ff0000" : "#000"
+            border: border,
+            highlight: {
+                border: border,
+                background: background
+            }
+        };
+        node.borderWidth = node.isInitial || node.isAdmit ? borderWidth.primary : borderWidth.default;
+        node.borderWidthSelected = borderWidth.highlight;
+    })
+
+    graph.edges.forEach(edge => {
+        edge.label = transitionsToLabel(edge.transitions)
+    })
+
+    return graph;
+}
+
+export const getNodeNamePrefix = (graph: graph): string => {
+    let prefix = graph.nodes.length === 0 ? "" : graph.nodes[0].label;
+
+    graph.nodes.forEach(node => {
+        let i = 0;
+        while (i < node.label.length && i < prefix.length && node.label[i] === prefix[i]) {
+            i++;
+        }
+        prefix = prefix.substring(0, i);
+    });
+
+    return prefix;
+}
+
+export const computersInfo: Record<ComputerType, ComputerInfo> = {
+    dfa: {
+        name: "DFA",
+        description: "finite-state machine that accepts or rejects a given string of symbols, by running through a state sequence uniquely determined by the string",
+        preview: "dfa.png",
+        defaultGraph: {
+            nodes: [
+                {id: 1, x: 0, y: 20, label: "S0", isAdmit: false, isInitial: true, isCurrent: false},
+                {id: 2, x: 200, y: 0, label: "S1", isAdmit: false, isInitial: false, isCurrent: false},
+                {id: 3, x: 0, y: 180, label: "S2", isAdmit: true, isInitial: false, isCurrent: false},
+                {id: 4, x: 180, y: 200, label: "S3", isAdmit: true, isInitial: false, isCurrent: false},
+            ],
+            edges: [
+                {from: 1, to: 2, transitions: new Set(["0"])},
+                {from: 2, to: 1, transitions: new Set(["0"])},
+                {from: 3, to: 4, transitions: new Set(["0"])},
+                {from: 4, to: 4, transitions: new Set(["0"])},
+                {from: 1, to: 3, transitions: new Set(["1"])},
+                {from: 2, to: 4, transitions: new Set(["1"])},
+                {from: 3, to: 2, transitions: new Set(["1"])},
+                {from: 4, to: 2, transitions: new Set(["1"])},
+            ]
+        }
+    },
+    nfa: {
+        name: "NFA",
+        description: "Automata that are non-deterministic (NFA) can be in several states at once",
+        preview: "nfa.png",
+        defaultGraph: {
+            nodes: [
+                {id: 1, x: 0, y: 0, label: "S0", isAdmit: false, isInitial: true, isCurrent: false},
+                {id: 2, x: 100, y: 100, label: "S1", isAdmit: false, isInitial: false, isCurrent: false},
+                {id: 3, x: 200, y: 200, label: "S2", isAdmit: false, isInitial: false, isCurrent: false},
+                {id: 4, x: 300, y: 300, label: "S3", isAdmit: true, isInitial: false, isCurrent: false},
+            ],
+            edges: [
+                {from: 1, to: 1, transitions: new Set(['0', '1'])},
+                {from: 1, to: 2, transitions: new Set(['0'])},
+                {from: 2, to: 3, transitions: new Set(['1'])},
+                {from: 3, to: 4, transitions: new Set(['1'])},
+                {from: 4, to: 4, transitions: new Set(['0', '1'])}
+            ]
         }
     }
-
-    if (isAdmit) {
-        return getColorObject("#88ff88");
-    }
-
-    if (isInitial) {
-        return getColorObject("#ffff88");
-    }
-
-    return getColorObject("#fff");
 }

@@ -1,0 +1,117 @@
+import React, {AllHTMLAttributes} from "react";
+import "./ComputerTypePopout.css";
+import PopoutWrapper from "../PopoutWrapper/PopoutWrapper";
+import GitHubIcon from '@material-ui/icons/GitHub';
+import {computersInfo} from "../../utils";
+import {ComputerType, graph} from "../../react-graph-vis-types";
+import {Paper} from "@material-ui/core";
+import Loader, {Saving} from "../../Loader";
+
+interface ComputerTypePopoutProps extends AllHTMLAttributes<HTMLElement> {
+    changeComputerType: (computerType: null | ComputerType, graph: graph | null) => void
+}
+
+interface ComputerTypePopoutState {
+    savings: Saving[]
+}
+
+class ComputerTypePopout extends React.Component<ComputerTypePopoutProps, ComputerTypePopoutState> {
+    constructor(props: ComputerTypePopoutProps) {
+        super(props);
+
+        this.state = {
+            savings: [],
+        }
+    }
+
+    componentDidMount() {
+        this.setState({savings: Loader.GetSavings()});
+    }
+
+    loadSaving = (saving: Saving) => {
+        this.props.changeComputerType(saving.type, saving.graph);
+    }
+
+    render() {
+        const {changeComputerType, className, style, ...restProps} = this.props;
+        const {savings} = this.state;
+
+        return (
+            <PopoutWrapper
+                className={"computer-type-popout__wrapper " + className}
+                style={style}
+                {...restProps}
+            >
+                <div className="computer-type-popout__content">
+                    <div className="computer-type-popout__header">
+                        Computer workbench
+                    </div>
+                    <div className="computer-type-popout__sections">
+                        <div className="computer-type-popout__savings">
+                            <div className="computer-type-popout__section__header">
+                                Сохранения
+                            </div>
+                            <div className="computer-type-popout__savings__container">
+                                {
+                                    savings.map((saving, index) => (
+                                        <Paper
+                                            key={index}
+                                            className="computer-type-popout__saving"
+                                            variant="outlined"
+                                            onClick={() => this.loadSaving(saving)}
+                                        >
+                                            {saving.name}
+                                        </Paper>
+                                    ))
+                                }
+                            </div>
+                        </div>
+                        <div className="computer-type-popout__templates">
+                            <div className="computer-type-popout__section__header">
+                                Templates
+                            </div>
+                            <div className="computer-type-popout__templates__container">
+                                {
+                                    Object.entries(computersInfo).map((entry, index) =>
+                                        <div key={index} className="computer-type-popout__templates__card">
+                                            <img className="computer-type-popout__templates__card__preview"
+                                                 src={`/media/images/${entry[1].preview}`}
+                                                 alt={`${entry[1].name} preview`}
+                                            />
+                                            <div className="computer-type-popout__templates__card__name">
+                                                {entry[1].name}
+                                            </div>
+                                            <div className="computer-type-popout__templates__card__description">
+                                                {entry[1].description}
+                                            </div>
+                                            <button className="computer-type-popout__templates__card__create-button"
+                                                    onClick={() => this.props.changeComputerType(entry[0] as ComputerType, null)}
+                                            >
+                                                Create
+                                            </button>
+                                        </div>
+                                    )
+                                }
+                            </div>
+                        </div>
+                        <div className="computer-type-popout__credits">
+                            <div className="computer-type-popout__section__header">
+                                Credits
+                            </div>
+                            <div className="computer-type-popout__credits__line">
+                                <div className="computer-type-popout__credits__line__icon">
+                                    <GitHubIcon/>
+                                </div>
+                                <div className="computer-type-popout__credits__line__link">
+                                    <a href="https://github.com/spbu-se/WebAutomataConstructor">https://github.com/spbu-se/WebAutomataConstructor</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </PopoutWrapper>
+        );
+    }
+}
+
+export default ComputerTypePopout;
