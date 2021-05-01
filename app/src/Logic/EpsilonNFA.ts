@@ -1,10 +1,6 @@
-import {elementOfAlphabet, History, statement, statementNfa, Step} from "./Types";
+import {History, statement, statementNfa, Step} from "./Types";
 import {GraphCore, NodeCore} from "./IGraphTypes";
 import {Computer, eof, EPS} from "./Computer";
-import {NFA} from "./NFA";
-import {Simulate} from "react-dom/test-utils";
-import input = Simulate.input;
-import {DFA} from "./DFA";
 
 type computational = {
     statements: statementNfa[]
@@ -474,7 +470,7 @@ export class EpsilonNFA extends Computer {
         return this.statementsNfa.length === this.statements.size
     }
 
-    public run(): Step {
+    public run = (): Step => {
         this.historiRun = []
         let isEmptyInput: boolean = false /////////////////////////////////<-
         if (this.input.length === 0) {
@@ -533,7 +529,7 @@ export class EpsilonNFA extends Computer {
         return this.toSteps(current, retCounter, this.historiRun)
     }
 
-    public step(): Step {
+    public step = (): Step => {
         if (this.counterSteps >= this.input.length || !this.isPossibleTransition(this.input[this.counterSteps].value)) {
             return this.toSteps(this.currentNodeNfa, this.counterSteps, this.historiStep)
         }
@@ -547,7 +543,7 @@ export class EpsilonNFA extends Computer {
         return this.toSteps(this.currentNodeNfa, this.counterSteps, this.historiStep)
     }
 
-    public restart(): void {
+    public restart = () => {
         this.historiStep = []
 
         this.currentNodeNfa = this.statementsNfa[this.getIdStatementsNfa([this.statements.get(this.startStatements[0].id)])] //this.startStatementNfa()
@@ -559,7 +555,7 @@ export class EpsilonNFA extends Computer {
         this.counterSteps = 0
     }
 
-    public setInput(input: string[]): void {
+    public setInput = (input: string[]) => {
         this.input = []
         input.forEach(value => {
             this.input.push({idLogic: this.alphabet.get(value), value: value})

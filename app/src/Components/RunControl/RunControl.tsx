@@ -32,9 +32,9 @@ interface runControlState {
 const getComputer = (computerType: ComputerType, graph: graph, initialNode: node, input: string[]): Computer => {
     switch (computerType) {
         case "dfa":
-            return new DFA(graph, initialNode, input);
+            return new DFA(graph, [initialNode], input);
         case "nfa":
-            return new NFA(graph, initialNode, input);
+            return new NFA(graph, [initialNode], input);
     }
 }
 
