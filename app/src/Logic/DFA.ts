@@ -3,7 +3,7 @@ import {EpsilonNFA} from "./EpsilonNFA";
 
 export class DFA extends EpsilonNFA {
 
-    constructor(graph: GraphCore, startStatement: NodeCore, input: string[]) {
+    constructor(graph: GraphCore, startStatement: NodeCore[], input: string[]) {
         super(graph, startStatement, input)
         this.setInput(input)
         if (!super.isDeterministic()) {
