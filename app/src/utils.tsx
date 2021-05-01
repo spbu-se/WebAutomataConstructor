@@ -1,8 +1,9 @@
 import {ComputerInfo, ComputerType, graph} from "./react-graph-vis-types";
 import {DFA} from "./Logic/DFA";
+import {EPS} from "./Logic/Computer";
 
 export const transitionsToLabel = (transitions: Set<string>): string => {
-    return Array.from(transitions).join(",");
+    return Array.from(transitions).map(transition => transition === EPS ? "ε" : transition).join(",");
 }
 
 export const decorateGraph = (graph: graph): graph => {
@@ -89,6 +90,26 @@ export const computersInfo: Record<ComputerType, ComputerInfo> = {
                 {from: 2, to: 3, transitions: new Set(['1'])},
                 {from: 3, to: 4, transitions: new Set(['1'])},
                 {from: 4, to: 4, transitions: new Set(['0', '1'])}
+            ]
+        }
+    },
+    "nfa-eps": {
+        name: "ε-НКА",
+        description: "Расширение НКА, в котором используются ε-переходы – переходы между состояниями без входного символа",
+        preview: "nfa.png",
+        defaultGraph: {
+            nodes: [
+                {id: 1, x: 0, y: 0, label: "S0", isAdmit: false, isInitial: true, isCurrent: false},
+                {id: 2, x: 100, y: 100, label: "S1", isAdmit: false, isInitial: false, isCurrent: false},
+                {id: 3, x: 200, y: 200, label: "S2", isAdmit: false, isInitial: false, isCurrent: false},
+                {id: 4, x: 300, y: 300, label: "S3", isAdmit: true, isInitial: false, isCurrent: false},
+            ],
+            edges: [
+                {from: 1, to: 1, transitions: new Set([EPS])},
+                {from: 1, to: 2, transitions: new Set(['0'])},
+                {from: 2, to: 3, transitions: new Set(['1'])},
+                {from: 3, to: 4, transitions: new Set(['1'])},
+                {from: 4, to: 4, transitions: new Set([EPS])}
             ]
         }
     }

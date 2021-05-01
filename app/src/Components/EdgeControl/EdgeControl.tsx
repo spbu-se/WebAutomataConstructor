@@ -1,5 +1,5 @@
 import React from "react";
-import {edge} from "../../react-graph-vis-types";
+import {ComputerType, edge} from "../../react-graph-vis-types";
 import {transitionsToLabel} from "../../utils";
 import ControlWrapper from "../ControlWrapper/ControlWrapper";
 import Button from "@material-ui/core/Button";
@@ -7,11 +7,14 @@ import "./EdgeControl.css";
 import Transition from "./Transition/Transition";
 import EditIcon from '@material-ui/icons/Edit';
 import TextField from "@material-ui/core/TextField";
+import {withComputerType} from "../../hoc";
+import {EPS} from "../../Logic/Computer";
 
 interface EdgeControlProps {
     edge: edge | null,
     changeEdgeTransitions: (id: string, transitions: Set<string>) => void,
-    deleteEdge: (id: string) => void
+    deleteEdge: (id: string) => void,
+    computerType: ComputerType | null
 }
 
 interface EdgeControlState {
@@ -59,7 +62,12 @@ class EdgeControl extends React.Component<EdgeControlProps, EdgeControlState> {
         this.setState({transitionsText: value});
 
         if (value.slice(-1) === ",") {
-            this.props.changeEdgeTransitions(this.props.edge!.id!, new Set(value.split(",")));
+            const transitions = new Set(value
+                .split(",")
+                .map(transition => transition === "eps" && this.props.computerType === "nfa-eps" ? EPS : transition));
+
+            this.props.changeEdgeTransitions(this.props.edge!.id!, transitions);
+            this.setState({transitionsText: transitionsToLabel(transitions)});
         }
     }
 
@@ -69,7 +77,7 @@ class EdgeControl extends React.Component<EdgeControlProps, EdgeControlState> {
             transitions.delete(this.state.activeTransition);
 
             this.props.changeEdgeTransitions(this.props.edge.id!, transitions);
-            this.setState({transitions: transitions});
+            this.setState({transitions: transitions, transitionsText: transitionsToLabel(transitions)});
         }
     }
 
@@ -87,7 +95,10 @@ class EdgeControl extends React.Component<EdgeControlProps, EdgeControlState> {
     }
 
     updateTransitions = () => {
-        const transitions = new Set(this.state.transitionsText.split(","));
+        const transitions = new Set(this.state.transitionsText
+            .replace(/,$/, '')
+            .split(",")
+            .map(transition => transition === "eps" && this.props.computerType === "nfa-eps" ? EPS : transition));
 
         this.props.changeEdgeTransitions(this.props.edge!.id!, transitions);
         this.setState({transitionsText: transitionsToLabel(transitions), transitions: transitions})
@@ -104,7 +115,7 @@ class EdgeControl extends React.Component<EdgeControlProps, EdgeControlState> {
                                     label="Transitions"
                                     value={this.state.transitionsText}
                                     onChange={this.changeTransitions}
-                                    helperText="Comma-separated list of characters"
+                                    helperText={this.props.computerType === "nfa-eps" ? 'Список символов или "eps" через запятую' : "Список символов через запятую"}
                                     onBlur={this.updateTransitions}
                                 />
                                 :
@@ -112,7 +123,7 @@ class EdgeControl extends React.Component<EdgeControlProps, EdgeControlState> {
                                     <Transition
                                         key={index}
                                         className="edge-control__transition"
-                                        transition={transition}
+                                        transition={transition === EPS ? "ε" : transition}
                                         active={this.state.activeTransition === transition}
                                         deleteTransition={this.deleteTransition}
                                         onClick={() => this.selectTransition(transition)}
@@ -142,4 +153,4 @@ class EdgeControl extends React.Component<EdgeControlProps, EdgeControlState> {
     }
 }
 
-export default EdgeControl;
+export default withComputerType(EdgeControl);

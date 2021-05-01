@@ -13,6 +13,7 @@ import DoneIcon from '@material-ui/icons/Done';
 import CloseIcon from '@material-ui/icons/Close';
 import {NodeCore} from "../../Logic/IGraphTypes";
 import Typography from "@material-ui/core/Typography";
+import {EpsilonNFA} from "../../Logic/EpsilonNFA";
 
 interface runControlProps {
     computerType: ComputerType,
@@ -35,6 +36,8 @@ const getComputer = (computerType: ComputerType, graph: graph, initialNode: node
             return new DFA(graph, [initialNode], input);
         case "nfa":
             return new NFA(graph, [initialNode], input);
+        case "nfa-eps":
+            return new EpsilonNFA(graph, [initialNode], input);
     }
 }
 

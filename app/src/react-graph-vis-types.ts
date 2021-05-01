@@ -1,6 +1,6 @@
 import {EdgeCore, GraphCore, NodeCore} from "./Logic/IGraphTypes";
 
-export type ComputerType = "dfa" | "nfa";
+export type ComputerType = "dfa" | "nfa" | "nfa-eps";
 
 export type ComputerInfo = {
     name: string
