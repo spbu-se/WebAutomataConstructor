@@ -1,14 +1,12 @@
 import {GraphCore, NodeCore} from "./IGraphTypes";
-import {NFA} from "./NFA";
-import {Step} from "./Types";
+import {EpsilonNFA} from "./EpsilonNFA";
 
-export class DFA extends NFA {
-    private nfa: NFA
-    constructor(graph: GraphCore, startStatement: NodeCore, input: string[]) {
+export class DFA extends EpsilonNFA {
+
+    constructor(graph: GraphCore, startStatement: NodeCore[], input: string[]) {
         super(graph, startStatement, input)
-        this.nfa = new NFA(graph, startStatement, input)
         this.setInput(input)
-        if (this.nfa.run().nodes.length > 1) {
+        if (!super.isDeterministic()) {
             throw new Error("Is not determenistic")
         }
     }

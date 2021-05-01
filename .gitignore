@@ -8,3 +8,4 @@ app/.idea
 
 # production
 app/build
+/.idea/
