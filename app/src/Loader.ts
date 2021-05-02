@@ -1,7 +1,7 @@
 import {ComputerType, graph} from "./react-graph-vis-types";
 
 export default class Loader {
-    public static GetSavings = () : Saving[] => {
+    public static GetSavings = (): Saving[] => {
         const entries = Object.entries(localStorage);
         const savings = [];
 
@@ -9,7 +9,7 @@ export default class Loader {
             let saving: Saving;
 
             try {
-                saving = JSON.parse(value);
+                saving = JSON.parse(value, (key, value) => key === "lastSave" ? new Date(value) : value);
             } catch (e) {
                 console.warn(`Bad saving \"${key}\": ${value}`);
                 continue;
@@ -17,6 +17,8 @@ export default class Loader {
 
             savings.push(saving);
         }
+
+        savings.sort((a, b) => b.lastSave.getTime() - a.lastSave.getTime());
 
         return savings;
     }
