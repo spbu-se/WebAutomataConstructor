@@ -181,14 +181,14 @@ class RunControl extends React.Component<runControlProps, runControlState> {
 
     render() {
         return (
-            <ControlWrapper title={"Run"}>
+            <ControlWrapper title={"Запуск"}>
                 <div>
 
                     <div className="run-control__item run-control__input__row">
                         {
                             this.state.editMode ?
                                 <TextField
-                                    label="Computer input"
+                                    label="Входная строка"
                                     value={this.state.input}
                                     onChange={this.onInputChanged}
                                     onBlur={() => {
@@ -286,7 +286,7 @@ class RunControl extends React.Component<runControlProps, runControlState> {
                                 </div>
                                 :
                                 <div className="run-control__history__placeholder">
-                                    Run computer step by step to see the history
+                                    Используйте пошаговый запуск, чтобы наблюдать за историей
                                 </div>
                         }
                     </div>

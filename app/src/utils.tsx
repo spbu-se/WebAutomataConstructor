@@ -51,8 +51,8 @@ export const getNodeNamePrefix = (graph: graph): string => {
 
 export const computersInfo: Record<ComputerType, ComputerInfo> = {
     dfa: {
-        name: "DFA",
-        description: "finite-state machine that accepts or rejects a given string of symbols, by running through a state sequence uniquely determined by the string",
+        name: "ДКА",
+        description: "Конечный автомат, принимающий или отклоняющий заданную строку символов путём прохождения через последовательность состояний, определённых строкой",
         preview: "dfa.png",
         defaultGraph: {
             nodes: [
@@ -74,8 +74,8 @@ export const computersInfo: Record<ComputerType, ComputerInfo> = {
         }
     },
     nfa: {
-        name: "NFA",
-        description: "Automata that are non-deterministic (NFA) can be in several states at once",
+        name: "НКА",
+        description: "Автомат отличается от ДКА, тем что может находится в нескольких состояних одновременно",
         preview: "nfa.png",
         defaultGraph: {
             nodes: [

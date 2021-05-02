@@ -76,7 +76,7 @@ class NodeControl extends React.Component<nodeControlProps, nodeControlState> {
 
     render() {
         return (
-            <ControlWrapper title="State" visible={this.props.node !== null}>
+            <ControlWrapper title="Состояние" visible={this.props.node !== null}>
                 <FormControl>
 
                     <div className="node-control__item">

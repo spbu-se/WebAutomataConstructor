@@ -376,10 +376,10 @@ class App extends React.Component<appProps, appState> {
                             Ctrl+S — сохранить автомат
                         </Paper>
                         <Paper className="hint" variant="outlined">
-                            Hold shift to create an edge
+                            Удерживайте Shift чтобы создать ребро
                         </Paper>
                         <Paper className="hint" variant="outlined">
-                            Double click to create a node
+                            Двойное нажатие чтобы создать вершину
                         </Paper>
                     </div>
 
@@ -393,7 +393,7 @@ class App extends React.Component<appProps, appState> {
                                     this.setState({computerType: null})
                                 }}
                             >
-                                Menu
+                                Меню
                             </Button>
                         </div>
 

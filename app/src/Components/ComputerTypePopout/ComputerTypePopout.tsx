@@ -68,7 +68,7 @@ class ComputerTypePopout extends React.Component<ComputerTypePopoutProps, Comput
                         </div>
                         <div className="computer-type-popout__templates">
                             <div className="computer-type-popout__section__header">
-                                Templates
+                                Шаблоны
                             </div>
                             <div className="computer-type-popout__templates__container">
                                 {
@@ -87,7 +87,7 @@ class ComputerTypePopout extends React.Component<ComputerTypePopoutProps, Comput
                                             <button className="computer-type-popout__templates__card__create-button"
                                                     onClick={() => this.props.changeComputerType(entry[0] as ComputerType, null)}
                                             >
-                                                Create
+                                                Создать
                                             </button>
                                         </div>
                                     )
@@ -96,7 +96,7 @@ class ComputerTypePopout extends React.Component<ComputerTypePopoutProps, Comput
                         </div>
                         <div className="computer-type-popout__credits">
                             <div className="computer-type-popout__section__header">
-                                Credits
+                                Проект
                             </div>
                             <div className="computer-type-popout__credits__line">
                                 <div className="computer-type-popout__credits__line__icon">

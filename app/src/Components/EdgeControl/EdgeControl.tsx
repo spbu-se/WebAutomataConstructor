@@ -106,13 +106,13 @@ class EdgeControl extends React.Component<EdgeControlProps, EdgeControlState> {
 
     render() {
         return (
-            <ControlWrapper title="Transition" visible={this.props.edge !== null}>
+            <ControlWrapper title="Переход" visible={this.props.edge !== null}>
                 <div className="edge-control__container">
                     <div className="edge-control__item edge-control__transitions">
                         {
                             this.state.editMode ?
                                 <TextField
-                                    label="Transitions"
+                                    label="Переходы"
                                     value={this.state.transitionsText}
                                     onChange={this.changeTransitions}
                                     helperText={this.props.computerType === "nfa-eps" ? 'Список символов или "eps" через запятую' : "Список символов через запятую"}
