@@ -55,9 +55,14 @@
     margin-bottom: 16px;
 }
 
-.computer-type-popout__templates__card__create-button {
+.computer-type-popout__templates__card__create-buttons {
     margin-top: auto;
 }
+
+.computer-type-popout__templates__card__create-button:not(:last-child) {
+    margin-bottom: 8px;
+}
+
 
 .computer-type-popout__credits__line {
     display: flex;

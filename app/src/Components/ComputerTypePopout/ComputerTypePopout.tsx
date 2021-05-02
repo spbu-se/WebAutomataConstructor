@@ -85,8 +85,9 @@ class ComputerTypePopout extends React.Component<ComputerTypePopoutProps, Comput
                                                 {entry[1].description}
                                             </div>
 
-                                            <div className="computer-type-popout__templates__card__create-button">
+                                            <div className="computer-type-popout__templates__card__create-buttons">
                                                 <Button
+                                                    className="computer-type-popout__templates__card__create-button"
                                                     variant="contained"
                                                     color="primary"
                                                     size="small"
@@ -94,6 +95,16 @@ class ComputerTypePopout extends React.Component<ComputerTypePopoutProps, Comput
                                                     onClick={() => this.props.changeComputerType(entry[0] as ComputerType, null)}
                                                 >
                                                     Создать
+                                                </Button>
+
+                                                <Button
+                                                    className="computer-type-popout__templates__card__create-button"
+                                                    color="primary"
+                                                    size="small"
+                                                    fullWidth
+                                                    onClick={() => this.props.changeComputerType(entry[0] as ComputerType, {nodes: [], edges: []})}
+                                                >
+                                                    Создать пустым
                                                 </Button>
                                             </div>
 
