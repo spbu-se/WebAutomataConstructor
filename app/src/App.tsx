@@ -76,18 +76,19 @@ class App extends React.Component<appProps, appState> {
 
     componentDidMount() {
         this.updateGraph();
-        this.subscribeToShift();
+        this.subscribeToShortcuts();
     }
 
     network: any;
     lastNodeId = 0;
 
-    subscribeToShift = () => {
+    subscribeToShortcuts = () => {
         document.addEventListener("keydown", (event: KeyboardEvent) => {
             if (event.key === "Shift" && !this.state.inEdgeMode) {
                 this.enterEdgeMode();
             }
-            if (event.key === "s" && event.altKey) {
+            if (event.key === "s" && event.ctrlKey) {
+                event.preventDefault();
                 if (!this.state.computerType) return;
                 this.setState({
                     popout: <SavingPopout computerType={this.state.computerType} graph={this.state.elements}
