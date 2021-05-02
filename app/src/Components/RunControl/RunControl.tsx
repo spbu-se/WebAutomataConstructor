@@ -132,7 +132,7 @@ class RunControl extends React.Component<runControlProps, runControlState> {
         }
 
         if (this.state.currentInputIndex === this.state.input.length - 1) return;
-        if (this.state.result !== undefined) return;
+        if (this.state.result !== undefined && this.state.currentInputIndex !== -1) return;
 
         const stepResult = this.state.computer.step();
 
