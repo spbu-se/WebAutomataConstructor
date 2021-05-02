@@ -89,11 +89,7 @@ class App extends React.Component<appProps, appState> {
             }
             if (event.key === "s" && event.ctrlKey) {
                 event.preventDefault();
-                if (!this.state.computerType) return;
-                this.setState({
-                    popout: <SavingPopout computerType={this.state.computerType} graph={this.state.elements}
-                                          changePopout={this.changePopout}/>
-                })
+                this.saveCurrentGraph();
             }
         })
 
@@ -102,6 +98,14 @@ class App extends React.Component<appProps, appState> {
                 this.leaveEdgeMode();
             }
         })
+    }
+
+    saveCurrentGraph = () => {
+        if (!this.state.computerType) return;
+        this.setState({
+            popout: <SavingPopout computerType={this.state.computerType} graph={this.state.elements}
+                                  changePopout={this.changePopout}/>
+        });
     }
 
     changePopout = (popout: ReactNode | null) => {
@@ -369,6 +373,9 @@ class App extends React.Component<appProps, appState> {
 
                     <div className="hint-container">
                         <Paper className="hint" variant="outlined">
+                            Ctrl+S — сохранить автомат
+                        </Paper>
+                        <Paper className="hint" variant="outlined">
                             Hold shift to create an edge
                         </Paper>
                         <Paper className="hint" variant="outlined">
@@ -376,17 +383,29 @@ class App extends React.Component<appProps, appState> {
                         </Paper>
                     </div>
 
-                    <div className="menu-button">
-                        <Button
-                            variant="contained"
-                            color="primary"
-                            startIcon={<MenuIcon/>}
-                            onClick={() => {
-                                this.setState({computerType: null})
-                            }}
-                        >
-                            Menu
-                        </Button>
+                    <div className="top-buttons">
+                        <div className="top-button">
+                            <Button
+                                variant="contained"
+                                color="primary"
+                                startIcon={<MenuIcon/>}
+                                onClick={() => {
+                                    this.setState({computerType: null})
+                                }}
+                            >
+                                Menu
+                            </Button>
+                        </div>
+
+                        <div className="top-button">
+                            <Button
+                                variant="outlined"
+                                color="primary"
+                                onClick={this.saveCurrentGraph}
+                            >
+                                Сохранить
+                            </Button>
+                        </div>
                     </div>
 
                     <div className="field__container">
