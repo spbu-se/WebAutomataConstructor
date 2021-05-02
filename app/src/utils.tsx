@@ -99,17 +99,28 @@ export const computersInfo: Record<ComputerType, ComputerInfo> = {
         preview: "nfa.png",
         defaultGraph: {
             nodes: [
-                {id: 1, x: 0, y: 0, label: "S0", isAdmit: false, isInitial: true, isCurrent: false},
-                {id: 2, x: 100, y: 100, label: "S1", isAdmit: false, isInitial: false, isCurrent: false},
-                {id: 3, x: 200, y: 200, label: "S2", isAdmit: false, isInitial: false, isCurrent: false},
-                {id: 4, x: 300, y: 300, label: "S3", isAdmit: true, isInitial: false, isCurrent: false},
+                {id: 1, x: 0, y: 100, label: "S", isAdmit: false, isInitial: true, isCurrent: false},
+                {id: 2, x: 100, y: 100, label: "A1", isAdmit: false, isInitial: false, isCurrent: false},
+                {id: 3, x: 100, y: 200, label: "B1", isAdmit: false, isInitial: false, isCurrent: false},
+                {id: 4, x: 200, y: 100, label: "A2", isAdmit: false, isInitial: false, isCurrent: false},
+                {id: 5, x: 300, y: 100, label: "A3", isAdmit: false, isInitial: false, isCurrent: false},
+                {id: 6, x: 400, y: 100, label: "A4", isAdmit: true, isInitial: false, isCurrent: false},
+                {id: 7, x: 200, y: 200, label: "B2", isAdmit: false, isInitial: false, isCurrent: false},
+                {id: 8, x: 300, y: 200, label: "B3", isAdmit: false, isInitial: false, isCurrent: false},
+                {id: 9, x: 400, y: 200, label: "B4", isAdmit: true, isInitial: false, isCurrent: false},
             ],
             edges: [
-                {from: 1, to: 1, transitions: new Set([EPS])},
-                {from: 1, to: 2, transitions: new Set(['0'])},
-                {from: 2, to: 3, transitions: new Set(['1'])},
-                {from: 3, to: 4, transitions: new Set(['1'])},
-                {from: 4, to: 4, transitions: new Set([EPS])}
+                {from: 1, to: 1, transitions: new Set(['0', '1'])},
+                {from: 1, to: 2, transitions: new Set([EPS])},
+                {from: 1, to: 3, transitions: new Set([EPS])},
+                {from: 2, to: 4, transitions: new Set(['0'])},
+                {from: 4, to: 5, transitions: new Set(['1'])},
+                {from: 5, to: 6, transitions: new Set(['1'])},
+                {from: 3, to: 7, transitions: new Set(['1'])},
+                {from: 7, to: 8, transitions: new Set(['0'])},
+                {from: 8, to: 9, transitions: new Set(['1'])},
+                {from: 9, to: 9, transitions: new Set(['0', '1'])},
+                {from: 6, to: 6, transitions: new Set(['0', '1'])},
             ]
         }
     }
