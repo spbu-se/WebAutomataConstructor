@@ -11,7 +11,6 @@ import Button from "@material-ui/core/Button";
 import TextField from "@material-ui/core/TextField";
 import DoneIcon from '@material-ui/icons/Done';
 import CloseIcon from '@material-ui/icons/Close';
-import {NodeCore} from "../../Logic/IGraphTypes";
 import Typography from "@material-ui/core/Typography";
 import {EpsilonNFA} from "../../Logic/EpsilonNFA";
 
@@ -91,16 +90,12 @@ class RunControl extends React.Component<runControlProps, runControlState> {
                 return true;
             }
 
-            prev.nodes.forEach((prev, index) => {
+            return prev.nodes.some((prev, index) => {
                 const curr = current.nodes[index];
-                if (prev.id !== curr.id ||
+                return prev.id !== curr.id ||
                     prev.isAdmit !== curr.isAdmit ||
-                    prev.isInitial !== curr.isInitial) {
-                    return true;
-                }
-            });
-
-            return false;
+                    prev.isInitial !== curr.isInitial;
+            })
         }
 
         const compareEdges = (): boolean => {
@@ -108,17 +103,13 @@ class RunControl extends React.Component<runControlProps, runControlState> {
                 return true;
             }
 
-            prev.edges.forEach((prev, index) => {
+            return prev.edges.some((prev, index) => {
                 const curr = current.edges[index];
-                if (prev.id !== curr.id ||
+                return prev.id !== curr.id ||
                     prev.from !== curr.from ||
                     prev.to !== curr.to ||
-                    isEqual(prev.transitions, curr.transitions)) {
-                    return true;
-                }
+                    !isEqual(curr.transitions, prev.transitions);
             });
-
-            return false;
         }
 
         return compareEdges() || compareNodes();
