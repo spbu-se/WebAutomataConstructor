@@ -96,7 +96,7 @@ export const computersInfo: Record<ComputerType, ComputerInfo> = {
     "nfa-eps": {
         name: "ε-НКА",
         description: "Расширение НКА, в котором используются ε-переходы – переходы между состояниями без входного символа",
-        preview: "nfa.png",
+        preview: "nfa-eps.png",
         defaultGraph: {
             nodes: [
                 {id: 1, x: 0, y: 100, label: "S", isAdmit: false, isInitial: true, isCurrent: false},
