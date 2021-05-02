@@ -132,14 +132,18 @@ class RunControl extends React.Component<runControlProps, runControlState> {
         }
 
         if (this.state.currentInputIndex === this.state.input.length - 1) return;
+        if (this.state.result !== undefined) return;
 
         const stepResult = this.state.computer.step();
 
         this.props.changeStateIsCurrent(stepResult.nodes.map(node => node.id), true);
 
-        const result = this.state.currentInputIndex + 1 === this.state.input.length - 1
-            ? stepResult.nodes.some(node => node.isAdmit)
-            : undefined;
+        let result = undefined;
+        if (stepResult.counter === this.state.input.length) {
+            result = stepResult.nodes.some(node => node.isAdmit);
+        } else if (this.state.currentInputIndex + 2 !== stepResult.counter) {
+            result = false;
+        }
 
         const nodes = stepResult.nodes
             .map(nodeCore => this.props.elements.nodes.find(node => node.id == nodeCore.id))
@@ -160,7 +164,7 @@ class RunControl extends React.Component<runControlProps, runControlState> {
 
         const result = this.state.computer.run();
 
-        this.setState({result: result.nodes.some(node => node.isAdmit)});
+        this.setState({result: result.nodes.some(node => node.isAdmit), currentInputIndex: -1, history: []});
     }
 
     reset = (): void => {
