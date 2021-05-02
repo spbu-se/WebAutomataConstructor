@@ -56,15 +56,6 @@
 }
 
 .computer-type-popout__templates__card__create-button {
-    height: 28px;
-    width: 140px;
-    border: none;
-    border-radius: 6px;
-    background-color: #0041dd;
-    font-size: 12px;
-    font-weight: 500;
-    color: #ffffff;
-    cursor: pointer;
     margin-top: auto;
 }
 

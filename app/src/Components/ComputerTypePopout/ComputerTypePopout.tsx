@@ -4,7 +4,7 @@ import PopoutWrapper from "../PopoutWrapper/PopoutWrapper";
 import GitHubIcon from '@material-ui/icons/GitHub';
 import {computersInfo} from "../../utils";
 import {ComputerType, graph} from "../../react-graph-vis-types";
-import {Paper} from "@material-ui/core";
+import {Button, Paper} from "@material-ui/core";
 import Loader, {Saving} from "../../Loader";
 
 interface ComputerTypePopoutProps extends AllHTMLAttributes<HTMLElement> {
@@ -84,11 +84,19 @@ class ComputerTypePopout extends React.Component<ComputerTypePopoutProps, Comput
                                             <div className="computer-type-popout__templates__card__description">
                                                 {entry[1].description}
                                             </div>
-                                            <button className="computer-type-popout__templates__card__create-button"
+
+                                            <div className="computer-type-popout__templates__card__create-button">
+                                                <Button
+                                                    variant="contained"
+                                                    color="primary"
+                                                    size="small"
+                                                    fullWidth
                                                     onClick={() => this.props.changeComputerType(entry[0] as ComputerType, null)}
-                                            >
-                                                Создать
-                                            </button>
+                                                >
+                                                    Создать
+                                                </Button>
+                                            </div>
+
                                         </div>
                                     )
                                 }
