@@ -75,7 +75,7 @@ export const computersInfo: Record<ComputerType, ComputerInfo> = {
     },
     nfa: {
         name: "НКА",
-        description: "Автомат отличается от ДКА, тем что может находится в нескольких состояних одновременно",
+        description: "Автомат отличается от ДКА, тем что может находиться в нескольких состояниях одновременно",
         preview: "nfa.png",
         defaultGraph: {
             nodes: [

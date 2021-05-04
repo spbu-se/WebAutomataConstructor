@@ -44,7 +44,7 @@ class ComputerTypePopout extends React.Component<ComputerTypePopoutProps, Comput
             >
                 <div className="computer-type-popout__content">
                     <div className="computer-type-popout__header">
-                        Computer workbench
+                        Симулятор автоматов
                     </div>
                     <div className="computer-type-popout__sections">
                         <div className="computer-type-popout__savings">
