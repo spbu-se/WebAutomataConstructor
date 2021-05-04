@@ -29,10 +29,14 @@ interface runControlState {
     history: node[][]
 }
 
-const getComputer = (computerType: ComputerType, graph: graph, initialNode: node, input: string[]): Computer => {
+const getComputer = (computerType: ComputerType, graph: graph, initialNode: node, input: string[]): Computer | undefined => {
     switch (computerType) {
         case "dfa":
-            return new DFA(graph, [initialNode], input);
+            try {
+                return new DFA(graph, [initialNode], input);
+            } catch (e) {
+                return undefined;
+            }
         case "nfa":
             return new NFA(graph, [initialNode], input);
         case "nfa-eps":
