@@ -20,6 +20,7 @@ import Button from "@material-ui/core/Button";
 import Paper from "@material-ui/core/Paper";
 import MenuIcon from '@material-ui/icons/Menu';
 import SavingPopout from "./Components/SavingPopout/SavingPopout";
+import ControlTests from "./Components/ControlTests/ControlTests";
 
 interface appProps {
 }
@@ -33,7 +34,8 @@ interface appState {
     elements: graph,
     options: any,
     initiallyStabilized: boolean,
-    popout: ReactNode | null
+    popout: ReactNode | null,
+    
 }
 
 export const ComputerTypeContext = React.createContext<null | ComputerType>(null);
@@ -70,7 +72,8 @@ class App extends React.Component<appProps, appState> {
                 }
             },
             initiallyStabilized: false,
-            popout: null
+            popout: null,
+            
         };
     }
 
@@ -434,6 +437,7 @@ class App extends React.Component<appProps, appState> {
                             elements={this.state.elements}
                             changeStateIsCurrent={this.changeStateIsCurrent}
                         />
+                        <ControlTests/>
                     </div>
 
                 </div>
