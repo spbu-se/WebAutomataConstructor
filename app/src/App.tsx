@@ -20,7 +20,7 @@ import Button from "@material-ui/core/Button";
 import Paper from "@material-ui/core/Paper";
 import MenuIcon from '@material-ui/icons/Menu';
 import SavingPopout from "./Components/SavingPopout/SavingPopout";
-import ControlTests from "./Components/ControlTests/ControlTests";
+import TestsControl from "./Components/TestsControl/TestsControl";
 
 interface appProps {
 }
@@ -73,7 +73,6 @@ class App extends React.Component<appProps, appState> {
             },
             initiallyStabilized: false,
             popout: null,
-            
         };
     }
 
@@ -437,7 +436,7 @@ class App extends React.Component<appProps, appState> {
                             elements={this.state.elements}
                             changeStateIsCurrent={this.changeStateIsCurrent}
                         />
-                        <ControlTests/>
+                        <TestsControl/>
                     </div>
 
                 </div>
