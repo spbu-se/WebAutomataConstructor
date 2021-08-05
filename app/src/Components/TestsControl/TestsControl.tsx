@@ -101,15 +101,14 @@ class TestsControl extends React.Component<testsControlProps, testsControlState>
            console.error("Computer is not initialized yet");
            return false;
        }
-       for (let i = 0; i < input.length; i++){
            //if (this.state.currentInputIndex === input.length - 1) return;
            //if (this.state.result !== undefined && this.state.currentInputIndex !== -1) return;
+       const stepResult = this.state.computer.step();
 
-           const stepResult = this.state.computer.step();
+       this.props.changeStateIsCurrent(stepResult.nodes.map(node => node.id), true);
 
-           this.props.changeStateIsCurrent(stepResult.nodes.map(node => node.id), true);
-
-           let result = undefined;
+       let result = undefined;
+       for (let i = 0; i < input.length; i++){
            if (stepResult.counter === input.length) {
                result = stepResult.nodes.some(node => node.isAdmit);
            } else if (this.state.currentInputIndex + 2 !== stepResult.counter) {
@@ -120,11 +119,12 @@ class TestsControl extends React.Component<testsControlProps, testsControlState>
            .map(nodeCore => this.props.elements.nodes.find(node => node.id == nodeCore.id))
            .filter((node): node is node => node !== undefined);      
        }
+
        return true;
     }
 
     private addRow(){
-      let newRow = {id: this.state.tests.length, inputString: "1111", shallAccept: false}
+      let newRow = {id: index, inputString: "1111", shallAccept: false}
       this.setState({tests: this.state.tests.concat(newRow)});
     }
 

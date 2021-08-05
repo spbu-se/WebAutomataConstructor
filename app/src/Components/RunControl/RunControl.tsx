@@ -22,7 +22,7 @@ interface runControlProps {
 
 interface runControlState {
     input: string,
-    result?: boolean,//отметить  параметр как необязательный
+    result?: boolean,
     computer: Computer | undefined,
     editMode: boolean,
     currentInputIndex: number,
