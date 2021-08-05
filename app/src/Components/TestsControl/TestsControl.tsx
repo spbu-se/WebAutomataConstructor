@@ -33,11 +33,9 @@ interface testsControlProps {
 }
 
 interface testsControlState {
-  result?: boolean,//отметить  параметр как необязательный
+  result?: boolean,
   computer: Computer | undefined,
-  editMode: boolean,
   currentInputIndex: number,
-  history: node[][],
   tests: Test[]
 }
 
@@ -76,9 +74,7 @@ class TestsControl extends React.Component<testsControlProps, testsControlState>
         ],
         result: undefined,
         computer: undefined,
-        editMode: true,
-        currentInputIndex: -1,
-        history: []
+        currentInputIndex: -1
       };
         this.handleTextFieldChange = this.handleTextFieldChange.bind(this);
         this.handleCheckboxChange = this.handleCheckboxChange.bind(this);
@@ -101,11 +97,11 @@ class TestsControl extends React.Component<testsControlProps, testsControlState>
     }
     
     runTest = (id: number, input: string): boolean => {
-      if (this.state.computer === undefined) {
+       if (this.state.computer === undefined) {
            console.error("Computer is not initialized yet");
            return false;
-      }
-      for (let i = input.length-1; i >= 0; i--){
+       }
+       for (let i = 0; i < input.length; i++){
            //if (this.state.currentInputIndex === input.length - 1) return;
            //if (this.state.result !== undefined && this.state.currentInputIndex !== -1) return;
 
@@ -118,16 +114,12 @@ class TestsControl extends React.Component<testsControlProps, testsControlState>
                result = stepResult.nodes.some(node => node.isAdmit);
            } else if (this.state.currentInputIndex + 2 !== stepResult.counter) {
                result = false;
-               console.warn("false");
                return false;
            }
-
            const nodes = stepResult.nodes
            .map(nodeCore => this.props.elements.nodes.find(node => node.id == nodeCore.id))
-           .filter((node): node is node => node !== undefined);
-                
+           .filter((node): node is node => node !== undefined);      
        }
-       console.warn("true");
        return true;
     }
 
