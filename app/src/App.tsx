@@ -436,7 +436,10 @@ class App extends React.Component<appProps, appState> {
                             elements={this.state.elements}
                             changeStateIsCurrent={this.changeStateIsCurrent}
                         />
-                        <TestsControl/>
+                        <TestsControl
+                            elements={this.state.elements}
+                            changeStateIsCurrent={this.changeStateIsCurrent} 
+                        />
                     </div>
 
                 </div>
