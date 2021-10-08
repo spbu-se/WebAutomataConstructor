@@ -1,5 +1,5 @@
 import {History, statement, Step} from "./Types";
-import {GraphCore, NodeCore} from "./IGraphTypes";
+import {GraphCore, NodeCore, TransitionParams} from "./IGraphTypes";
 import {BOTTOM, Computer, EPS} from "./Computer";
 import {Stack} from "./Stack";
 
@@ -42,11 +42,12 @@ export class PDA extends Computer {
             let statementFrom: statement = this.statements.get(this.edges[i].from)
             let statementTo: statement = this.statements.get(this.edges[i].to)
             for (let j = 0; j < this.edges[i].localValue.length; j++) {
-                let letterId = this.alphabet.get(this.edges[i].localValue[j])
+                let letterId = this.alphabet.get(this.edges[i].localValue[j].title)
+                console.log(letterId)
                 this.matrix[statementFrom.idLogic][letterId].push({
                     ...statementTo,
-                    stackDown: this.edges[i].stackDown,
-                    stackPush: this.edges[i].stackPush,
+                    stackDown: this.edges[i].localValue[j].stackDown,
+                    stackPush: this.edges[i].localValue[j].stackPush,
                 })
             }
         }
@@ -75,26 +76,27 @@ export class PDA extends Computer {
     }
 
     private static permute(permutation: statementCell[]): statementCell[][] {
-        let length = permutation.length,
-            result = [permutation.slice()],
-            c = new Array(length).fill(0),
-            i = 1, k, p;
-
+        let length = permutation.length
+        let result = [permutation.slice()]
+        let c = new Array(length).fill(0)
+        let i = 1
+        let k: number
+        let p: statementCell
         while (i < length) {
             if (c[i] < i) {
-                k = i % 2 && c[i];
-                p = permutation[i];
-                permutation[i] = permutation[k];
-                permutation[k] = p;
-                ++c[i];
-                i = 1;
-                result.push(permutation.slice());
+                k = i % 2 && c[i]
+                p = permutation[i]
+                permutation[i] = permutation[k]
+                permutation[k] = p
+                c[i]++
+                i = 1
+                result.push(permutation.slice())
             } else {
-                c[i] = 0;
-                ++i;
+                c[i] = 0
+                i++
             }
         }
-        return result;
+        return result
     }
 
     private rmRepetitions (htable: Map<string, position>, value: position, positions: position[], idLogic: number, newStack: Stack<string>) {
@@ -273,12 +275,40 @@ export class PDA extends Computer {
         this.restart()
     }
 
+    protected haveEpsilon(): boolean {
+        return this.epsId !== undefined
+    }
+
+    protected isDeterministic(): boolean {
+        let ret = true
+        this.matrix.forEach(value => {
+            value.forEach(value1 => {
+                if (value1.length > 1) {
+                    let tmp: statementCell = value1[0]
+                    value1.forEach((value2, index) => {
+                        if (index !== 0 && tmp.stackDown === undefined && value2.stackDown || index !== 0 && tmp.stackDown === value2.stackDown ) {
+                            ret = false
+                        }
+                    })
+                }
+
+            })
+        })
+        return ret
+    }
+
     constructor(graph: GraphCore, startStatements: NodeCore[], input: string[], byEmpty?: boolean) {
         super(graph, startStatements)
 
         this.admitByEmptyStack = byEmpty
         this.epsId = this.alphabet.get(EPS)
         this.createMatrix()
+        this.matrix.forEach(value => {
+            console.log("-----------")
+            value.forEach(value1 => {
+                console.log(value1)
+            })
+        })
         this.stack.push(BOTTOM)
         this.curPosition = []//{stack: new Stack<string>(), stmt: startStatements}
         startStatements.forEach(value => {
@@ -293,7 +323,10 @@ export class PDA extends Computer {
         })
         this.setInput(input)
 
-        this.cycleEps(this.curPosition[0].stmt.idLogic, this.curPosition[0].stack)
+        if (this.epsId) {
+            this.cycleEps(this.curPosition[0].stmt.idLogic, this.curPosition[0].stack)
+        }
+        console.log(this.isDeterministic())
     }
 
     private haveAdmitting (positions: position[]): boolean {
@@ -325,6 +358,7 @@ export class PDA extends Computer {
     }
 
     step = (): Step => {
+        // console.log("PDA")
         let ret = this._step
         (
             this.counterSteps,
@@ -365,7 +399,7 @@ export class PDA extends Computer {
         }
         const epsStep = () => {
             this.curPosition.forEach(value => {
-                let pPos = this.epsilonStep!(value.stmt.idLogic, value.stack.peek()!, value.stack)
+                let pPos = this.epsilonStep(value.stmt.idLogic, value.stack.peek()!, value.stack)
                 pPos?.forEach(value1 => newPosSet.push(value1))
             })
         }
@@ -454,31 +488,23 @@ export class PDA extends Computer {
 
 }
 
-// let toSet = (str: string[]) => {
-//     let set: Set<string> = new Set()
-//     for (let i = 0; i < str.length; i++) {
-//         set.add(str[i])
-//     }
-//     return set;
-// }
+let nfa = new PDA(
+    {
+        nodes: [
+            // {id: 0, isAdmit: false},
+            {id: 1, isAdmit: false},
+            {id: 2, isAdmit: false},
+        ],
+        edges: [
+            {from: 1, to: 2, transitions: new Set([{title: '(', stackDown: 'Z0', stackPush: ['(', 'Z0']}])},
+            {from: 1, to: 1, transitions: new Set([{title: '(', stackDown: 'Z0', stackPush: ['(', '(']}])},
+            {from: 2, to: 2, transitions: new Set([{title: ')', stackDown: '(', stackPush: [EPS]}])},
+            {from: 2, to: 1, transitions: new Set([{title: EPS, stackDown: 'Z0', stackPush: ['Z0']}])},
 
-// let nfa = new PDA(
-//     {
-//         nodes: [
-//             {id: 0, isAdmit: false},
-//             {id: 1, isAdmit: false},
-//             {id: 2, isAdmit: false},
-//         ],
-//         edges: [
-//
-//             {from: 0, to: 1, transitions: toSet([EPS]), stackDown: 'Z0', stackPush: ['A', 'Z0']},
-//             {from: 1, to: 1, transitions: toSet([EPS]), stackDown: 'A', stackPush: ['0', 'A', '1']},
-//             {from: 1, to: 1, transitions: toSet([EPS]), stackDown: 'A', stackPush: ['B']},
-//             {from: 1, to: 1, transitions: toSet([EPS]), stackDown: 'B', stackPush: ['#']},
-//             {from: 1, to: 1, transitions: toSet(['0']), stackDown: '0', stackPush: [EPS]},
-//             {from: 1, to: 1, transitions: toSet(['1']), stackDown: '1', stackPush: [EPS]},
-//             {from: 1, to: 1, transitions: toSet(['#']), stackDown: '#', stackPush: [EPS]},
-//
-//         ]
-//     }, [{id: 0, isAdmit: false}], ['0','0','#','1','1'])
-// console.log(nfa.run())
+            // {from: 1, to: 2, transitions: new Set([{title: '(', stackDown: 'Z0', stackPush: ['(', 'Z0']}])},
+            // {from: 2, to: 2, transitions: new Set([{title: '(', stackDown: '(', stackPush: ['(', '(']}])},
+            // {from: 2, to: 2, transitions: new Set([{title: ')', stackDown: '(', stackPush: [EPS]}])},
+            // {from: 2, to: 1, transitions: new Set([{title: EPS, stackDown: 'Z0', stackPush: ['Z0']}])},
+
+        ]
+    }, [{id: 1, isAdmit: false}], [])

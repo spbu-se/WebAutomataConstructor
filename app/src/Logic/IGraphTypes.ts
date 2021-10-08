@@ -4,12 +4,22 @@ export interface NodeCore  {
     stack?: string[]
 }
 
+
+export interface TransitionParams {
+    title: string
+    stackDown?: string
+    stackPush?: string[]
+}
+
+
 export interface EdgeCore  {
     from: number
     to: number
-    transitions: Set<string>
-    stackDown?: string
-    stackPush?: string[]
+    transitions: Set<TransitionParams>
+
+    // transitions: Set<string>
+    // stackDown?: string
+    // stackPush?: string[]
 }
 
 export interface GraphCore  {

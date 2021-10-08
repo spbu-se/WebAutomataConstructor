@@ -1,4 +1,4 @@
-import {EdgeCore, NodeCore} from "./IGraphTypes";
+import {EdgeCore, NodeCore, TransitionParams} from "./IGraphTypes";
 
 export type elementOfAlphabet = {
     value: string
@@ -6,7 +6,8 @@ export type elementOfAlphabet = {
 }
 
 export type Edge = {
-    localValue: string[]
+    localValue: TransitionParams[]
+        // string[]
 } & EdgeCore
 
 export type statement = {
