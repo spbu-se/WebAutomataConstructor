@@ -1,9 +1,10 @@
 import {ComputerInfo, ComputerType, graph} from "./react-graph-vis-types";
 import {DFA} from "./Logic/DFA";
 import {EPS} from "./Logic/Computer";
+import {TransitionParams} from "./Logic/IGraphTypes";
 
-export const transitionsToLabel = (transitions: Set<string>): string => {
-    return Array.from(transitions).map(transition => transition === EPS ? "ε" : transition).join(",");
+export const transitionsToLabel = (transitions: Set<TransitionParams>): string => {
+    return Array.from(transitions).map(transition => transition.title === EPS ? "ε" : transition.title).join(",");
 }
 
 export const decorateGraph = (graph: graph): graph => {
@@ -62,14 +63,14 @@ export const computersInfo: Record<ComputerType, ComputerInfo> = {
                 {id: 4, x: 180, y: 200, label: "S3", isAdmit: true, isInitial: false, isCurrent: false},
             ],
             edges: [
-                {from: 1, to: 2, transitions: new Set(["0"])},
-                {from: 2, to: 1, transitions: new Set(["0"])},
-                {from: 3, to: 4, transitions: new Set(["0"])},
-                {from: 4, to: 4, transitions: new Set(["0"])},
-                {from: 1, to: 3, transitions: new Set(["1"])},
-                {from: 2, to: 4, transitions: new Set(["1"])},
-                {from: 3, to: 2, transitions: new Set(["1"])},
-                {from: 4, to: 2, transitions: new Set(["1"])},
+                {from: 1, to: 2, transitions: new Set([{title: "0"}])},
+                {from: 2, to: 1, transitions: new Set([{title: "0"}])},
+                {from: 3, to: 4, transitions: new Set([{title: "0"}])},
+                {from: 4, to: 4, transitions: new Set([{title: "0"}])},
+                {from: 1, to: 3, transitions: new Set([{title: "1"}])},
+                {from: 2, to: 4, transitions: new Set([{title: "1"}])},
+                {from: 3, to: 2, transitions: new Set([{title: "1"}])},
+                {from: 4, to: 2, transitions: new Set([{title: "1"}])},
             ]
         }
     },
@@ -85,11 +86,14 @@ export const computersInfo: Record<ComputerType, ComputerInfo> = {
                 {id: 4, x: 300, y: 300, label: "S3", isAdmit: true, isInitial: false, isCurrent: false},
             ],
             edges: [
-                {from: 1, to: 1, transitions: new Set(['0', '1'])},
-                {from: 1, to: 2, transitions: new Set(['0'])},
-                {from: 2, to: 3, transitions: new Set(['1'])},
-                {from: 3, to: 4, transitions: new Set(['1'])},
-                {from: 4, to: 4, transitions: new Set(['0', '1'])}
+                {from: 1, to: 1, transitions: new Set([{title: '0'}])},
+                {from: 1, to: 1, transitions: new Set([{title: '1'}])},
+
+                {from: 1, to: 2, transitions: new Set([{title: '0'}])},
+                {from: 2, to: 3, transitions: new Set([{title: '1'}])},
+                {from: 3, to: 4, transitions: new Set([{title: '1'}])},
+                {from: 4, to: 4, transitions: new Set([{title: '0'}])},
+                {from: 4, to: 4, transitions: new Set([{title: '0'}])}
             ]
         }
     },
@@ -110,17 +114,23 @@ export const computersInfo: Record<ComputerType, ComputerInfo> = {
                 {id: 9, x: 400, y: 200, label: "B4", isAdmit: true, isInitial: false, isCurrent: false},
             ],
             edges: [
-                {from: 1, to: 1, transitions: new Set(['0', '1'])},
-                {from: 1, to: 2, transitions: new Set([EPS])},
-                {from: 1, to: 3, transitions: new Set([EPS])},
-                {from: 2, to: 4, transitions: new Set(['0'])},
-                {from: 4, to: 5, transitions: new Set(['1'])},
-                {from: 5, to: 6, transitions: new Set(['1'])},
-                {from: 3, to: 7, transitions: new Set(['1'])},
-                {from: 7, to: 8, transitions: new Set(['0'])},
-                {from: 8, to: 9, transitions: new Set(['1'])},
-                {from: 9, to: 9, transitions: new Set(['0', '1'])},
-                {from: 6, to: 6, transitions: new Set(['0', '1'])},
+                {from: 1, to: 1, transitions: new Set([{title: '0'}])},
+                {from: 1, to: 1, transitions: new Set([{title: '1'}])},
+
+                {from: 1, to: 2, transitions: new Set([{title: EPS}])},
+                {from: 1, to: 3, transitions: new Set([{title: EPS}])},
+                {from: 2, to: 4, transitions: new Set([{title: '0'}])},
+                {from: 4, to: 5, transitions: new Set([{title: '1'}])},
+                {from: 5, to: 6, transitions: new Set([{title: '1'}])},
+                {from: 3, to: 7, transitions: new Set([{title: '1'}])},
+                {from: 7, to: 8, transitions: new Set([{title: '0'}])},
+                {from: 8, to: 9, transitions: new Set([{title: '1'}])},
+                {from: 9, to: 9, transitions: new Set([{title: '0'}])},
+                {from: 9, to: 9, transitions: new Set([{title: '1'}])},
+
+                {from: 6, to: 6, transitions: new Set([{title: '0'}])},
+                {from: 6, to: 6, transitions: new Set([{title: '1'}])},
+
             ]
         }
     }

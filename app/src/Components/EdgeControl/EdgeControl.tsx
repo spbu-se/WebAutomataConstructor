@@ -9,19 +9,20 @@ import EditIcon from '@material-ui/icons/Edit';
 import TextField from "@material-ui/core/TextField";
 import {withComputerType} from "../../hoc";
 import {EPS} from "../../Logic/Computer";
+import {TransitionParams} from "../../Logic/IGraphTypes";
 
 interface EdgeControlProps {
     edge: edge | null,
-    changeEdgeTransitions: (id: string, transitions: Set<string>) => void,
+    changeEdgeTransitions: (id: string, transitions: Set<TransitionParams>) => void,
     deleteEdge: (id: string) => void,
     computerType: ComputerType | null
 }
 
 interface EdgeControlState {
     prevEdgeId: string | undefined,
-    transitions: Set<string>,
+    transitions: Set<TransitionParams>,
     transitionsText: string,
-    activeTransition: string | null,
+    activeTransition: TransitionParams | null,
     editMode: boolean
 }
 
@@ -50,9 +51,14 @@ class EdgeControl extends React.Component<EdgeControlProps, EdgeControlState> {
         }
     }
 
-    deleteEdge = (): void => {
-        if (this.props.edge !== null) {
-            this.props.deleteEdge(this.props.edge.id!);
+    deleteTransition = (): void => {
+    }
+
+    selectTransition = (transition: TransitionParams | null): void => {
+        if (this.state.activeTransition === transition) {
+            this.setState({activeTransition: null});
+        } else {
+            this.setState({activeTransition: transition});
         }
     }
 
@@ -62,43 +68,48 @@ class EdgeControl extends React.Component<EdgeControlProps, EdgeControlState> {
         this.setState({transitionsText: value});
 
         if (value.slice(-1) === ",") {
-            const transitions = new Set(value
+            const transitions: Set<TransitionParams> = new Set<TransitionParams>(
+                value
                 .split(",")
-                .map(transition => transition === "eps" && this.props.computerType === "nfa-eps" ? EPS : transition));
+                .map(transition => transition === "eps" && this.props.computerType === "nfa-eps" ? {title: EPS} : {title: transition})
+            );
 
             this.props.changeEdgeTransitions(this.props.edge!.id!, transitions);
-            this.setState({transitionsText: transitionsToLabel(transitions)});
+            this.setState({transitionsText: transitionsToLabel(transitions)}
+            );
         }
     }
 
-    deleteTransition = (): void => {
-        if (this.props.edge !== null && this.state.activeTransition !== null) {
-            const transitions = this.state.transitions;
-            transitions.delete(this.state.activeTransition);
+    // deleteEdge = (): void => {
+    //     if (this.props.edge !== null) {
+    //         this.props.deleteEdge(this.props.edge.id!);
+    //     }
+    // }
+    //
 
-            this.props.changeEdgeTransitions(this.props.edge.id!, transitions);
-            this.setState({transitions: transitions, transitionsText: transitionsToLabel(transitions)});
-        }
-    }
+    //
+    // deleteTransition = (): void => {
+    //     if (this.props.edge !== null && this.state.activeTransition !== null) {
+    //         const transitions = this.state.transitions;
+    //         transitions.delete(this.state.activeTransition);
+    //
+    //         this.props.changeEdgeTransitions(this.props.edge.id!, transitions);
+    //         this.setState({transitions: transitions, transitionsText: transitionsToLabel(transitions)});
+    //     }
+    // }
+    //
 
-    selectTransition = (transition: string | null): void => {
-        if (this.state.activeTransition === transition) {
-            this.setState({activeTransition: null});
-        } else {
-            this.setState({activeTransition: transition});
-        }
-    }
-
-    changeEditMode = () => {
-        this.setState({editMode: !this.state.editMode});
-        this.updateTransitions();
-    }
-
+    //
+    // changeEditMode = () => {
+    //     this.setState({editMode: !this.state.editMode});
+    //     this.updateTransitions();
+    // }
+    //
     updateTransitions = () => {
         const transitions = new Set(this.state.transitionsText
             .replace(/,$/, '')
             .split(",")
-            .map(transition => transition === "eps" && this.props.computerType === "nfa-eps" ? EPS : transition));
+            .map(transition => transition === "eps" && this.props.computerType === "nfa-eps" ? {title:EPS} : {title:transition}));
 
         this.props.changeEdgeTransitions(this.props.edge!.id!, transitions);
         this.setState({transitionsText: transitionsToLabel(transitions), transitions: transitions})
@@ -123,28 +134,28 @@ class EdgeControl extends React.Component<EdgeControlProps, EdgeControlState> {
                                     <Transition
                                         key={index}
                                         className="edge-control__transition"
-                                        transition={transition === EPS ? "ε" : transition}
-                                        active={this.state.activeTransition === transition}
-                                        deleteTransition={this.deleteTransition}
-                                        onClick={() => this.selectTransition(transition)}
+                                         transition={(transition.title === EPS) ? {title: "ε"} : transition}
+                                         active={this.state.activeTransition === transition}
+                                         deleteTransition={this.deleteTransition}
+                                         onClick={() => this.selectTransition(transition)}
                                     />
                                 ))
                         }
 
-                        <div className="edge-control__edit-transitions"
-                             onClick={this.changeEditMode}>
-                            <EditIcon/>
-                        </div>
+                        {/*<div className="edge-control__edit-transitions"*/}
+                        {/*     onClick={this.changeEditMode}>*/}
+                        {/*    <EditIcon/>*/}
+                        {/*</div>*/}
 
                     </div>
 
                     <div className="edge-control__item">
-                        <Button
-                            color="secondary"
-                            onClick={this.deleteEdge}
-                        >
-                            Удалить
-                        </Button>
+                        {/*<Button*/}
+                        {/*    color="secondary"*/}
+                        {/*    onClick={this.deleteEdge}*/}
+                        {/*>*/}
+                        {/*    Удалить*/}
+                        {/*</Button>*/}
                     </div>
 
                 </div>
