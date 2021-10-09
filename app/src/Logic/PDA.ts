@@ -26,8 +26,8 @@ export class PDA extends Computer {
     private matrix: statementCells[][] = []
     private stack: Stack<string> = new Stack<string>()
     private curPosition: position[]
-    private historiStep: History[] = []
-    private historiRun: History[] = []
+    protected historiStep: History[] = []
+    protected historiRun: History[] = []
     private admitByEmptyStack: boolean | undefined
 
 
@@ -43,11 +43,19 @@ export class PDA extends Computer {
             let statementTo: statement = this.statements.get(this.edges[i].to)
             for (let j = 0; j < this.edges[i].localValue.length; j++) {
                 let letterId = this.alphabet.get(this.edges[i].localValue[j].title)
-                console.log(letterId)
+                // console.log(letterId)
+                let stDwn = this.edges[i].localValue[j].stackDown
+                let stPsh = this.edges[i].localValue[j].stackPush
+                if (stDwn === undefined || stPsh === undefined) {
+                    stDwn = EPS
+                    stPsh = [EPS]
+                }
                 this.matrix[statementFrom.idLogic][letterId].push({
                     ...statementTo,
-                    stackDown: this.edges[i].localValue[j].stackDown,
-                    stackPush: this.edges[i].localValue[j].stackPush,
+                    stackDown: stDwn,
+                    stackPush: stPsh
+                    //stackDown: this.edges[i].localValue[j].stackDown,
+                    //stackPush: this.edges[i].localValue[j].stackPush,
                 })
             }
         }
@@ -349,9 +357,12 @@ export class PDA extends Computer {
     }
 
     private toNodes (positions: position[]): NodeCore[] {
+        // console.log("HERE")
         let retNodes: NodeCore[] = []
+        // positions.forEach(value => console.log(value))
         positions.forEach(value => {
-            let temp: NodeCore = {...this.nodes[value.stmt.idLogic], stack: value.stack.getStorage()}
+            let temp: NodeCore = {...this.nodes[value.stmt.idLogic], stack: value.stack.getStorage()
+            }
             retNodes.push(temp)
         })
         return retNodes
@@ -390,7 +401,7 @@ export class PDA extends Computer {
         )
     }
 
-    private _step = (counter: number, tr: number, histori: History[]): Step => {
+    protected _step = (counter: number, tr: number, histori: History[]): Step => {
         let newPosSet: position[] = []
         const updCurPos = () => {
             this.curPosition = []
@@ -425,15 +436,20 @@ export class PDA extends Computer {
         if (this.epsId !== undefined) {
             epsStep()
             updCurPos()
+
         }
         if (counter < this.input.length) {
             letterSter()
+            // console.log("afterLst: ", this.curPosition)
             updCurPos()
             if (this.epsId !== undefined) {
                 epsStep()
                 updCurPos()
             } else {
-                updCurPos()
+                // console.log("afterLst1: ", this.curPosition)
+
+                // console.log("afterLst2: ", this.curPosition)
+
             }
         } else {
             rmRepeations()
@@ -488,23 +504,3 @@ export class PDA extends Computer {
 
 }
 
-let nfa = new PDA(
-    {
-        nodes: [
-            // {id: 0, isAdmit: false},
-            {id: 1, isAdmit: false},
-            {id: 2, isAdmit: false},
-        ],
-        edges: [
-            {from: 1, to: 2, transitions: new Set([{title: '(', stackDown: 'Z0', stackPush: ['(', 'Z0']}])},
-            {from: 1, to: 1, transitions: new Set([{title: '(', stackDown: 'Z0', stackPush: ['(', '(']}])},
-            {from: 2, to: 2, transitions: new Set([{title: ')', stackDown: '(', stackPush: [EPS]}])},
-            {from: 2, to: 1, transitions: new Set([{title: EPS, stackDown: 'Z0', stackPush: ['Z0']}])},
-
-            // {from: 1, to: 2, transitions: new Set([{title: '(', stackDown: 'Z0', stackPush: ['(', 'Z0']}])},
-            // {from: 2, to: 2, transitions: new Set([{title: '(', stackDown: '(', stackPush: ['(', '(']}])},
-            // {from: 2, to: 2, transitions: new Set([{title: ')', stackDown: '(', stackPush: [EPS]}])},
-            // {from: 2, to: 1, transitions: new Set([{title: EPS, stackDown: 'Z0', stackPush: ['Z0']}])},
-
-        ]
-    }, [{id: 1, isAdmit: false}], [])
