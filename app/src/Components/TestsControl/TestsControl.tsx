@@ -18,6 +18,9 @@ import Button from '@material-ui/core/Button';
 import Input from '@material-ui/core/Input';
 import {ComputerType, graph, node} from "../../react-graph-vis-types";
 import {Computer} from "../../Logic/Computer";
+import { DFA } from '../../Logic/DFA';
+import { EpsilonNFA } from '../../Logic/EpsilonNFA';
+import { NFA } from '../../Logic/NFA';
 
 const useStyles = makeStyles({
     table: {
@@ -27,18 +30,16 @@ const useStyles = makeStyles({
 });
 
 interface testsControlProps {
-  computerType?: ComputerType,
-  elements: graph,
-  changeStateIsCurrent: (ids: number[], isCurrent: boolean) => void,
+    computerType: null | ComputerType,
+    elements: graph,
+    changeStateIsCurrent: (ids: number[], isCurrent: boolean) => void,
 }
 
 interface testsControlState {
-  result?: boolean,
-  computer: Computer | undefined,
-  currentInputIndex: number,
-  tests: Test[]
+    result?: boolean,
+    currentInputIndex: number,
+    tests: Test[]
 }
-
 
 const StyledTableCell = withStyles((theme: Theme) =>
     createStyles({
@@ -57,6 +58,7 @@ interface Test {
     id: number
     inputString: string
     shallAccept: boolean
+    result?: boolean
 }
 
 //type TestsControlState = {
@@ -65,6 +67,30 @@ interface Test {
 
 class TestsControl extends React.Component<testsControlProps, testsControlState> {
     historyEndRef = React.createRef<HTMLDivElement>();
+    
+    // TODO: Unify it with RunControl
+    private getComputer = (computerType: ComputerType, graph: graph, input: string[]): Computer | undefined => {
+        const initialNode = graph.nodes.find(node => node.isInitial)
+
+        if (initialNode === undefined) {
+            console.warn("There is no initial node. Computer will not be initialized");
+            return;
+        }
+
+        switch (computerType) {
+            case "dfa":
+                try {
+                    return new DFA(graph, [initialNode], input);
+                } catch (e) {
+                    return undefined;
+                }
+            case "nfa":
+                return new NFA(graph, [initialNode], input);
+            case "nfa-eps":
+                return new EpsilonNFA(graph, [initialNode], input);
+        }
+    }
+
     constructor(props: testsControlProps) {
         super(props);
         this.state = {
@@ -73,7 +99,6 @@ class TestsControl extends React.Component<testsControlProps, testsControlState>
             {id: 1, inputString: "11", shallAccept: true}
         ],
         result: undefined,
-        computer: undefined,
         currentInputIndex: -1
       };
         this.handleTextFieldChange = this.handleTextFieldChange.bind(this);
@@ -96,42 +121,35 @@ class TestsControl extends React.Component<testsControlProps, testsControlState>
        this.setState({tests});
     }
     
-    runTest = (id: number, input: string): boolean => {
-       if (this.state.computer === undefined) {
-           console.error("Computer is not initialized yet");
-           return false;
-       }
-           //if (this.state.currentInputIndex === input.length - 1) return;
-           //if (this.state.result !== undefined && this.state.currentInputIndex !== -1) return;
-       const stepResult = this.state.computer.step();
+    runTest = (id: number, input: string) => {
+        const splittedInput = input.split("");
 
-       this.props.changeStateIsCurrent(stepResult.nodes.map(node => node.id), true);
+        const computer = this.props.computerType === null
+            ? undefined 
+            : this.getComputer(this.props.computerType, this.props.elements, splittedInput)
 
-       let result = undefined;
-       for (let i = 0; i < input.length; i++){
-           if (stepResult.counter === input.length) {
-               result = stepResult.nodes.some(node => node.isAdmit);
-           } else if (this.state.currentInputIndex + 2 !== stepResult.counter) {
-               result = false;
-               return false;
-           }
-           const nodes = stepResult.nodes
-           .map(nodeCore => this.props.elements.nodes.find(node => node.id == nodeCore.id))
-           .filter((node): node is node => node !== undefined);      
-       }
+        if (computer === undefined) {
+            console.warn("Failed to initialize computer")
+            return false
+        }
 
-       return true;
+        const runResult = computer.run();
+
+        let tests = this.state.tests
+        tests[id].result = runResult.isAdmit == tests[id].shallAccept
+        this.setState({tests: tests})
     }
 
     private addRow(){
-      let newRow = {id: index, inputString: "1111", shallAccept: false}
+      let newRow = {id: this.state.tests.length, inputString: "1111", shallAccept: false}
+      console.log(this.state.tests.length);
       this.setState({tests: this.state.tests.concat(newRow)});
     }
 
     private onDelete(index: number) {
         this
-            .setState({tests: this.state.tests.slice(0, index - 1)
-                .concat(this.state.tests.slice(index))})
+            .setState({tests: this.state.tests.slice(0, index)
+                .concat(this.state.tests.slice(index+1))})
     }
 
     private addTestsToTable() {
@@ -154,7 +172,11 @@ class TestsControl extends React.Component<testsControlProps, testsControlState>
                         inputProps={{ 'aria-label': 'secondary checkbox' }}
                     />
                 </TableCell>
-                <TableCell align="right">{}</TableCell>
+                <TableCell align="center">{
+                //test.result === undefined ? '?' : (test.shallAccept === true && test.result === true)? "Ок":(test.shallAccept === true && test.result === false)? "Не ок": "?"
+                test.result === undefined? '?' : test.result === true ? "Ок" : "Не ок"  
+
+                }</TableCell>
                 <TableCell align="right"> <IconButton aria-label="playArrow">
                     <PlayArrowIcon onClick={() => this.runTest(test.id, test.inputString)} />
                     </IconButton> 
@@ -193,3 +215,4 @@ class TestsControl extends React.Component<testsControlProps, testsControlState>
 }
 
 export default TestsControl;
+/////<TableCell align="center">{test.result === undefined? '?' : test.result === true ? "Ок" : "Не ок"}</TableCell>
