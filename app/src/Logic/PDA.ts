@@ -1,11 +1,12 @@
 import {History, statement, Step} from "./Types";
-import {GraphCore, NodeCore, TransitionParams} from "./IGraphTypes";
+import {GraphCore, Move, NodeCore} from "./IGraphTypes";
 import {BOTTOM, Computer, EPS} from "./Computer";
 import {Stack} from "./Stack";
 
 type statementCell = {
     readonly stackDown?: string
     readonly stackPush?: string[]
+    readonly move?: Move
 } & statement
 
 type statementCells = Array<statementCell>
@@ -17,15 +18,15 @@ type element = {
 
 type position = {
     stmt: statement,
-    stack: Stack<string>
+    stack?: Stack<string>
 }
 
 export class PDA extends Computer {
 
     private epsId: any
-    private matrix: statementCells[][] = []
+    protected matrix: statementCells[][] = []
     private stack: Stack<string> = new Stack<string>()
-    private curPosition: position[]
+    protected curPosition: position[]
     protected historiStep: History[] = []
     protected historiRun: History[] = []
     private admitByEmptyStack: boolean | undefined
@@ -46,22 +47,23 @@ export class PDA extends Computer {
                 // console.log(letterId)
                 let stDwn = this.edges[i].localValue[j].stackDown
                 let stPsh = this.edges[i].localValue[j].stackPush
+                let mv = this.edges[i].localValue[j].move
                 if (stDwn === undefined || stPsh === undefined) {
                     stDwn = EPS
                     stPsh = [EPS]
                 }
+                // console.log(statementTo.move)
                 this.matrix[statementFrom.idLogic][letterId].push({
                     ...statementTo,
                     stackDown: stDwn,
-                    stackPush: stPsh
-                    //stackDown: this.edges[i].localValue[j].stackDown,
-                    //stackPush: this.edges[i].localValue[j].stackPush,
+                    stackPush: stPsh,
+                    move: mv
                 })
             }
         }
     }
 
-    private cellMatrix (i: number, j: number) : statementCell[] {
+    protected cellMatrix (i: number, j: number) : statementCell[] {
         return this.matrix[i][j]
     }
 
@@ -119,6 +121,7 @@ export class PDA extends Computer {
             )
         }
     }
+
 
     public cycleEps (curLId: number, stack0: Stack<string>): position[] {
         let htable: Map<string, position> = new Map<string, position>()
@@ -185,7 +188,7 @@ export class PDA extends Computer {
             this.cycleEps(id, stack).forEach(value => {
                 elements.push({
                     idLogic: id,
-                    top: value.stack
+                    top: value.stack!
                 })
             })
             elements.push({
@@ -302,7 +305,7 @@ export class PDA extends Computer {
 
             })
         })
-        return ret
+        return ret && (!this.haveEpsilon())
     }
 
     constructor(graph: GraphCore, startStatements: NodeCore[], input: string[], byEmpty?: boolean) {
@@ -311,14 +314,9 @@ export class PDA extends Computer {
         this.admitByEmptyStack = byEmpty
         this.epsId = this.alphabet.get(EPS)
         this.createMatrix()
-        this.matrix.forEach(value => {
-            console.log("-----------")
-            value.forEach(value1 => {
-                console.log(value1)
-            })
-        })
         this.stack.push(BOTTOM)
         this.curPosition = []//{stack: new Stack<string>(), stmt: startStatements}
+
         startStatements.forEach(value => {
             let stack = new Stack<string>()
             stack.push(BOTTOM)
@@ -332,36 +330,35 @@ export class PDA extends Computer {
         this.setInput(input)
 
         if (this.epsId) {
-            this.cycleEps(this.curPosition[0].stmt.idLogic, this.curPosition[0].stack)
+            this.cycleEps(this.curPosition[0].stmt.idLogic, this.curPosition[0].stack!)
         }
         console.log(this.isDeterministic())
     }
 
     private haveAdmitting (positions: position[]): boolean {
+        let ret = false
         if (this.admitByEmptyStack === false || this.admitByEmptyStack === undefined) {
             positions.forEach(value => {
                 if (value.stmt.isAdmit) {
-                    return true
+                    ret = true
                 }
             })
             return false
         } else {
             positions.forEach(value => {
-                if (value.stack.size() === 0) {
-                    return true
+                if (value.stack!.size() === 0) {
+                    ret = true
                 }
             })
-            return false
+            return ret
         }
 
     }
 
     private toNodes (positions: position[]): NodeCore[] {
-        // console.log("HERE")
         let retNodes: NodeCore[] = []
-        // positions.forEach(value => console.log(value))
         positions.forEach(value => {
-            let temp: NodeCore = {...this.nodes[value.stmt.idLogic], stack: value.stack.getStorage()
+            let temp: NodeCore = {...this.nodes[value.stmt.idLogic], stack: value.stack!.getStorage()
             }
             retNodes.push(temp)
         })
@@ -369,16 +366,16 @@ export class PDA extends Computer {
     }
 
     step = (): Step => {
-        // console.log("PDA")
         let ret = this._step
         (
             this.counterSteps,
-            this.alphabet.get(this.input[this.counterSteps].value),
+            this.alphabet.get(this.input[this.counterSteps]?.value),
             this.historiStep
         )
         this.counterSteps = ret.counter
         this.historiStep = ret.history
         return ret
+
     }
 
     run = (): Step => {
@@ -410,13 +407,13 @@ export class PDA extends Computer {
         }
         const epsStep = () => {
             this.curPosition.forEach(value => {
-                let pPos = this.epsilonStep(value.stmt.idLogic, value.stack.peek()!, value.stack)
+                let pPos = this.epsilonStep(value.stmt.idLogic, value.stack!.peek()!, value.stack!)
                 pPos?.forEach(value1 => newPosSet.push(value1))
             })
         }
         const letterSter = () => {
             this.curPosition.forEach(value => {
-                let pPos = this.letterStep(tr, value.stmt.idLogic, value.stack.peek()!, value.stack)
+                let pPos = this.letterStep(tr, value.stmt.idLogic, value.stack!.peek()!, value.stack!)
                 pPos.forEach(value1 => newPosSet.push(value1))
             })
         }
@@ -440,16 +437,10 @@ export class PDA extends Computer {
         }
         if (counter < this.input.length) {
             letterSter()
-            // console.log("afterLst: ", this.curPosition)
             updCurPos()
             if (this.epsId !== undefined) {
                 epsStep()
                 updCurPos()
-            } else {
-                // console.log("afterLst1: ", this.curPosition)
-
-                // console.log("afterLst2: ", this.curPosition)
-
             }
         } else {
             rmRepeations()
@@ -503,4 +494,3 @@ export class PDA extends Computer {
     }
 
 }
-

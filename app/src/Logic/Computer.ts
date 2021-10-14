@@ -16,8 +16,6 @@ export abstract class Computer {
     protected currentNode: NodeCore
     protected counterSteps: number = 0
     protected counterStepsForResult: number = 0
-    protected alphabetDBG: any = []
-    protected alphabetSize: number = 0;
 
     public abstract restart: () => void
     public abstract run: () => Step
@@ -34,7 +32,6 @@ export abstract class Computer {
         let i = 0
         alphabetSet.forEach(value => {
             this.alphabet.set(value, i)
-            this.alphabetDBG.push(value)
             i++
         })
     }
@@ -65,29 +62,16 @@ export abstract class Computer {
                     from: value.from,
                     to: value.to,
                     localValue: [],
-                    // stackDown: value.stackDown,
-                    // stackPush: value.stackPush
                 }))
 
         for (let i = 0; i < this.edges.length; i++) {
             this.edges[i].localValue = []
             this.edges[i].transitions.forEach(value =>
-                // value.title.forEach(value1 => this.edges[i].localValue!.push(value1)))
                 this.edges[i].localValue!.push(value))
         }
-        console.log('EDGES: ')
-        this.edges.forEach(value => {
-            console.log("from: ", value.from)
-            console.log("to: ", value.to)
-            console.log("Transitions: ")
-            value.transitions.forEach(value1 => console.log("  title: ", value1.title))
-            value.transitions.forEach(value1 => console.log("  dwn: ", value1.stackDown))
-            value.transitions.forEach(value1 => console.log("  psh: ", value1.stackPush))
-        })
+
         this.getAlphabetFromEdges()
-        console.log('ALPHABET: ', this.alphabet)
         this.getStatementsFromNodes(graph.nodes)
-        console.log('STATEMENTS: ', this.statements)
         this.startStatements = startStatements
         this.currentNode = startStatements[0]
         this.nodes = graph.nodes

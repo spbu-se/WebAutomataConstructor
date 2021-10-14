@@ -1,5 +1,6 @@
 import {EdgeCore, NodeCore, TransitionParams} from "./IGraphTypes";
-
+import {Stack} from "./Stack";
+import {TMMemory} from "./TM"
 export type elementOfAlphabet = {
     value: string
     idLogic: number
@@ -24,10 +25,11 @@ export type Step = {
     counter: number
     isAdmit: boolean
     history: History[]
+    memory?: string[]
 }
 
-export type statementNfa = {
-    value: statement[]
-    id: number
-    isAdmit: boolean
+
+export type position = {
+    stmt: statement,
+    stack?: Stack<string>
 }

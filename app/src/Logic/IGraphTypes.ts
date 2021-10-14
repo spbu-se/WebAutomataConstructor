@@ -2,13 +2,19 @@ export interface NodeCore  {
     id: number
     isAdmit: boolean
     stack?: string[]
+    move?: Move
 }
 
+export enum Move {
+    L,
+    R,
+}
 
 export interface TransitionParams {
     title: string
     stackDown?: string
     stackPush?: string[]
+    move?: Move
 }
 
 

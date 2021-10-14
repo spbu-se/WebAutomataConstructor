@@ -1,6 +1,5 @@
-import {History, statement, statementNfa, Step} from "./Types";
+import {Step} from "./Types";
 import {GraphCore, NodeCore} from "./IGraphTypes";
-import {Computer, eof, EPS} from "./Computer";
 import {PDA} from "./PDA";
 
 export class EpsilonNFA extends PDA {
@@ -14,7 +13,7 @@ export class EpsilonNFA extends PDA {
         let ret = this._step
         (
             this.counterSteps,
-            this.alphabet.get(this.input[this.counterSteps].value),
+            this.alphabet.get(this.input[this.counterSteps]?.value),
             this.historiStep
         )
 
@@ -111,5 +110,6 @@ export class EpsilonNFA extends PDA {
 //             // {from: 6, to: 6, transitions: new Set([{title: '1'}])},
 //         ]
 //     }, [{id: 1, isAdmit: false}], ['a', 'b'])
+// console.log(nfa.step())
 // console.log(nfa.step())
 // console.log(nfa.step())
