@@ -23,6 +23,7 @@ import SavingPopout from "./Components/SavingPopout/SavingPopout";
 import {Route, Switch, BrowserRouter} from "react-router-dom";
 import LoginPage from "./Components/Pages/LoginPage/LoginPage";
 import PingPage from "./Components/Pages/PingPage/PingPage";
+import FailedLoginPage from "./Components/Pages/FailedLoginPage/FailedLoginPage";
 
 interface appProps {
 }
@@ -357,6 +358,9 @@ class App extends React.Component<appProps, appState> {
                     </Route>
                     <Route path="/ping">
                         <PingPage/>
+                    </Route>
+                    <Route path="/failed-login">
+                        <FailedLoginPage/>
                     </Route>
                     <Route path="/">
                         <ComputerTypeContext.Provider value={this.state.computerType}>
