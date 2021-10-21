@@ -1,8 +1,9 @@
 import {History, statement, Step} from "./Types";
-import {GraphCore, Move, NodeCore} from "./IGraphTypes";
+import {EdgeCore, GraphCore, Move, NodeCore, TransitionParams} from "./IGraphTypes";
 import {BOTTOM, Computer, EPS} from "./Computer";
 import {Stack} from "./Stack";
 import {cloneDeep} from "lodash";
+import {keys} from "@material-ui/core/styles/createBreakpoints";
 
 type statementCell = {
     readonly stackDown?: string
@@ -87,7 +88,7 @@ export class PDA extends Computer {
     }
 
     private static permute0(permutation: statementCell[]): statementCell[][] {
-        let r = cloneDeep(permutation)
+        let r: statementCell[] = cloneDeep(permutation)
         function cmp(a : statementCell, b : statementCell) {
             if (a.stackDown && b.stackDown) {
                 if (a.stackDown < b.stackDown) {
@@ -100,10 +101,11 @@ export class PDA extends Computer {
             }
             return 0;
         }
+
         r = r.sort(cmp)
         let tmp: statementCell [][] = []
         let _tmp: statementCell[] = []
-        let dwn = r[0].stackDown
+        let dwn: string | undefined = r[0].stackDown
 
         for (let i = 0; i < r.length; i++) {
             if (r[i].stackDown === dwn) {
@@ -121,7 +123,6 @@ export class PDA extends Computer {
         const _detour  = (lvl: number, cur: number, acc: statementCell[]) => {
             if (lvl < tmp.length) {
                 for (let i = 0; i < tmp[lvl].length; i++) {
-                    // let a = acc.push(tmp[lvl][i])
                     let a = cloneDeep(acc)
                     a.push(tmp[lvl][i])
                     _detour (lvl + 1, i, a)
@@ -129,27 +130,11 @@ export class PDA extends Computer {
             }
             else {
                 ret.push(acc)
-
-                // console.log("*/*/*/")
-                // console.log(acc)
-                // console.log("*/*/*/")
-
             }
         }
-        // console.log("_")
 
         _detour(0,0,[])
-        // console.log("****")
-        // tmp.forEach(value => {
-        //     console.log("||||")
-        //     value.forEach(value1 => console.log(value1))
-        //     console.log("||||")
-        // })
-        // console.log(tmp.length)
-        // console.log("****")
-
         return ret
-
     }
 
     private static permute(permutation: statementCell[]): statementCell[][] {
@@ -196,8 +181,8 @@ export class PDA extends Computer {
         let visited: boolean[] = []
         this.cellMatrix(curLId, this.epsId).forEach(() => visited.push(false))
 
-        let permutes =  PDA.permute0 (this.cellMatrix(curLId, this.epsId))
-
+        let permutes = this.cellMatrix(curLId, this.epsId)[0] !== undefined ? PDA.permute0 (this.cellMatrix(curLId, this.epsId)) : [(this.cellMatrix(curLId, this.epsId))]
+        // permutes.push(this.cellMatrix(curLId, this.epsId))
         // let permutes: statementCell[][] = PDA.permute(this.cellMatrix(curLId, this.epsId))
 
 
@@ -386,6 +371,16 @@ export class PDA extends Computer {
         this.admitByEmptyStack = byEmpty
         this.epsId = this.alphabet.get(EPS)
         this.createMatrix()
+
+        this.matrix.forEach(value => {
+            value.forEach(value1 => value1.forEach(value2 => {
+                console.log(value2.idLogic)
+                console.log(value2.stackDown)
+                console.log(value2.stackPush)
+                console.log(value2.stack)
+
+            }))
+        })
         this.stack.push(BOTTOM)
         this.curPosition = []//{stack: new Stack<string>(), stmt: startStatements}
 
@@ -401,13 +396,16 @@ export class PDA extends Computer {
         })
         this.setInput(input)
 
-        if (this.epsId) {
-            this.cycleEps(this.curPosition[0].stmt.idLogic, this.curPosition[0].stack!)
-        }
+        if (this.epsId) {//
+            this.curPosition.forEach(value => {
+                this.cycleEps(value.stmt.idLogic, value.stack!)
+            })
+            // this.cycleEps(this.curPosition[0].stmt.idLogic, this.curPosition[0].stack!)
+        }//
         console.log(this.isDeterministic())
     }
 
-    private haveAdmitting (positions: position[]): boolean {
+    protected haveAdmitting (positions: position[]): boolean {
         let ret = false
         if (this.admitByEmptyStack === false || this.admitByEmptyStack === undefined) {
             positions.forEach(value => {
@@ -415,7 +413,7 @@ export class PDA extends Computer {
                     ret = true
                 }
             })
-            return false
+            return ret
         } else {
             positions.forEach(value => {
                 if (value.stack!.size() === 0) {
@@ -479,7 +477,7 @@ export class PDA extends Computer {
         }
         const epsStep = () => {
             this.curPosition.forEach(value => {
-                let pPos = this.epsilonStep(value.stmt.idLogic, value.stack!.peek()!, value.stack!)
+                let pPos = this.epsilonStep(value.stmt.idLogic, value.stack?.peek()!, value.stack!)
                 pPos?.forEach(value1 => newPosSet.push(value1))
             })
         }
@@ -565,53 +563,85 @@ export class PDA extends Computer {
         })
     }
 
+
 }
+
+
+
 //
 // let nfa = new PDA(
 //     {
 //         nodes: [
+//             {id: 0, isAdmit: false},
 //             {id: 1, isAdmit: false},
+//             {id: 2, isAdmit: true},
+//             {id: 3, isAdmit: false},
+//             {id: 4, isAdmit: false},
+//             // {id: 5, isAdmit: false},
+//             // {id: 6, isAdmit: false},
+//             // {id: 7, isAdmit: false},
+//             // {id: 8, isAdmit: false},
+//             // {id: 9, isAdmit: false},
+//             // {id: 10, isAdmit: false},
+//             // {id: 11, isAdmit: false},
+//             // {id: 12, isAdmit: false},
+//
 //         ],
 //         edges: [
-//             // {from: 1, to: 1, transitions: new Set([{title: EPS, stackDown: "Z0", stackPush: ["S", "Z0"]}])},
-//             // {from: 1, to: 1, transitions: new Set([{title: EPS, stackDown: "S", stackPush: ["0"]}])},
-//             // {from: 1, to: 1, transitions: new Set([{title: EPS, stackDown: "S", stackPush: ["1"]}])},
-//             // {from: 1, to: 1, transitions: new Set([{title: EPS, stackDown: "S", stackPush: ["0", "S", "0"]}])},
-//             // {from: 1, to: 1, transitions: new Set([{title: EPS, stackDown: "S", stackPush: ["1", "S", "1"]}])},
-//             // {from: 1, to: 1, transitions: new Set([{title: '0', stackDown: "0", stackPush: [EPS]}])},
-//             // {from: 1, to: 1, transitions: new Set([{title: '1', stackDown: "1", stackPush: [EPS]}])},
-//             // {from: 1, to: 1, transitions: new Set([{title: EPS, stackDown: "Z0", stackPush: [EPS]}])},
+//             // {from: 0, to: 1, transitions: new Set([    {title:      'a' }])},
+//             // {from: 0, to: 5, transitions: new Set([    {title:      'b' }])},
+//             // {from: 1, to: 6, transitions: new Set([    {title:      'a' }])},
+//             // {from: 1, to: 2, transitions: new Set([    {title:      'b' }])},
+//             // {from: 2, to: 0, transitions: new Set([    {title:      'a' }])},
+//             // {from: 2, to: 2, transitions: new Set([    {title:      'b' }])},
+//             // {from: 3, to: 2, transitions: new Set([    {title:      'a' }])},
+//             // {from: 3, to: 6, transitions: new Set([    {title:      'b' }])},
+//             // {from: 4, to: 7, transitions: new Set([    {title:      'a' }])},
+//             // {from: 4, to: 5, transitions: new Set([    {title:      'b' }])},
+//             // {from: 5, to: 2, transitions: new Set([    {title:      'a' }])},
+//             // {from: 5, to: 6, transitions: new Set([    {title:      'b' }])},
+//             // {from: 6, to: 6, transitions: new Set([    {title:      'a' }])},
+//             // {from: 6, to: 4, transitions: new Set([    {title:      'b' }])},
+//             // {from: 7, to: 6, transitions: new Set([    {title:      'a' }])},
+//             // {from: 7, to: 7, transitions: new Set([    {title:      'b' }])},
 //
-//             // {from: 1, to: 1, transitions: new Set([{title: EPS, stackDown: "Z0", stackPush: ["S", "Z0"]}])},
-//             // {from: 1, to: 1, transitions: new Set([{title: EPS, stackDown: "S", stackPush: ["0"]}])},
-//             // {from: 1, to: 1, transitions: new Set([{title: EPS, stackDown: "S", stackPush: ["1"]}])},
+//             // {from: 1, to: 2, transitions: new Set([     {title:      EPS}])},
+//             // {from: 1, to: 8, transitions: new Set([     {title:      EPS }])},
+//             // {from: 2, to: 3, transitions: new Set([     {title:      EPS }])},
+//             // {from: 2, to: 9, transitions: new Set([     {title:      EPS }])},
+//             // {from: 3, to: 4, transitions: new Set([     {title:      EPS }])},
+//             // {from: 3, to: 6, transitions: new Set([     {title:      EPS }])},
+//             // {from: 4, to: 5, transitions: new Set([     {title:      'a' }])},
+//             // {from: 5, to: 4, transitions: new Set([     {title:      EPS }])},
+//             // {from: 5, to: 6, transitions: new Set([     {title:      EPS }])},
+//             // {from: 6, to: 7, transitions: new Set([     {title:      EPS }])},
+//             // {from: 7, to: 2, transitions: new Set([     {title:      EPS }])},
+//             // {from: 7, to: 8, transitions: new Set([     {title:      EPS }])},
+//             // {from: 9, to: 10, transitions: new Set([    {title:      EPS }])},
+//             // {from: 9, to: 12, transitions: new Set([    {title:      EPS }])},
+//             // {from: 10, to: 11, transitions: new Set([   {title:      'b' }])},
+//             // {from: 11, to: 10, transitions: new Set([   {title:      EPS }])},
+//             // {from: 11, to: 12, transitions: new Set([   {title:      EPS }])},
+//             // {from: 12, to: 7, transitions: new Set([    {title:      EPS }])},
+//             // {from: 0, to: 1, transitions: new Set([    {title:      'a' }])},
+//             // {from: 0, to: 2, transitions: new Set([    {title:      'b' }])},
+//             // {from: 1, to: 1, transitions: new Set([    {title:      'a' }])},
+//             // {from: 1, to: 3, transitions: new Set([    {title:      'b' }])},
+//             // {from: 2, to: 1, transitions: new Set([    {title:      'a' }])},
+//             // {from: 2, to: 2, transitions: new Set([    {title:      'b' }])},
+//             // {from: 3, to: 1, transitions: new Set([    {title:      'a' }])},
+//             // {from: 3, to: 4, transitions: new Set([    {title:      'b' }])},
+//             // {from: 4, to: 1, transitions: new Set([    {title:      'a' }])},
+//             // {from: 4, to: 2, transitions: new Set([    {title:      'b' }])},
 //
-//             // {from: 1, to: 1, transitions: new Set([{title: EPS, stackDown: "Z0", stackPush: [EPS]}])},
+//             {from: 0, to: 1, transitions: new Set([    {title:      'a' }])},
+//             {from: 0, to: 2, transitions: new Set([    {title:      'a' }])},
+//             {from: 0, to: 3, transitions: new Set([    {title:      'a' }])},
 //
-//             {from: 1, to: 1, transitions: new Set([{title: EPS, stackDown: "Z0", stackPush: ["S", "Z0"]}])},
-//             {from: 1, to: 1, transitions: new Set([{title: EPS, stackDown: "S", stackPush: ["0", "S","0"]}])},
-//             {from: 1, to: 1, transitions: new Set([{title: EPS, stackDown: "S", stackPush: ["1", "S","1"]}])},
-//             {from: 1, to: 1, transitions: new Set([{title: EPS, stackDown: "S", stackPush: ["1", "A","0"]}])},
-//             {from: 1, to: 1, transitions: new Set([{title: EPS, stackDown: "S", stackPush: ["0", "A","1"]}])},
-//             {from: 1, to: 1, transitions: new Set([{title: EPS, stackDown: "S", stackPush: ["0"]}])},
-//             {from: 1, to: 1, transitions: new Set([{title: EPS, stackDown: "S", stackPush: ["1"]}])},
-//             {from: 1, to: 1, transitions: new Set([{title: EPS, stackDown: "A", stackPush: ["0", "A","0"]}])},
-//             {from: 1, to: 1, transitions: new Set([{title: EPS, stackDown: "A", stackPush: ["1", "A","1"]}])},
-//             {from: 1, to: 1, transitions: new Set([{title: EPS, stackDown: "A", stackPush: ["1", "A","0"]}])},
-//             {from: 1, to: 1, transitions: new Set([{title: EPS, stackDown: "A", stackPush: ["0", "A","1"]}])},
-//             {from: 1, to: 1, transitions: new Set([{title: EPS, stackDown: "A", stackPush: ["0"]}])},
-//             {from: 1, to: 1, transitions: new Set([{title: EPS, stackDown: "A", stackPush: ["1"]}])},
-//             {from: 1, to: 1, transitions: new Set([{title: EPS, stackDown: "A", stackPush: [EPS]}])},
-//             {from: 1, to: 1, transitions: new Set([{title: '0', stackDown: "0", stackPush: [EPS]}])},
-//             {from: 1, to: 1, transitions: new Set([{title: '1', stackDown: "1", stackPush: [EPS]}])},
-//             {from: 1, to: 1, transitions: new Set([{title: EPS, stackDown: "Z0", stackPush: [EPS]}])},
-//
-//
-//
-//
+//             {from: 0, to: 4, transitions: new Set([    {title:      'b' }])},
 //
 //         ]
-//     }, [{id: 1, isAdmit: false}], ['0','0','1'], true)
-// nfa.step()
-// nfa.step()
-// console.log(nfa.step())
+//     }, [{id: 0, isAdmit: false}], ['a', 'b'])
+//
+//
+// nfa.nfaToDfa()
