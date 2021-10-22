@@ -7,6 +7,14 @@ export const transitionsToLabel = (transitions: Set<TransitionParams>): string =
     return Array.from(transitions).map(transition => transition.title === EPS ? "ε" : transition.title).join(",");
 }
 
+export const stackDownToLabel = (transitions: Set<TransitionParams>) : string => {
+    return Array.from(transitions).map(transitions => transitions.stackDown === EPS ? "ε": transitions.stackDown).join(",");
+}
+
+export const stackPushToLabel = (transitions: Set<TransitionParams>) : string => {
+    return Array.from(transitions).map(transitions => (transitions.stackPush !== undefined && transitions.stackPush[0] === EPS) ? "ε": transitions.stackDown).join(",");
+}
+
 export const decorateGraph = (graph: graph): graph => {
     graph.nodes.forEach(node => {
         const border = node.isInitial ? "#0041d0" : node.isAdmit ? "#ff0072" : "#000000"
@@ -133,5 +141,33 @@ export const computersInfo: Record<ComputerType, ComputerInfo> = {
 
             ]
         }
+    }, 
+    pda: {
+        name: "МП",
+        description: "Конечный автомат, который использует стек для хранения состояний", 
+        preview:"pda.png", 
+        defaultGraph: {
+            nodes:[
+                {id: 1, x: 0, y: 0, label: "S0", isAdmit: false, isInitial: true, isCurrent: false}, 
+                {id: 2, x: 100, y: 0, label: "S1", isAdmit: false, isInitial: false, isCurrent: false},
+                {id: 3, x: 200, y: 0, label: "S2", isAdmit: false, isInitial: false, isCurrent: false},
+            ], 
+            edges: [
+                {from: 1, to: 1, transitions: new Set([{title: '0',  stackDown: 'Z0', stackPush: ['0', 'Z0']}])}, 
+                {from: 1, to: 1, transitions: new Set([{title: '1',  stackDown: 'Z0', stackPush: ['1', 'Z0']}])}, 
+                {from: 1, to: 1, transitions: new Set([{title: '0',  stackDown: '0', stackPush: ['0', '0']}])}, 
+                {from: 1, to: 1, transitions: new Set([{title: '0',  stackDown: '1', stackPush: ['0', '1']}])}, 
+                {from: 1, to: 1, transitions: new Set([{title: '1',  stackDown: '0', stackPush: ['1', '0']}])}, 
+                {from: 1, to: 1, transitions: new Set([{title: '1',  stackDown: '1', stackPush: ['1', '1']}])}, 
+                {from: 1, to: 2, transitions: new Set([{title: EPS,  stackDown: 'Z0', stackPush: ['Z0']}])}, 
+                {from: 1, to: 2, transitions: new Set([{title: EPS,  stackDown: '0', stackPush: ['0']}])},
+                {from: 1, to: 2, transitions: new Set([{title: EPS,  stackDown: '1', stackPush: ['1']}])},
+                {from: 2, to: 2, transitions: new Set([{title: '0',  stackDown: '0', stackPush: [EPS]}])},
+                {from: 2, to: 2, transitions: new Set([{title: '1',  stackDown: '1', stackPush: [EPS]}])},
+                {from: 2, to: 3, transitions: new Set([{title: EPS,  stackDown: 'Z0', stackPush: ['Z0']}])},
+
+            ]
+        }
     }
+
 }
