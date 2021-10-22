@@ -4,7 +4,7 @@ import {EPS} from "./Logic/Computer";
 import { TransitionParams } from "./Logic/IGraphTypes";
 
 export const transitionsToLabel = (transitions: Set<TransitionParams>): string => {
-    return Array.from(transitions).map(transition => transition.title === EPS ? "ε" : transition).join(",");
+    return Array.from(transitions).map(transition => transition.title === EPS ? "ε" : transition.title).join(",");
 }
 
 export const decorateGraph = (graph: graph): graph => {

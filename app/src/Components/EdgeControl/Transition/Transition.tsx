@@ -1,9 +1,10 @@
 import React, {AllHTMLAttributes} from "react";
 import "./Transition.css";
 import HighlightOffIcon from '@material-ui/icons/HighlightOff';
+import {TransitionParams} from "../../../Logic/IGraphTypes";
 
 export interface TransitionProps extends AllHTMLAttributes<HTMLElement> {
-    transition: string,
+    transition: TransitionParams,
     active: boolean,
     deleteTransition: () => void
 }

@@ -21,6 +21,7 @@ import Paper from "@material-ui/core/Paper";
 import MenuIcon from '@material-ui/icons/Menu';
 import SavingPopout from "./Components/SavingPopout/SavingPopout";
 import TestsControl from "./Components/TestsControl/TestsControl";
+import { TransitionParams } from './Logic/IGraphTypes';
 
 interface appProps {
 }
@@ -300,9 +301,9 @@ class App extends React.Component<appProps, appState> {
         this.setState({elements: elements}, () => this.updateGraph());
     }
 
-    changeEdgeTransition = (id: string, transitions: Set<string>): void => {
+    changeEdgeTransition = (id: string, transitions: Set<TransitionParams>): void => {
         const elements = cloneDeep(this.state.elements);
-
+        
         for (let i = 0; i < elements.edges.length; i++) {
             if (elements.edges[i].id === id) {
                 elements.edges[i].transitions = transitions;
@@ -439,6 +440,7 @@ class App extends React.Component<appProps, appState> {
                         <TestsControl
                             elements={this.state.elements}
                             changeStateIsCurrent={this.changeStateIsCurrent} 
+                            computerType = {this.state.computerType}
                         />
                     </div>
 
