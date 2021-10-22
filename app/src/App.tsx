@@ -21,6 +21,7 @@ import Paper from "@material-ui/core/Paper";
 import MenuIcon from '@material-ui/icons/Menu';
 import SavingPopout from "./Components/SavingPopout/SavingPopout";
 import {TransitionParams} from "./Logic/IGraphTypes";
+import { Stack } from '@mui/material';
 
 interface appProps {
 }
@@ -419,6 +420,11 @@ class App extends React.Component<appProps, appState> {
                     </div>
 
                     <div className="app__right-menu">
+                        <Stack spacing={2}>
+                            <div>Item 1</div>
+                            <div>Item 2</div>
+                            <div>Item 3</div>
+                        </Stack>
                         <NodeControl
                             node={this.state.selectedNode}
                             changeNodeLabel={this.changeNodeLabel}
