@@ -3,7 +3,6 @@ import {EdgeCore, GraphCore, Move, NodeCore, TransitionParams} from "./IGraphTyp
 import {BOTTOM, Computer, EPS} from "./Computer";
 import {Stack} from "./Stack";
 import {cloneDeep} from "lodash";
-import {keys} from "@material-ui/core/styles/createBreakpoints";
 
 type statementCell = {
     readonly stackDown?: string
@@ -563,9 +562,248 @@ export class PDA extends Computer {
         })
     }
 
+// move to Nfa
+    nfaToDfa = (): GraphCore => {
+        this.restart()
+        let start: position[] = this.curPosition
+        let dfaStmts: ImSet<position[]> = new ImSet<position[]>()
+        let tmp: position[][] = []
+        let i = 0
+        let dfaMatrix: position[][][] = []
+
+        dfaStmts.add(this.curPosition)
+        while (i < dfaStmts.size()) {
+            this.curPosition = dfaStmts.getNth(i)
+            this.alphabet.forEach((value) => {
+                this._step(0, value, [])
+                if (this.curPosition.length > 0) {
+                    dfaStmts.add(this.curPosition)
+                }
+                tmp.push(this.curPosition)
+                this.curPosition = dfaStmts.getNth(i)
+            })
+            dfaMatrix.push(tmp)
+            tmp = []
+            i++
+        }
+
+        let nodes: NodeCore[] = []
+        let edges: EdgeCore[] = []
+        let mp: Map<string, number> = new Map<string, number>()
+
+        dfaStmts.myForEach((value, index) => {
+            mp.set(JSON.stringify(value), index)
+            let isAdmt = this.haveAdmitting(value)
+            nodes.push({id: index, isAdmit: isAdmt})
+        })
+
+        dfaStmts.myForEach((value, index) => {
+            this.alphabet.forEach((value1, key) => {
+                let from = mp.get(JSON.stringify(value))!
+                let to = mp.get(JSON.stringify(dfaMatrix[from][value1]))
+                if (to) {
+                    edges.push({from: from, to: to, transitions: new Set<TransitionParams>([{title: key}])})
+                }
+            })
+        })
+
+        return {nodes: nodes, edges: edges}
+    }
+
+
+//https://www.usna.edu/Users/cs/wcbrown/courses/F17SI340/lec/l22/lec.html
+// move to Dfa
+    minimizeDfa = (): GraphCore => {
+        this.restart()
+        let groups: ImSet<[number]>[] = []
+        groups.push(new ImSet<[number]>())
+        groups.push(new ImSet<[number]>())
+
+        let gTable: { group: number, value: statementCell}[][] =
+            this.matrix.map(value => value.map(value1 => ({ group: - 1, value: value1[0]})))
+
+        this.statements.forEach(value => {
+            if (value.isAdmit) {
+                groups[0].add([value.idLogic])
+            } else {
+                groups[1].add([value.idLogic])
+            }
+        })
+
+        gTable.forEach(value => value.forEach(value1 => {
+            if (value1.value.isAdmit) {
+                value1.group = 0
+                groups[0].add([value1.value.idLogic])
+            } else {
+                value1.group = 1
+                groups[1].add([value1.value.idLogic])
+            }
+        }))
+
+        const mkGrp = (i: number, gTable: { group: number, value: statementCell}[][]): ImSet<[number]> => {
+            let h: number = groups[i].getNth(0)[0]
+            let rs = JSON.stringify(gTable[h].map(value => value.group))
+            let newGrp: ImSet<[number]> = new ImSet<[number]>()
+            gTable.forEach((value, index) => {
+                if (rs === JSON.stringify(value.map(value1 => value1.group)) && groups[i].has([index])) {
+                    newGrp.add([index])
+                }
+            })
+            return newGrp
+        }
+
+        const filter = (arr: ImSet<[number]>, el: [number]): ImSet<[number]> => {
+            let upd: ImSet<[number]> = new ImSet<[number]>()
+            arr.myForEach(value => {
+                if (value[0] !== el[0]) {
+                    upd.add(value)
+                }
+            })
+            return upd
+        }
+
+        let q: Queue<number> = new Queue<number>()
+        groups.forEach((value, index) => q.enqueue(index))
+        while (q.size() > 0) {
+            let id = q.dequeue()
+            if (id !== undefined) {
+                let grp = mkGrp(id, gTable)
+
+                if (groups[id].size() > grp.size()) {
+                    q.enqueue(groups.length)
+                    q.enqueue(id)
+                    groups.push(grp)
+
+                    groups[groups.length - 1].myForEach((value, index) => {
+                        if (id !== undefined) {
+                            groups[id] = filter(groups[id], groups[groups.length - 1].getNth(index))
+                        }
+                    })
+                    groups = groups.filter(value => value.size() > 0)
+
+                    gTable.forEach((gtvalue, index) => gtvalue.forEach(gtvalue1 => {
+                        if (groups[groups.length - 1].has([gtvalue1.value.idLogic])) {
+                            gtvalue1.group = groups.length - 1
+                        }
+                    }))
+                }
+            }
+        }
+
+        let gt =
+            groups.map(value => gTable[value.getNth(0)[0]].map(value1 => ({g: value1.group, admt: value1.value.isAdmit})))
+        let nodes: NodeCore[] =
+            groups.map((value, index) => ({id: index, isAdmit: index === 0}))
+
+        let edges: EdgeCore[] = []
+
+        gt.forEach((value, index) => {
+            this.alphabet.forEach((n, lt) => {
+                edges.push({
+                    from: index,
+                    to: value[n].g,
+                    transitions: new Set<TransitionParams>([{title: lt}])
+                })
+            })
+        })
+
+        return {nodes: nodes, edges: edges}
+    }
 
 }
 
+
+class Queue<T> {
+    private storage: T[] = [];
+
+    constructor(private capacity: number = Infinity) {}
+
+    enqueue(item: T): void {
+        if (this.size() === this.capacity) {
+            throw Error("Queue has reached max capacity, you cannot add more items");
+        }
+        this.storage.push(item);
+    }
+
+    dequeue(): T | undefined {
+        return this.storage.shift();
+    }
+
+    size(): number {
+        return this.storage.length;
+    }
+
+    getStorage(): T[] {
+        return this.storage
+    }
+}
+
+
+export class ImSet<T extends Record<any, any>> {
+    private table: Map<string, T> = new Map<string, T>()
+    public set: T[] = []
+
+    private normalize (v: T): T {
+        let _v = cloneDeep(v)
+        _v = _v.sort()
+        return _v
+    }
+
+    getItter (value: T): number {
+        if (!this.has(value)) {
+            throw Error
+        }
+        let it: number = 0
+        let _v = this.normalize(value)
+        this.set.forEach((value1, index) => {
+            if (JSON.stringify(_v) === JSON.stringify(value1)) {
+                it = index
+            }
+        })
+        return it
+    }
+
+    has (value: T): boolean {
+        let _v = this.normalize(value)
+        let k = JSON.stringify(_v)
+         return this.table.has(k)
+    }
+
+    myForEach (callback: (value: T, index: number) => void) {
+        this.set.forEach((value1, index) => {
+            callback(value1, index)
+        })
+    }
+
+    add (value: T) {
+        let _v = this.normalize(value)
+        let k = JSON.stringify(_v)
+        if (!this.table.has(k)) {
+            this.table.set(k, _v)
+            this.set.push(_v)
+        }
+    }
+
+    size (): number {
+        return this.set.length
+    }
+
+    getNth (i: number): T {
+        return this.set[i]
+    }
+
+    getIter (value: T): number {
+        let _v = this.normalize(value)
+        let k = JSON.stringify(_v)
+        let iter = 0
+        this.set.forEach((v, index) => {
+            if (JSON.stringify(v) === k) {
+                iter = index
+            }
+        })
+        return iter
+    }
+}
 
 
 //
@@ -574,74 +812,38 @@ export class PDA extends Computer {
 //         nodes: [
 //             {id: 0, isAdmit: false},
 //             {id: 1, isAdmit: false},
-//             {id: 2, isAdmit: true},
+//             {id: 2, isAdmit: false},
 //             {id: 3, isAdmit: false},
-//             {id: 4, isAdmit: false},
-//             // {id: 5, isAdmit: false},
-//             // {id: 6, isAdmit: false},
-//             // {id: 7, isAdmit: false},
-//             // {id: 8, isAdmit: false},
-//             // {id: 9, isAdmit: false},
-//             // {id: 10, isAdmit: false},
-//             // {id: 11, isAdmit: false},
-//             // {id: 12, isAdmit: false},
+//             {id: 4, isAdmit: true},
+//             {id: 5, isAdmit: true},
+//             {id: 6, isAdmit: false},
 //
 //         ],
 //         edges: [
-//             // {from: 0, to: 1, transitions: new Set([    {title:      'a' }])},
-//             // {from: 0, to: 5, transitions: new Set([    {title:      'b' }])},
-//             // {from: 1, to: 6, transitions: new Set([    {title:      'a' }])},
-//             // {from: 1, to: 2, transitions: new Set([    {title:      'b' }])},
-//             // {from: 2, to: 0, transitions: new Set([    {title:      'a' }])},
-//             // {from: 2, to: 2, transitions: new Set([    {title:      'b' }])},
-//             // {from: 3, to: 2, transitions: new Set([    {title:      'a' }])},
-//             // {from: 3, to: 6, transitions: new Set([    {title:      'b' }])},
-//             // {from: 4, to: 7, transitions: new Set([    {title:      'a' }])},
-//             // {from: 4, to: 5, transitions: new Set([    {title:      'b' }])},
-//             // {from: 5, to: 2, transitions: new Set([    {title:      'a' }])},
-//             // {from: 5, to: 6, transitions: new Set([    {title:      'b' }])},
-//             // {from: 6, to: 6, transitions: new Set([    {title:      'a' }])},
-//             // {from: 6, to: 4, transitions: new Set([    {title:      'b' }])},
-//             // {from: 7, to: 6, transitions: new Set([    {title:      'a' }])},
-//             // {from: 7, to: 7, transitions: new Set([    {title:      'b' }])},
 //
-//             // {from: 1, to: 2, transitions: new Set([     {title:      EPS}])},
-//             // {from: 1, to: 8, transitions: new Set([     {title:      EPS }])},
-//             // {from: 2, to: 3, transitions: new Set([     {title:      EPS }])},
-//             // {from: 2, to: 9, transitions: new Set([     {title:      EPS }])},
-//             // {from: 3, to: 4, transitions: new Set([     {title:      EPS }])},
-//             // {from: 3, to: 6, transitions: new Set([     {title:      EPS }])},
-//             // {from: 4, to: 5, transitions: new Set([     {title:      'a' }])},
-//             // {from: 5, to: 4, transitions: new Set([     {title:      EPS }])},
-//             // {from: 5, to: 6, transitions: new Set([     {title:      EPS }])},
-//             // {from: 6, to: 7, transitions: new Set([     {title:      EPS }])},
-//             // {from: 7, to: 2, transitions: new Set([     {title:      EPS }])},
-//             // {from: 7, to: 8, transitions: new Set([     {title:      EPS }])},
-//             // {from: 9, to: 10, transitions: new Set([    {title:      EPS }])},
-//             // {from: 9, to: 12, transitions: new Set([    {title:      EPS }])},
-//             // {from: 10, to: 11, transitions: new Set([   {title:      'b' }])},
-//             // {from: 11, to: 10, transitions: new Set([   {title:      EPS }])},
-//             // {from: 11, to: 12, transitions: new Set([   {title:      EPS }])},
-//             // {from: 12, to: 7, transitions: new Set([    {title:      EPS }])},
-//             // {from: 0, to: 1, transitions: new Set([    {title:      'a' }])},
-//             // {from: 0, to: 2, transitions: new Set([    {title:      'b' }])},
-//             // {from: 1, to: 1, transitions: new Set([    {title:      'a' }])},
-//             // {from: 1, to: 3, transitions: new Set([    {title:      'b' }])},
-//             // {from: 2, to: 1, transitions: new Set([    {title:      'a' }])},
-//             // {from: 2, to: 2, transitions: new Set([    {title:      'b' }])},
-//             // {from: 3, to: 1, transitions: new Set([    {title:      'a' }])},
-//             // {from: 3, to: 4, transitions: new Set([    {title:      'b' }])},
-//             // {from: 4, to: 1, transitions: new Set([    {title:      'a' }])},
-//             // {from: 4, to: 2, transitions: new Set([    {title:      'b' }])},
+//             {from: 0, to: 1, transitions: new Set([    {title:      '0' }])},
+//             {from: 0, to: 2, transitions: new Set([    {title:      '1' }])},
 //
-//             {from: 0, to: 1, transitions: new Set([    {title:      'a' }])},
-//             {from: 0, to: 2, transitions: new Set([    {title:      'a' }])},
-//             {from: 0, to: 3, transitions: new Set([    {title:      'a' }])},
+//             {from: 1, to: 3, transitions: new Set([    {title:      '0' }])},
+//             {from: 1, to: 4, transitions: new Set([    {title:      '1' }])},
 //
-//             {from: 0, to: 4, transitions: new Set([    {title:      'b' }])},
+//             {from: 2, to: 3, transitions: new Set([    {title:      '0' }])},
+//             {from: 2, to: 5, transitions: new Set([    {title:      '1' }])},
+//
+//             {from: 3, to: 3, transitions: new Set([    {title:      '0' }])},
+//             {from: 3, to: 3, transitions: new Set([    {title:      '1' }])},
+//
+//             {from: 4, to: 4, transitions: new Set([    {title:      '0' }])},
+//             {from: 4, to: 6, transitions: new Set([    {title:      '1' }])},
+//
+//             {from: 5, to: 5, transitions: new Set([    {title:      '0' }])},
+//             {from: 5, to: 6, transitions: new Set([    {title:      '1' }])},
+//
+//             {from: 6, to: 6, transitions: new Set([    {title:      '0' }])},
+//             {from: 6, to: 6, transitions: new Set([    {title:      '1' }])},
+//
 //
 //         ]
-//     }, [{id: 0, isAdmit: false}], ['a', 'b'])
+//     }, [{id: 0, isAdmit: false}], [])
 //
-//
-// nfa.nfaToDfa()
+// console.log(nfa.minimizeDfa())

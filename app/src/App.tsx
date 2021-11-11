@@ -21,6 +21,7 @@ import Paper from "@material-ui/core/Paper";
 import MenuIcon from '@material-ui/icons/Menu';
 import SavingPopout from "./Components/SavingPopout/SavingPopout";
 import {TransitionParams} from "./Logic/IGraphTypes";
+import { Stack } from '@mui/material';
 
 interface appProps {
 }
@@ -38,6 +39,19 @@ interface appState {
 }
 
 export const ComputerTypeContext = React.createContext<null | ComputerType>(null);
+
+class Item extends React.Component<appProps>{
+    constructor(props: appProps) {
+        super(props);
+    }
+    render() {
+        return (
+            <div>
+                1
+            </div>
+        )
+    }
+}
 
 class App extends React.Component<appProps, appState> {
     constructor(props: appProps) {
@@ -346,9 +360,15 @@ class App extends React.Component<appProps, appState> {
         dragEnd: this.onDragEnd
     };
 
+
+
+
+
     render() {
         return (
             <ComputerTypeContext.Provider value={this.state.computerType}>
+
+
                 <div className="app">
                     {
                         this.state.computerType === null ?
@@ -419,6 +439,15 @@ class App extends React.Component<appProps, appState> {
                     </div>
 
                     <div className="app__right-menu">
+
+                        <div >
+                            <Stack spacing={2}>
+                                <Item>Item 1</Item>
+                                <Item>Item 2</Item>
+                                <Item>Item 3</Item>
+                            </Stack>
+                        </div>
+
                         <NodeControl
                             node={this.state.selectedNode}
                             changeNodeLabel={this.changeNodeLabel}
