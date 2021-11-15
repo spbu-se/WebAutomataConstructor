@@ -20,7 +20,7 @@ import Button from "@material-ui/core/Button";
 import Paper from "@material-ui/core/Paper";
 import MenuIcon from '@material-ui/icons/Menu';
 import SavingPopout from "./Components/SavingPopout/SavingPopout";
-import {Route, Switch, BrowserRouter} from "react-router-dom";
+import {Route, Switch, HashRouter} from "react-router-dom";
 import LoginPage from "./Components/Pages/LoginPage/LoginPage";
 import PingPage from "./Components/Pages/PingPage/PingPage";
 import FailedLoginPage from "./Components/Pages/FailedLoginPage/FailedLoginPage";
@@ -351,7 +351,7 @@ class App extends React.Component<appProps, appState> {
 
     render() {
         return (
-            <BrowserRouter>
+            <HashRouter>
                 <Switch>
                     <Route path="/login">
                         <LoginPage/>
@@ -456,7 +456,7 @@ class App extends React.Component<appProps, appState> {
                         </ComputerTypeContext.Provider>
                     </Route>
                 </Switch>
-            </BrowserRouter>
+            </HashRouter>
 
         )
     }
