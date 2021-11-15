@@ -18,7 +18,7 @@ const GoogleOAuthButton: FC<GoogleOAuthButtonProps> = ({style, className}) => {
         <div className={`google_oauth_button ${className}`} style={{...style}}>
             <form className="google_oauth_button__form" method="POST" action={auth_url}>
                 <button className="google_oauth_button__button" type="submit" value="Authorize via Google OAuth">
-                    <img className="google_oauth_button__logo" src={"media/images/google_logo_18.png"} alt="Google icon"/>
+                    <img className="google_oauth_button__logo" src={"media/images/google_logo_18.png"} alt="Google icon" aria-hidden/>
                     <p className="google_oauth_button__text">
                         Sign in with Google
                     </p>
