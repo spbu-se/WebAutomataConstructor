@@ -1,5 +1,7 @@
 import React from "react";
 
+import {useHistory} from "react-router-dom";
+
 import Button from "@material-ui/core/Button";
 
 import MenuIcon from "@material-ui/icons/Menu";
@@ -16,6 +18,12 @@ export const AppHeader: React.FunctionComponent<AppHeaderProps> = (
         onMenuButtonClicked,
         onSaveButtonClicked
     }) => {
+    const history = useHistory();
+
+    const onSignInButtonClicked = () => {
+        history.push("/login");
+    }
+
     return (
         <div className="app__header">
             <div className="app__header__left">
@@ -42,10 +50,16 @@ export const AppHeader: React.FunctionComponent<AppHeaderProps> = (
             </div>
 
             <div className="app__header__right">
-
+                <div className="app__header__button">
+                    <Button
+                        variant="outlined"
+                        color="primary"
+                        onClick={onSignInButtonClicked}
+                    >
+                        Войти
+                    </Button>
+                </div>
             </div>
-
-
         </div>
     );
 }
