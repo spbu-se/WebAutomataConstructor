@@ -25,7 +25,7 @@ export const AppHeader: React.FunctionComponent<AppHeaderProps> = (
     }
 
     return (
-        <div className="app__header">
+        <nav className="app__header">
             <div className="app__header__left">
                 <div className="app__header__button">
                     <Button
@@ -60,7 +60,7 @@ export const AppHeader: React.FunctionComponent<AppHeaderProps> = (
                     </Button>
                 </div>
             </div>
-        </div>
+        </nav>
     );
 }
 
