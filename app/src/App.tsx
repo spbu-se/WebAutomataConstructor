@@ -24,6 +24,7 @@ import {Route, Switch, HashRouter} from "react-router-dom";
 import LoginPage from "./Components/Pages/LoginPage/LoginPage";
 import PingPage from "./Components/Pages/PingPage/PingPage";
 import FailedLoginPage from "./Components/Pages/FailedLoginPage/FailedLoginPage";
+import AppHeader from "./Components/AppHeader/AppHeader";
 
 interface appProps {
 }
@@ -399,30 +400,10 @@ class App extends React.Component<appProps, appState> {
                                     </Paper>
                                 </div>
 
-                                <div className="top-buttons">
-                                    <div className="top-button">
-                                        <Button
-                                            variant="contained"
-                                            color="primary"
-                                            startIcon={<MenuIcon/>}
-                                            onClick={() => {
-                                                this.setState({computerType: null})
-                                            }}
-                                        >
-                                            Меню
-                                        </Button>
-                                    </div>
-
-                                    <div className="top-button">
-                                        <Button
-                                            variant="outlined"
-                                            color="primary"
-                                            onClick={this.saveCurrentGraph}
-                                        >
-                                            Сохранить
-                                        </Button>
-                                    </div>
-                                </div>
+                                <AppHeader
+                                    onMenuButtonClicked={() => this.setState({computerType: null})}
+                                    onSaveButtonClicked={this.saveCurrentGraph}
+                                />
 
                                 <div className="field__container">
                                     <Graph
