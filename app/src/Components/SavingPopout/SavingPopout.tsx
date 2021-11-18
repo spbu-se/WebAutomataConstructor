@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from "react";
+import React, {useEffect, useState} from "react";
 
-import { ComputerType, graph } from "../../react-graph-vis-types";
+import {ComputerType, graph} from "../../react-graph-vis-types";
 
 import Dialog from "@mui/material/Dialog";
 import DialogTitle from "@mui/material/DialogTitle";
@@ -27,14 +27,24 @@ export interface SavingPopoutProps {
     // changePopout: (popout: React.ReactNode | null) => void
 }
 
-export const SavingPopout: React.FunctionComponent<SavingPopoutProps> = ({ open, onClose }) => {
-    const onSavesOriginChanged = (_: React.MouseEvent<HTMLElement>, value: any) => {
+export const SavingPopout: React.FunctionComponent<SavingPopoutProps> = ({open, onClose}) => {
+    const onSavesOriginChanged = (_: React.MouseEvent<HTMLElement>, value: string) => {
         value = value || savesOrigin;
         setSavesOrigin(value);
     }
 
+    const onSaveClicked = (_: React.MouseEvent<HTMLDivElement>, value: string) => {
+        setSaveName(value);
+    }
+
+    const onSaveNameChanged = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const value = event.target.value;
+        setSaveName(value);
+    }
+
     const [savesOrigin, setSavesOrigin] = useState<string>("cloud");
     const [savesNames, setSavesNames] = useState<string[]>([]);
+    const [saveName, setSaveName] = useState<string>("");
 
     useEffect(() => {
         switch (savesOrigin) {
@@ -82,8 +92,8 @@ export const SavingPopout: React.FunctionComponent<SavingPopoutProps> = ({ open,
                                             key={saveName}
                                             disablePadding
                                         >
-                                            <ListItemButton>
-                                                <ListItemText primary={saveName} />
+                                            <ListItemButton onClick={(e) => onSaveClicked(e, saveName)}>
+                                                <ListItemText primary={saveName}/>
                                             </ListItemButton>
                                         </ListItem>
                                     ))
@@ -98,6 +108,8 @@ export const SavingPopout: React.FunctionComponent<SavingPopoutProps> = ({ open,
                     variant="standard"
                     size="small"
                     label="Имя сохранения"
+                    value={saveName}
+                    onChange={onSaveNameChanged}
                 />
 
                 <DialogActions>
