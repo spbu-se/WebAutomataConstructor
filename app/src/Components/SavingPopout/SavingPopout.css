@@ -1,17 +1,19 @@
-.saving-popout {
-    width: 280px;
-}
-
-.saving-popout__name {
-    margin-bottom: 16px;
-    width: 280px;
-}
-
-.saving-popout__buttons {
+.saving-popout__body {
     display: flex;
-    float: right;
+
+    margin-bottom: 32px;
 }
 
-.saving-popout__button:not(:last-child) {
+.saving-popout__body__sidebar {
     margin-right: 16px;
+}
+
+.saving-popout__body__main__paper {
+    min-width: 440px;
+    max-width: 440px;
+    min-height: 196px;
+}
+
+.saving-popout__save-name-input {
+    width: 100%;
 }

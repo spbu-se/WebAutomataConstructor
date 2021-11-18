@@ -36,7 +36,8 @@ interface appState {
     elements: graph,
     options: any,
     initiallyStabilized: boolean,
-    popout: ReactNode | null
+    popout: ReactNode | null,
+    savePopoutOpen: boolean,
 }
 
 export const ComputerTypeContext = React.createContext<null | ComputerType>(null);
@@ -73,7 +74,8 @@ class App extends React.Component<appProps, appState> {
                 }
             },
             initiallyStabilized: false,
-            popout: null
+            popout: null,
+            savePopoutOpen: false,
         };
     }
 
@@ -92,7 +94,7 @@ class App extends React.Component<appProps, appState> {
             }
             if (event.key === "s" && event.ctrlKey) {
                 event.preventDefault();
-                this.saveCurrentGraph();
+                this.openSavePopout();
             }
         })
 
@@ -103,12 +105,12 @@ class App extends React.Component<appProps, appState> {
         })
     }
 
-    saveCurrentGraph = () => {
-        if (!this.state.computerType) return;
-        this.setState({
-            popout: <SavingPopout computerType={this.state.computerType} graph={this.state.elements}
-                                  changePopout={this.changePopout}/>
-        });
+    openSavePopout = () => {
+        this.setState({savePopoutOpen: true});
+    }
+
+    closeSavePopout = () => {
+        this.setState({savePopoutOpen: false});
     }
 
     changePopout = (popout: ReactNode | null) => {
@@ -386,6 +388,8 @@ class App extends React.Component<appProps, appState> {
 
                                 {this.state.popout}
 
+                                <SavingPopout open={this.state.savePopoutOpen} onClose={this.closeSavePopout}/>
+
                                 <div className="hint-container">
                                     <Paper className="hint" variant="outlined">
                                         Ctrl+S — сохранить автомат
@@ -400,7 +404,7 @@ class App extends React.Component<appProps, appState> {
 
                                 <AppHeader
                                     onMenuButtonClicked={() => this.setState({computerType: null})}
-                                    onSaveButtonClicked={this.saveCurrentGraph}
+                                    onSaveButtonClicked={this.openSavePopout}
                                 />
 
                                 <div className="field__container">
