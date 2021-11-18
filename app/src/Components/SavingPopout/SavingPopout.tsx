@@ -1,6 +1,6 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 
-import {ComputerType, graph} from "../../react-graph-vis-types";
+import { ComputerType, graph } from "../../react-graph-vis-types";
 
 import Dialog from "@mui/material/Dialog";
 import DialogTitle from "@mui/material/DialogTitle";
@@ -27,7 +27,29 @@ export interface SavingPopoutProps {
     // changePopout: (popout: React.ReactNode | null) => void
 }
 
-export const SavingPopout: React.FunctionComponent<SavingPopoutProps> = ({open, onClose}) => {
+export const SavingPopout: React.FunctionComponent<SavingPopoutProps> = ({ open, onClose }) => {
+    const onSavesOriginChanged = (_: React.MouseEvent<HTMLElement>, value: any) => {
+        value = value || savesOrigin;
+        setSavesOrigin(value);
+    }
+
+    const [savesOrigin, setSavesOrigin] = useState<string>("cloud");
+    const [savesNames, setSavesNames] = useState<string[]>([]);
+
+    useEffect(() => {
+        switch (savesOrigin) {
+            case "cloud":
+                setSavesNames(["cloud save mock name #1", "cloud save mock name #2", "cloud save mock name #3", "cloud save mock name #4", "cloud save mock name #5", "cloud save mock name #6"]);
+                break;
+            case "browser":
+                setSavesNames(["browser save mock name #1", "browser save mock name #2", "browser save mock name #3"]);
+                break;
+            default:
+                setSavesNames([]);
+                break;
+        }
+    }, [savesOrigin]);
+
     return (
         <Dialog open={open} onClose={onClose}>
             <DialogTitle>
@@ -40,7 +62,8 @@ export const SavingPopout: React.FunctionComponent<SavingPopoutProps> = ({open, 
                         <ToggleButtonGroup
                             orientation="vertical"
                             exclusive
-                            value="cloud"
+                            value={savesOrigin}
+                            onChange={onSavesOriginChanged}
                         >
                             <ToggleButton value="cloud">Облако</ToggleButton>
                             <ToggleButton value="browser">Браузер</ToggleButton>
@@ -53,24 +76,18 @@ export const SavingPopout: React.FunctionComponent<SavingPopoutProps> = ({open, 
                             variant="outlined"
                         >
                             <List dense>
-                                <ListItem disablePadding>
-                                    <ListItemButton>
-                                        <ListItemText primary="парсер XML файлов"/>
-                                    </ListItemButton>
-                                </ListItem>
-
-                                <ListItem disablePadding>
-                                    <ListItemButton>
-                                        <ListItemText primary="Четное количество единиц"/>
-                                    </ListItemButton>
-                                </ListItem>
-
-                                <ListItem disablePadding>
-                                    <ListItemButton>
-                                        <ListItemText
-                                            primary="Демонстрационный автомат 2021 курс 2 ММ-091246-343238-5-233223-43"/>
-                                    </ListItemButton>
-                                </ListItem>
+                                {
+                                    savesNames.map(saveName => (
+                                        <ListItem
+                                            key={saveName}
+                                            disablePadding
+                                        >
+                                            <ListItemButton>
+                                                <ListItemText primary={saveName} />
+                                            </ListItemButton>
+                                        </ListItem>
+                                    ))
+                                }
                             </List>
                         </Paper>
                     </div>
