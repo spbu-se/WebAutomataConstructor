@@ -3,8 +3,8 @@ import React from "react";
 import {useHistory} from "react-router-dom";
 
 import Button from "@material-ui/core/Button";
-
-import MenuIcon from "@material-ui/icons/Menu";
+import AppBar from "@material-ui/core/AppBar";
+import Toolbar from "@material-ui/core/Toolbar";
 
 import "./AppHeader.css";
 
@@ -25,42 +25,37 @@ export const AppHeader: React.FunctionComponent<AppHeaderProps> = (
     }
 
     return (
-        <nav className="app__header">
-            <div className="app__header__left">
-                <div className="app__header__button">
+        <AppBar position="sticky">
+            <Toolbar variant="dense">
+                <div className="app__header__left">
                     <Button
-                        variant="contained"
-                        color="primary"
-                        startIcon={<MenuIcon/>}
+                        className="app__header__button"
+                        color="inherit"
                         onClick={onMenuButtonClicked}
                     >
                         Меню
                     </Button>
-                </div>
 
-                <div className="app__header__button">
                     <Button
-                        variant="outlined"
-                        color="primary"
+                        className="app__header__button"
+                        color="inherit"
                         onClick={onSaveButtonClicked}
                     >
                         Сохранить
                     </Button>
                 </div>
-            </div>
 
-            <div className="app__header__right">
-                <div className="app__header__button">
+                <div className="app__header__right">
                     <Button
-                        variant="outlined"
-                        color="primary"
+                        className="app__header__button"
+                        color="inherit"
                         onClick={onSignInButtonClicked}
                     >
                         Войти
                     </Button>
                 </div>
-            </div>
-        </nav>
+            </Toolbar>
+        </AppBar>
     );
 }
 
