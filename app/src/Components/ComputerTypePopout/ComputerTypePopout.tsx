@@ -1,10 +1,10 @@
 import React, {AllHTMLAttributes} from "react";
 import "./ComputerTypePopout.css";
 import PopoutWrapper from "../PopoutWrapper/PopoutWrapper";
-import GitHubIcon from '@material-ui/icons/GitHub';
+import GitHubIcon from "@mui/icons-material/GitHub";
 import {computersInfo} from "../../utils";
 import {ComputerType, graph} from "../../react-graph-vis-types";
-import {Button, Paper} from "@material-ui/core";
+import {Button, Paper} from "@mui/material";
 import Loader, {Saving} from "../../Loader";
 
 interface ComputerTypePopoutProps extends AllHTMLAttributes<HTMLElement> {

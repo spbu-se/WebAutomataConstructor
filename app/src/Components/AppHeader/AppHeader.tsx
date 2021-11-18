@@ -2,15 +2,15 @@ import React from "react";
 
 import {useHistory} from "react-router-dom";
 
-import Button from "@material-ui/core/Button";
-import AppBar from "@material-ui/core/AppBar";
-import Toolbar from "@material-ui/core/Toolbar";
+import Button from "@mui/material/Button";
+import AppBar from "@mui/material/AppBar";
+import Toolbar from "@mui/material/Toolbar";
 
 import "./AppHeader.css";
 
 export interface AppHeaderProps {
-    onMenuButtonClicked: (event: React.MouseEvent<HTMLButtonElement>) => void,
-    onSaveButtonClicked: (event: React.MouseEvent<HTMLButtonElement>) => void,
+    onMenuButtonClicked: (event: React.MouseEvent) => void,
+    onSaveButtonClicked: (event: React.MouseEvent) => void,
 }
 
 export const AppHeader: React.FunctionComponent<AppHeaderProps> = (

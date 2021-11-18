@@ -2,7 +2,7 @@ import React, {AllHTMLAttributes, ReactNode} from "react";
 import "./SavingPopout.css";
 import {ComputerType, graph} from "../../react-graph-vis-types";
 import PopoutWrapper from "../PopoutWrapper/PopoutWrapper";
-import {Button, FormControl, TextField} from "@material-ui/core";
+import {Button, FormControl, TextField} from "@mui/material";
 import Loader from "../../Loader";
 
 export interface SavingPopoutProps extends AllHTMLAttributes<HTMLElement> {
@@ -63,8 +63,7 @@ class SavingPopout extends React.Component<SavingPopoutProps, SavingPopoutState>
                     <div className="saving-popout__buttons">
                         <Button
                             className="saving-popout__button"
-                            variant="contained"
-                            color="default"
+                            variant="outlined"
                             onClick={this.close}
                         >
                             Отмена
@@ -72,7 +71,6 @@ class SavingPopout extends React.Component<SavingPopoutProps, SavingPopoutState>
                         <Button
                             className="saving-popout__button"
                             variant="contained"
-                            color="primary"
                             onClick={this.save}
                         >
                             Сохранить

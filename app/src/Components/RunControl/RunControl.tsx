@@ -7,11 +7,11 @@ import {Computer} from "../../Logic/Computer";
 import {NFA} from "../../Logic/NFA";
 import ControlWrapper from "../ControlWrapper/ControlWrapper";
 import "./RunControl.css";
-import Button from "@material-ui/core/Button";
-import TextField from "@material-ui/core/TextField";
-import DoneIcon from '@material-ui/icons/Done';
-import CloseIcon from '@material-ui/icons/Close';
-import Typography from "@material-ui/core/Typography";
+import Button from "@mui/material/Button";
+import TextField from "@mui/material/TextField";
+import DoneIcon from '@mui/icons-material/Done';
+import CloseIcon from '@mui/icons-material/Close';
+import Typography from "@mui/material/Typography";
 import {EpsilonNFA} from "../../Logic/EpsilonNFA";
 
 interface runControlProps {
@@ -188,6 +188,7 @@ class RunControl extends React.Component<runControlProps, runControlState> {
                             this.state.editMode ?
                                 <TextField
                                     label="Входная строка"
+                                    size="small"
                                     value={this.state.input}
                                     onChange={this.onInputChanged}
                                     onBlur={() => {
@@ -229,7 +230,6 @@ class RunControl extends React.Component<runControlProps, runControlState> {
                         <div className="run-control__button">
                             <Button
                                 variant="outlined"
-                                color="secondary"
                                 onClick={this.step}
                             >
                                 Шаг
@@ -239,7 +239,6 @@ class RunControl extends React.Component<runControlProps, runControlState> {
                         <div className="run-control__button">
                             <Button
                                 variant="outlined"
-                                color="secondary"
                                 onClick={this.run}
                             >
                                 Запуск
@@ -249,7 +248,6 @@ class RunControl extends React.Component<runControlProps, runControlState> {
                         <div className="run-control__button">
                             <Button
                                 variant="outlined"
-                                color="secondary"
                                 onClick={this.reset}
                             >
                                 Сбросить
