@@ -121,6 +121,7 @@ export const SavingPopout: React.FunctionComponent<SavingPopoutProps> = ({open, 
 
                     <Button
                         color="primary"
+                        onClick={onClose}
                     >
                         Отмена
                     </Button>
