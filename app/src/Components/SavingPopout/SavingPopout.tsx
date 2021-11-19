@@ -3,7 +3,8 @@ import React, {useEffect, useState} from "react";
 import {ComputerType, graph} from "../../react-graph-vis-types";
 
 import BrowserSavesManager from "../../SavesManager/BrowserSavesManager";
-import Save from "../../SavesManager/Save";
+import CloudSavesManager from "../../SavesManager/CloudSavesManager";
+import {Save, SaveMeta} from "../../SavesManager/Save";
 
 import Dialog from "@mui/material/Dialog";
 import DialogTitle from "@mui/material/DialogTitle";
@@ -41,8 +42,8 @@ export const SavingPopout: React.FunctionComponent<SavingPopoutProps> = (
         setSavesOrigin(value);
     }
 
-    const onSaveNameClicked = (_: React.MouseEvent<HTMLDivElement>, value: string) => {
-        setSaveName(value);
+    const onSaveNameClicked = (_: React.MouseEvent<HTMLDivElement>, saveMeta: SaveMeta) => {
+        setSaveName(saveMeta.name);
     }
 
     const onSaveNameChanged = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -53,35 +54,46 @@ export const SavingPopout: React.FunctionComponent<SavingPopoutProps> = (
     const onSaveClicked = (_: React.MouseEvent<HTMLButtonElement>) => {
         switch (savesOrigin) {
             case "cloud":
+                cloudSavesManager.save(saveName, graph, computerType);
                 break;
             case "browser":
-                browserSavesManager.save(new Save(saveName, graph, computerType));
+                browserSavesManager.save(saveName, graph, computerType);
                 break;
             default:
                 break;
         }
+
         updateNames();
         onClose();
     }
 
-    const updateNames = () => {
+    const updateNames = async () => {
+        let savesMeta: SaveMeta[] = [];
+
         switch (savesOrigin) {
             case "cloud":
-                setSavesNames(["cloud save mock name #1", "cloud save mock name #2", "cloud save mock name #3", "cloud save mock name #4", "cloud save mock name #5", "cloud save mock name #6"]);
+                savesMeta = await cloudSavesManager.getSavesMeta();
                 break;
             case "browser":
-                setSavesNames(browserSavesManager.getSavesNames());
+                savesMeta = await browserSavesManager.getSavesMeta();
                 break;
             default:
-                setSavesNames([]);
+                setSavesMeta([]);
                 break;
         }
+
+        setSavesMeta(savesMeta);
     }
 
-    const [browserSavesManager, _] = useState<BrowserSavesManager>(new BrowserSavesManager());
+    const [browserSavesManager] = useState<BrowserSavesManager>(new BrowserSavesManager());
+    const [cloudSavesManager] = useState<CloudSavesManager>(new CloudSavesManager());
     const [savesOrigin, setSavesOrigin] = useState<string>("cloud");
-    const [savesNames, setSavesNames] = useState<string[]>([]);
+    const [savesMeta, setSavesMeta] = useState<SaveMeta[]>([]);
     const [saveName, setSaveName] = useState<string>("");
+
+    useEffect(() => {
+        updateNames();
+    }, []);
 
     useEffect(() => {
         updateNames();
@@ -114,13 +126,13 @@ export const SavingPopout: React.FunctionComponent<SavingPopoutProps> = (
                         >
                             <List dense>
                                 {
-                                    savesNames.map(saveName => (
+                                    savesMeta.map(saveMeta => (
                                         <ListItem
-                                            key={saveName}
+                                            key={saveMeta.id}
                                             disablePadding
                                         >
-                                            <ListItemButton onClick={(e) => onSaveNameClicked(e, saveName)}>
-                                                <ListItemText primary={saveName}/>
+                                            <ListItemButton onClick={e => onSaveNameClicked(e, saveMeta)}>
+                                                <ListItemText primary={saveMeta.name}/>
                                             </ListItemButton>
                                         </ListItem>
                                     ))

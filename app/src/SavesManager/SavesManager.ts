@@ -1,9 +1,10 @@
-import Save from "./Save";
+import {Save, SaveMeta} from "./Save";
+import {ComputerType, graph} from "../react-graph-vis-types";
 
 export default interface SavesManager {
-    getSavesNames(): string[];
+    getSavesMeta(): Promise<SaveMeta[]>;
 
-    getSave(name: string): Save | null;
+    getSave(saveMeta: SaveMeta): Promise<Save | null>;
 
-    save(save: Save): void;
+    save(name: string, graph: graph, type: ComputerType): Promise<void>;
 }

@@ -1,42 +1,54 @@
 import SavesManager from "./SavesManager";
-import Save from "./Save";
+import {Save, SaveMeta} from "./Save";
+import {ComputerType, graph} from "../react-graph-vis-types";
 
 const itemName = "saves";
 
 export default class BrowserSavesManager implements SavesManager {
-    getSavesNames(): string[] {
+    getSavesMeta(): Promise<SaveMeta[]> {
         let saves = BrowserSavesManager.getSaves();
 
-        return saves.map(save => {
-            return save.getName()
+        return new Promise<SaveMeta[]>(function (resolve) {
+                resolve(saves);
+            }
+        )
+    }
+
+    getSave(saveMeta: SaveMeta): Promise<Save | null> {
+        let saves = BrowserSavesManager.getSaves();
+
+        let save = saves.find(save => save.id == saveMeta.id);
+
+        return new Promise(function (resolve) {
+            resolve(save || null);
         });
     }
 
-    getSave(name: string): Save | null {
-        let saves = BrowserSavesManager.getSaves();
-
-        let save = saves.find(save => save.getName() == name);
-
-        return save || null;
-    }
-
-    save(save: Save): void {
+    save(name: string, graph: graph, type: ComputerType): Promise<void> {
         if (!localStorage) {
             throw new Error("no local storage");
         }
 
-        let saves = BrowserSavesManager.getSaves();
-        let save_index = saves.findIndex(s => s.getName() == save.getName());
+        const saves = BrowserSavesManager.getSaves();
+        const next_id = Math.max(...saves.map(save => save.id)) + 1;
+        const save_index = saves.findIndex(save => save.name == name);
+        const save = {id: 0, name: name, save: {graph: graph, type: type}, user_id: "local"};
 
         if (save_index == -1) {
+            save.id = next_id;
             saves.push(save);
         } else {
+            save.id = saves[save_index].id;
             saves[save_index] = save;
         }
 
         let saves_json = JSON.stringify(saves, (key, value) => value instanceof Set ? Array.from(value) : value);
 
         localStorage.setItem(itemName, saves_json);
+
+        return new Promise(function (resolve) {
+            resolve();
+        });
     }
 
     private static getSaves(): Save[] {
@@ -47,8 +59,7 @@ export default class BrowserSavesManager implements SavesManager {
         let saves: Save[] = [];
 
         try {
-            const save_objects = JSON.parse(localStorage.getItem(itemName) || "");
-            saves = save_objects.map((save_object: object) => Save.fromObject(save_object));
+            saves = JSON.parse(localStorage.getItem(itemName) || "");
         } catch (error) {
             console.warn("Invalid saves in local storage: " + error);
             return [];

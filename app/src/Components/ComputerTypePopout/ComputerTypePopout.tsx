@@ -6,13 +6,14 @@ import {computersInfo} from "../../utils";
 import {ComputerType, graph} from "../../react-graph-vis-types";
 import {Button, Paper} from "@mui/material";
 import BrowserSavesManager from "../../SavesManager/BrowserSavesManager";
+import {SaveMeta} from "../../SavesManager/Save";
 
 interface ComputerTypePopoutProps extends AllHTMLAttributes<HTMLElement> {
     changeComputerType: (computerType: null | ComputerType, graph: graph | null) => void
 }
 
 interface ComputerTypePopoutState {
-    savesNames: string[]
+    savesMeta: SaveMeta[],
 }
 
 class ComputerTypePopout extends React.Component<ComputerTypePopoutProps, ComputerTypePopoutState> {
@@ -20,24 +21,24 @@ class ComputerTypePopout extends React.Component<ComputerTypePopoutProps, Comput
         super(props);
 
         this.state = {
-            savesNames: [],
+            savesMeta: [],
         }
     }
 
-    componentDidMount() {
-        this.setState({savesNames: (new BrowserSavesManager()).getSavesNames()});
+    async componentDidMount() {
+        this.setState({savesMeta: await (new BrowserSavesManager()).getSavesMeta()});
     }
 
-    loadSaving = (saveName: string) => {
-        let save = (new BrowserSavesManager()).getSave(saveName);
+    loadSaving = async (saveMeta: SaveMeta) => {
+        let save = await (new BrowserSavesManager()).getSave(saveMeta);
         if (save) {
-            this.props.changeComputerType(save.getType(), save.getGraph());
+            this.props.changeComputerType(save.save.type, save.save.graph);
         }
     }
 
     render() {
         const {changeComputerType, className, style, ...restProps} = this.props;
-        const {savesNames} = this.state;
+        const {savesMeta} = this.state;
 
         return (
             <PopoutWrapper
@@ -56,14 +57,14 @@ class ComputerTypePopout extends React.Component<ComputerTypePopoutProps, Comput
                             </div>
                             <div className="computer-type-popout__savings__container">
                                 {
-                                    savesNames.map(saveName => (
+                                    savesMeta.map(saveMeta => (
                                         <Paper
-                                            key={saveName}
+                                            key={saveMeta.id}
                                             className="computer-type-popout__saving"
                                             variant="outlined"
-                                            onClick={() => this.loadSaving(saveName)}
+                                            onClick={() => this.loadSaving(saveMeta)}
                                         >
-                                            {saveName}
+                                            {saveMeta.name}
                                         </Paper>
                                     ))
                                 }
