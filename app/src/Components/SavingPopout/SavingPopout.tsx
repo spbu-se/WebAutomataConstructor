@@ -19,6 +19,7 @@ import ListItem from "@mui/material/ListItem";
 import ListItemButton from "@mui/material/ListItemButton";
 import ListItemText from "@mui/material/ListItemText";
 import Paper from "@mui/material/Paper";
+import Skeleton from "@mui/material/Skeleton";
 
 import "./SavingPopout.css";
 
@@ -68,6 +69,8 @@ export const SavingPopout: React.FunctionComponent<SavingPopoutProps> = (
     }
 
     const updateNames = async () => {
+        setLoadingSavesMeta(true);
+
         let savesMeta: SaveMeta[] = [];
 
         switch (savesOrigin) {
@@ -83,12 +86,14 @@ export const SavingPopout: React.FunctionComponent<SavingPopoutProps> = (
         }
 
         setSavesMeta(savesMeta);
+        setLoadingSavesMeta(false);
     }
 
     const [browserSavesManager] = useState<BrowserSavesManager>(new BrowserSavesManager());
     const [cloudSavesManager] = useState<CloudSavesManager>(new CloudSavesManager());
     const [savesOrigin, setSavesOrigin] = useState<string>("cloud");
     const [savesMeta, setSavesMeta] = useState<SaveMeta[]>([]);
+    const [loadingSavesMeta, setLoadingSavesMeta] = useState<boolean>(false);
     const [saveName, setSaveName] = useState<string>("");
 
     useEffect(() => {
@@ -128,20 +133,48 @@ export const SavingPopout: React.FunctionComponent<SavingPopoutProps> = (
                             className="saving-popout__body__main__paper"
                             variant="outlined"
                         >
-                            <List dense>
-                                {
-                                    savesMeta.map(saveMeta => (
-                                        <ListItem
-                                            key={saveMeta.id}
-                                            disablePadding
-                                        >
-                                            <ListItemButton onClick={e => onSaveNameClicked(e, saveMeta)}>
-                                                <ListItemText primary={saveMeta.name}/>
-                                            </ListItemButton>
-                                        </ListItem>
-                                    ))
-                                }
-                            </List>
+                            {
+                                loadingSavesMeta
+                                    ?
+                                    <div className="saving-popout__body__main__skeleton">
+                                        <Skeleton
+                                            className="saving-popout__body__main__skeleton__bar"
+                                            animation="wave"
+                                            variant="rectangular"
+                                            height="36"
+                                        />
+
+                                        <Skeleton
+                                            className="saving-popout__body__main__skeleton__bar"
+                                            animation="wave"
+                                            variant="rectangular"
+                                            height="36"
+                                        />
+
+                                        <Skeleton
+                                            className="saving-popout__body__main__skeleton__bar"
+                                            animation="wave"
+                                            variant="rectangular"
+                                            height="36"
+                                        />
+                                    </div>
+                                    :
+                                    <List dense>
+                                        {
+                                            savesMeta.map(saveMeta => (
+                                                <ListItem
+                                                    key={saveMeta.id}
+                                                    disablePadding
+                                                >
+                                                    <ListItemButton onClick={e => onSaveNameClicked(e, saveMeta)}>
+                                                        <ListItemText primary={saveMeta.name}/>
+                                                    </ListItemButton>
+                                                </ListItem>
+                                            ))
+                                        }
+                                    </List>
+                            }
+
                         </Paper>
                     </div>
                 </div>

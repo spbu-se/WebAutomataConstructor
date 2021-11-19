@@ -18,3 +18,11 @@
 .saving-popout__save-name-input {
     width: 100%;
 }
+
+.saving-popout__body__main__skeleton {
+    padding: 16px;
+}
+
+.saving-popout__body__main__skeleton__bar {
+    margin-bottom: 8px;
+}
