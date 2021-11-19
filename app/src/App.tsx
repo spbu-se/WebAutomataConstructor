@@ -388,7 +388,10 @@ class App extends React.Component<appProps, appState> {
 
                                 {this.state.popout}
 
-                                <SavingPopout open={this.state.savePopoutOpen} onClose={this.closeSavePopout}/>
+                                <SavingPopout open={this.state.savePopoutOpen}
+                                              onClose={this.closeSavePopout}
+                                              graph={this.state.elements}
+                                              computerType={this.state.computerType!}/>
 
                                 <div className="hint-container">
                                     <Paper className="hint" variant="outlined">

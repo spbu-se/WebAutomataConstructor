@@ -2,6 +2,9 @@ import React, {useEffect, useState} from "react";
 
 import {ComputerType, graph} from "../../react-graph-vis-types";
 
+import BrowserSavesManager from "../../SavesManager/BrowserSavesManager";
+import Save from "../../SavesManager/Save";
+
 import Dialog from "@mui/material/Dialog";
 import DialogTitle from "@mui/material/DialogTitle";
 import DialogContent from "@mui/material/DialogContent";
@@ -22,18 +25,23 @@ export interface SavingPopoutProps {
     open: boolean,
     onClose: () => void
 
-    // computerType: ComputerType,
-    // graph: graph,
-    // changePopout: (popout: React.ReactNode | null) => void
+    computerType: ComputerType,
+    graph: graph,
 }
 
-export const SavingPopout: React.FunctionComponent<SavingPopoutProps> = ({open, onClose}) => {
+export const SavingPopout: React.FunctionComponent<SavingPopoutProps> = (
+    {
+        open,
+        onClose,
+        graph,
+        computerType
+    }) => {
     const onSavesOriginChanged = (_: React.MouseEvent<HTMLElement>, value: string) => {
         value = value || savesOrigin;
         setSavesOrigin(value);
     }
 
-    const onSaveClicked = (_: React.MouseEvent<HTMLDivElement>, value: string) => {
+    const onSaveNameClicked = (_: React.MouseEvent<HTMLDivElement>, value: string) => {
         setSaveName(value);
     }
 
@@ -42,22 +50,41 @@ export const SavingPopout: React.FunctionComponent<SavingPopoutProps> = ({open, 
         setSaveName(value);
     }
 
-    const [savesOrigin, setSavesOrigin] = useState<string>("cloud");
-    const [savesNames, setSavesNames] = useState<string[]>([]);
-    const [saveName, setSaveName] = useState<string>("");
+    const onSaveClicked = (_: React.MouseEvent<HTMLButtonElement>) => {
+        switch (savesOrigin) {
+            case "cloud":
+                break;
+            case "browser":
+                browserSavesManager.save(new Save(saveName, graph, computerType));
+                break;
+            default:
+                break;
+        }
+        updateNames();
+        onClose();
+    }
 
-    useEffect(() => {
+    const updateNames = () => {
         switch (savesOrigin) {
             case "cloud":
                 setSavesNames(["cloud save mock name #1", "cloud save mock name #2", "cloud save mock name #3", "cloud save mock name #4", "cloud save mock name #5", "cloud save mock name #6"]);
                 break;
             case "browser":
-                setSavesNames(["browser save mock name #1", "browser save mock name #2", "browser save mock name #3"]);
+                setSavesNames(browserSavesManager.getSavesNames());
                 break;
             default:
                 setSavesNames([]);
                 break;
         }
+    }
+
+    const [browserSavesManager, _] = useState<BrowserSavesManager>(new BrowserSavesManager());
+    const [savesOrigin, setSavesOrigin] = useState<string>("cloud");
+    const [savesNames, setSavesNames] = useState<string[]>([]);
+    const [saveName, setSaveName] = useState<string>("");
+
+    useEffect(() => {
+        updateNames();
     }, [savesOrigin]);
 
     return (
@@ -92,7 +119,7 @@ export const SavingPopout: React.FunctionComponent<SavingPopoutProps> = ({open, 
                                             key={saveName}
                                             disablePadding
                                         >
-                                            <ListItemButton onClick={(e) => onSaveClicked(e, saveName)}>
+                                            <ListItemButton onClick={(e) => onSaveNameClicked(e, saveName)}>
                                                 <ListItemText primary={saveName}/>
                                             </ListItemButton>
                                         </ListItem>
@@ -115,6 +142,7 @@ export const SavingPopout: React.FunctionComponent<SavingPopoutProps> = ({open, 
                 <DialogActions>
                     <Button
                         color="primary"
+                        onClick={onSaveClicked}
                     >
                         Сохранить
                     </Button>

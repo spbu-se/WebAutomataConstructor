@@ -5,14 +5,14 @@ import GitHubIcon from "@mui/icons-material/GitHub";
 import {computersInfo} from "../../utils";
 import {ComputerType, graph} from "../../react-graph-vis-types";
 import {Button, Paper} from "@mui/material";
-import Loader, {Saving} from "../../Loader";
+import BrowserSavesManager from "../../SavesManager/BrowserSavesManager";
 
 interface ComputerTypePopoutProps extends AllHTMLAttributes<HTMLElement> {
     changeComputerType: (computerType: null | ComputerType, graph: graph | null) => void
 }
 
 interface ComputerTypePopoutState {
-    savings: Saving[]
+    savesNames: string[]
 }
 
 class ComputerTypePopout extends React.Component<ComputerTypePopoutProps, ComputerTypePopoutState> {
@@ -20,21 +20,24 @@ class ComputerTypePopout extends React.Component<ComputerTypePopoutProps, Comput
         super(props);
 
         this.state = {
-            savings: [],
+            savesNames: [],
         }
     }
 
     componentDidMount() {
-        this.setState({savings: Loader.GetSavings()});
+        this.setState({savesNames: (new BrowserSavesManager()).getSavesNames()});
     }
 
-    loadSaving = (saving: Saving) => {
-        this.props.changeComputerType(saving.type, saving.graph);
+    loadSaving = (saveName: string) => {
+        let save = (new BrowserSavesManager()).getSave(saveName);
+        if (save) {
+            this.props.changeComputerType(save.getType(), save.getGraph());
+        }
     }
 
     render() {
         const {changeComputerType, className, style, ...restProps} = this.props;
-        const {savings} = this.state;
+        const {savesNames} = this.state;
 
         return (
             <PopoutWrapper
@@ -53,14 +56,14 @@ class ComputerTypePopout extends React.Component<ComputerTypePopoutProps, Comput
                             </div>
                             <div className="computer-type-popout__savings__container">
                                 {
-                                    savings.map((saving, index) => (
+                                    savesNames.map(saveName => (
                                         <Paper
-                                            key={index}
+                                            key={saveName}
                                             className="computer-type-popout__saving"
                                             variant="outlined"
-                                            onClick={() => this.loadSaving(saving)}
+                                            onClick={() => this.loadSaving(saveName)}
                                         >
-                                            {saving.name}
+                                            {saveName}
                                         </Paper>
                                     ))
                                 }
@@ -102,7 +105,10 @@ class ComputerTypePopout extends React.Component<ComputerTypePopoutProps, Comput
                                                     color="primary"
                                                     size="small"
                                                     fullWidth
-                                                    onClick={() => this.props.changeComputerType(entry[0] as ComputerType, {nodes: [], edges: []})}
+                                                    onClick={() => this.props.changeComputerType(entry[0] as ComputerType, {
+                                                        nodes: [],
+                                                        edges: []
+                                                    })}
                                                 >
                                                     Создать пустым
                                                 </Button>
