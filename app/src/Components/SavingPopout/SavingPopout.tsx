@@ -4,7 +4,7 @@ import {ComputerType, graph} from "../../react-graph-vis-types";
 
 import BrowserSavesManager from "../../SavesManager/BrowserSavesManager";
 import CloudSavesManager from "../../SavesManager/CloudSavesManager";
-import {Save, SaveMeta} from "../../SavesManager/Save";
+import {SaveMeta} from "../../SavesManager/Save";
 
 import Dialog from "@mui/material/Dialog";
 import DialogTitle from "@mui/material/DialogTitle";
