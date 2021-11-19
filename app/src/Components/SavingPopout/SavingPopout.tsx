@@ -97,8 +97,10 @@ export const SavingPopout: React.FunctionComponent<SavingPopoutProps> = (
     const [saveName, setSaveName] = useState<string>("");
 
     useEffect(() => {
-        updateNames();
-    }, []);
+        if (open) {
+            updateNames();
+        }
+    }, [open]);
 
     useEffect(() => {
         updateNames();
@@ -106,7 +108,8 @@ export const SavingPopout: React.FunctionComponent<SavingPopoutProps> = (
 
     useEffect(() => {
         setSaveName("");
-    }, [savesOrigin, open])
+    }, [savesOrigin, open]);
+
 
     return (
         <Dialog open={open} onClose={onClose}>
