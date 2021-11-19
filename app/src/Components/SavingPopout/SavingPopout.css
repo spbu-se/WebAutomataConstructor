@@ -12,7 +12,7 @@
     width: 440px;
     height: 196px;
 
-    overflow-y: scroll;
+    overflow-y: auto;
 }
 
 .saving-popout__save-name-input {
