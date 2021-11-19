@@ -46,6 +46,10 @@ export default class CloudSavesManager implements SavesManager {
             save: serialized_save
         };
 
-        await apiSave(request);
+        try {
+            await apiSave(request);
+        } catch (error) {
+            console.error(error);
+        }
     }
 }
