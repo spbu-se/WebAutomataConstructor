@@ -21,6 +21,7 @@ export abstract class Computer {
     public abstract run: () => Step
     public abstract step: () => Step
     public abstract setInput: (input: string[]) => void
+    public abstract byEmptyStackAdmt: (isAdmt: boolean) => void
 
     protected getAlphabetFromEdges(): void {
         let alphabetSet: Set<string> = new Set()
@@ -46,7 +47,7 @@ export abstract class Computer {
         if (startStatements.length > 1 && this.alphabet.get(EPS) === undefined) {
             this.alphabet.set(EPS, this.alphabet.size)
             startStatements.forEach(value => startStatements.forEach(value1 => {
-                graph.edges.push({from: value.id, to: value1.id, transitions: new Set<TransitionParams>([{title: EPS}])})
+                graph.edges.push({from: value.id, to: value1.id, transitions: new Set<TransitionParams[]>([[{title: EPS}]])})
                 // graph.edges.push({from: value.id, to: value1.id, transitions: new Set<string>([EPS])})
             }))
         }
@@ -67,7 +68,9 @@ export abstract class Computer {
         for (let i = 0; i < this.edges.length; i++) {
             this.edges[i].localValue = []
             this.edges[i].transitions.forEach(value =>
-                this.edges[i].localValue!.push(value))
+                value.forEach(value1 => this.edges[i].localValue!.push(value1))
+            //    this.edges[i].localValue!.push(value)
+            )
         }
 
         this.getAlphabetFromEdges()

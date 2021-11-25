@@ -13,7 +13,7 @@ import {
 import {cloneDeep} from "lodash";
 import NodeControl from "./Components/NodeControl/NodeControl";
 import EdgeControl from "./Components/EdgeControl/EdgeControl";
-import {computersInfo, decorateGraph, getNodeNamePrefix, transitionsToLabel} from "./utils";
+import {computersInfo, decorateGraph, getNodeNamePrefix, getTransitionsTitles} from "./utils";
 import RunControl from "./Components/RunControl/RunControl";
 import ComputerTypePopout from "./Components/ComputerTypePopout/ComputerTypePopout";
 import Button from "@material-ui/core/Button";
@@ -21,7 +21,6 @@ import Paper from "@material-ui/core/Paper";
 import MenuIcon from '@material-ui/icons/Menu';
 import SavingPopout from "./Components/SavingPopout/SavingPopout";
 import {TransitionParams} from "./Logic/IGraphTypes";
-import { Stack } from '@mui/material';
 
 interface appProps {
 }
@@ -40,19 +39,6 @@ interface appState {
 
 export const ComputerTypeContext = React.createContext<null | ComputerType>(null);
 
-class Item extends React.Component<appProps>{
-    constructor(props: appProps) {
-        super(props);
-    }
-    render() {
-        return (
-            <div>
-                1
-            </div>
-        )
-    }
-}
-
 class App extends React.Component<appProps, appState> {
     constructor(props: appProps) {
         super(props);
@@ -66,10 +52,18 @@ class App extends React.Component<appProps, appState> {
             elements: {nodes: [], edges: []},
             options: {
                 edges: {
+
+                    // font: {
+                    //     // align: "start"
+                    //     // vadjust: -10,
+                    //     multi: false
+                    // },
+                    // labelHighlightBold: true,
+
                     smooth: {
                         enabled: true,
                         type: "discrete",
-                        roundness: 0.5
+                        roundness: 0.5,
                     },
                     length: 200
                 },
@@ -83,6 +77,22 @@ class App extends React.Component<appProps, appState> {
                 physics: {
                     enabled: false
                 }
+                // edges: {
+                //     font: {
+                //         size: 12,
+                //     },
+                // },
+                // nodes: {
+                //     shape: "box",
+                //     font: {
+                //         bold: {
+                //             color: "#0077aa",
+                //         },
+                //     },
+                // },
+                // physics: {
+                //     enabled: false,
+                // },
             },
             initiallyStabilized: false,
             popout: null
@@ -95,6 +105,7 @@ class App extends React.Component<appProps, appState> {
     }
 
     network: any;
+
     lastNodeId = 0;
 
     subscribeToShortcuts = () => {
@@ -118,8 +129,10 @@ class App extends React.Component<appProps, appState> {
     saveCurrentGraph = () => {
         if (!this.state.computerType) return;
         this.setState({
-            popout: <SavingPopout computerType={this.state.computerType} graph={this.state.elements}
-                                  changePopout={this.changePopout}/>
+            popout: <SavingPopout computerType={this.state.computerType}
+                                  graph={this.state.elements}
+                                  changePopout={this.changePopout}
+                    />
         });
     }
 
@@ -139,6 +152,7 @@ class App extends React.Component<appProps, appState> {
         if (this.network !== null) {
             this.network.setData(decorateGraph(this.state.elements));
         }
+        // this.state.elements.edges.forEach(value => console.log('->', value))
     }
 
     changeNodeLabel = (id: number, label: string): void => {
@@ -172,7 +186,6 @@ class App extends React.Component<appProps, appState> {
             if (elements.nodes[i].isInitial) {
                 elements.nodes[i].isInitial = false;
             }
-
             if (elements.nodes[i].id === id) {
                 elements.nodes[i].isInitial = isInitial
             }
@@ -306,24 +319,24 @@ class App extends React.Component<appProps, appState> {
 
         for (let i = 0; i < elements.edges.length; i++) {
             if (elements.edges[i].id === id) {
-                elements.edges[i].label = label;
+                elements.edges[i].label = 'label';
             }
         }
 
         this.setState({elements: elements}, () => this.updateGraph());
     }
 
-    changeEdgeTransition = (id: string, transitions: Set<TransitionParams>): void => {
-        const elements = cloneDeep(this.state.elements);
-
+    changeEdgeTransition = (id: string, transitions: Set<TransitionParams[]>): void => {
+        const elements: graph = cloneDeep(this.state.elements);
         for (let i = 0; i < elements.edges.length; i++) {
             if (elements.edges[i].id === id) {
                 elements.edges[i].transitions = transitions;
-                elements.edges[i].label = transitionsToLabel(transitions);
+                // elements.edges[i].transitions.forEach(value => console.log("vv: ", value))
+                elements.edges[i].label = getTransitionsTitles(transitions);
             }
         }
-
         this.setState({elements: elements}, () => this.updateGraph());
+
     }
 
     deleteEdge = (id: string): void => {
@@ -360,15 +373,9 @@ class App extends React.Component<appProps, appState> {
         dragEnd: this.onDragEnd
     };
 
-
-
-
-
     render() {
         return (
             <ComputerTypeContext.Provider value={this.state.computerType}>
-
-
                 <div className="app">
                     {
                         this.state.computerType === null ?
@@ -439,15 +446,6 @@ class App extends React.Component<appProps, appState> {
                     </div>
 
                     <div className="app__right-menu">
-
-                        <div >
-                            <Stack spacing={2}>
-                                <Item>Item 1</Item>
-                                <Item>Item 2</Item>
-                                <Item>Item 3</Item>
-                            </Stack>
-                        </div>
-
                         <NodeControl
                             node={this.state.selectedNode}
                             changeNodeLabel={this.changeNodeLabel}

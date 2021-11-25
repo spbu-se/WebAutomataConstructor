@@ -21,7 +21,7 @@ export interface TransitionParams {
 export interface EdgeCore  {
     from: number
     to: number
-    transitions: Set<TransitionParams>
+    transitions: Set<TransitionParams[]>
 
     // transitions: Set<string>
     // stackDown?: string

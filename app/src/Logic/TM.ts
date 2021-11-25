@@ -59,9 +59,11 @@ export class TM extends PDA {
     private checkMemFormat (graph: GraphCore): void {
         let isMtMem = true
         graph.edges.forEach(value => value.transitions.forEach(value1 => {
-            if (value1.stackPush?.length && value1.stackPush?.length > 1) {
-                isMtMem = false
-            }
+            value1.forEach(value2 => {
+                if (value2.stackPush?.length && value2.stackPush?.length > 1) {
+                    isMtMem = false
+                }
+            })
         }))
         if (!isMtMem) {
             throw Error("Not MT mem")

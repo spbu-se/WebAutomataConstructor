@@ -7,12 +7,17 @@ import {Computer} from "../../Logic/Computer";
 import {NFA} from "../../Logic/NFA";
 import ControlWrapper from "../ControlWrapper/ControlWrapper";
 import "./RunControl.css";
+
 import Button from "@material-ui/core/Button";
 import TextField from "@material-ui/core/TextField";
 import DoneIcon from '@material-ui/icons/Done';
 import CloseIcon from '@material-ui/icons/Close';
+import Tooltip from '@mui/material/Tooltip';
+
+
 import Typography from "@material-ui/core/Typography";
 import {EpsilonNFA} from "../../Logic/EpsilonNFA";
+import {PDA} from "../../Logic/PDA";
 
 interface runControlProps {
     computerType: ComputerType,
@@ -26,23 +31,12 @@ interface runControlState {
     computer: Computer | undefined,
     editMode: boolean,
     currentInputIndex: number,
-    history: node[][]
+    history: { a: node, b: string[] | undefined }[][],
+    byEmptyStack: boolean,
+    wasRuned: boolean
 }
 
-const getComputer = (computerType: ComputerType, graph: graph, initialNode: node, input: string[]): Computer | undefined => {
-    switch (computerType) {
-        case "dfa":
-            try {
-                return new DFA(graph, [initialNode], input);
-            } catch (e) {
-                return undefined;
-            }
-        case "nfa":
-            return new NFA(graph, [initialNode], input);
-        case "nfa-eps":
-            return new EpsilonNFA(graph, [initialNode], input);
-    }
-}
+
 
 class RunControl extends React.Component<runControlProps, runControlState> {
 
@@ -57,8 +51,27 @@ class RunControl extends React.Component<runControlProps, runControlState> {
             computer: undefined,
             editMode: true,
             currentInputIndex: -1,
-            history: []
+            history: [],
+            byEmptyStack: false,
+            wasRuned: false
         };
+    }
+
+    getComputer = (computerType: ComputerType, graph: graph, initialNode: node, input: string[]): Computer | undefined => {
+        switch (computerType) {
+            case "dfa":
+                try {
+                    return new DFA(graph, [initialNode], input);
+                } catch (e) {
+                    return undefined;
+                }
+            case "nfa":
+                return new NFA(graph, [initialNode], input);
+            case "nfa-eps":
+                return new EpsilonNFA(graph, [initialNode], input);
+            case "pda":
+                return new PDA(graph, [initialNode], input, this.state.byEmptyStack);
+        }
     }
 
     componentDidMount() {
@@ -83,7 +96,7 @@ class RunControl extends React.Component<runControlProps, runControlState> {
         }
 
         this.setState({
-            computer: getComputer(this.props.computerType, this.props.elements, initialNode, input),
+            computer: this.getComputer(this.props.computerType, this.props.elements, initialNode, input),
             result: undefined
         });
     }
@@ -135,16 +148,30 @@ class RunControl extends React.Component<runControlProps, runControlState> {
             return;
         }
 
+        if (this.state.wasRuned) {
+            this.setState({ wasRuned: false});
+            this.reset();
+        }
+
         if (this.state.currentInputIndex === this.state.input.length - 1) return;
         if (this.state.result !== undefined && this.state.currentInputIndex !== -1) return;
 
+
+        // console.log("|||")
+        // console.log(this.props.elements)
+
+
         const stepResult = this.state.computer.step();
+
+        // console.log("stepResult")
+        // console.log(stepResult)
 
         this.props.changeStateIsCurrent(stepResult.nodes.map(node => node.id), true);
 
         let result = undefined;
         if (stepResult.counter === this.state.input.length) {
-            result = stepResult.nodes.some(node => node.isAdmit);
+            result = stepResult.isAdmit
+            // result = stepResult.nodes.some(node => node.isAdmit);
         } else if (this.state.currentInputIndex + 2 !== stepResult.counter) {
             result = false;
         }
@@ -153,11 +180,30 @@ class RunControl extends React.Component<runControlProps, runControlState> {
             .map(nodeCore => this.props.elements.nodes.find(node => node.id == nodeCore.id))
             .filter((node): node is node => node !== undefined);
 
+        const _nodes = nodes.map(function(e, i){
+            return {a: e, b: stepResult.nodes[i].stack}
+        })
+
+        // console.log("AAAA")
+        // _nodes.forEach(value => console.log(value.a, value.b))
+
         this.setState({
             result: result,
             currentInputIndex: this.state.currentInputIndex + 1,
-            history: [...this.state.history, nodes]
+            history: [...this.state.history, _nodes]
         }, () => this.historyEndRef?.current?.scrollIntoView({behavior: 'smooth'}));
+
+    }
+
+
+
+    reset = (): void => {
+
+        this.state.computer?.restart();
+        this.props.changeStateIsCurrent([], true); // resets all nodes
+        this.setState({result: undefined, currentInputIndex: -1, history: []});
+        // this.componentDidMount();
+
     }
 
     run = (): void => {
@@ -165,24 +211,18 @@ class RunControl extends React.Component<runControlProps, runControlState> {
             console.error("Computer is not initialized yet");
             return;
         }
-
+        // this.componentDidMount();
         const result = this.state.computer.run();
+        // this.reset();
 
-        this.setState({result: result.nodes.some(node => node.isAdmit), currentInputIndex: -1, history: []});
+        this.setState({result: result.isAdmit, currentInputIndex: -1, history: []});
+        this.setState({ wasRuned: true })
     }
-
-    reset = (): void => {
-        this.state.computer?.restart();
-        this.props.changeStateIsCurrent([], true); // resets all nodes
-        this.setState({result: undefined, currentInputIndex: -1, history: []});
-    }
-
 
     render() {
         return (
             <ControlWrapper title={"Запуск"}>
                 <div>
-
                     <div className="run-control__item run-control__input__row">
                         {
                             this.state.editMode ?
@@ -255,6 +295,31 @@ class RunControl extends React.Component<runControlProps, runControlState> {
                                 Сбросить
                             </Button>
                         </div>
+
+
+                        {
+                            this.props.computerType === "pda" ?
+                            <div className="run-control__button">
+                                <Button
+                                    variant="outlined"
+                                    color="secondary"
+                                    // onClick={this.run}
+
+                                    onClick={() => {
+                                        const curStbyEmp = this.state.byEmptyStack;
+                                        this.setState({ byEmptyStack: !curStbyEmp});
+                                        // console.log(this.state.byEmptyStack)
+                                        this.state.computer!.byEmptyStackAdmt(!curStbyEmp)
+                                        // this.componentDidMount()
+                                        // this.initializeComputer()
+                                        this.reset();
+                                    }}
+                                >
+                                    {this.state.byEmptyStack ?  "by\nempty" : "!by\nempty"}
+                                </Button>
+                            </div> : <div/>
+                        }
+
                     </div>
 
                     <div className="run-control__item run-control__history">
@@ -270,12 +335,15 @@ class RunControl extends React.Component<runControlProps, runControlState> {
                                                 <span className="run-control__history__index">{index + 1}</span>
                                                 {
                                                     nodes.map((node, index) => (
-                                                        <div
-                                                            className="run-control__history__node"
-                                                            style={{border: `${node.isInitial ? "var(--accent)" : node.isAdmit ? "var(--second-accent)" : "#000000"} 2px solid`}}
-                                                        >
-                                                            {node.label}
-                                                        </div>
+                                                        <Tooltip
+                                                            title={ <Typography className="display-linebreak">{node.b !== undefined ? node.b.reverse().join('\n') : ''}</Typography> }>
+                                                            <div
+                                                                className="run-control__history__node"
+                                                                style={{border: `${node.a.isInitial ? "var(--accent)" : node.a.isAdmit ? "var(--second-accent)" : "#000000"} 2px solid`}}
+                                                            >
+                                                                {node.a.label}
+                                                            </div>
+                                                        </Tooltip>
                                                     ))
                                                 }
                                             </div>

@@ -49,7 +49,7 @@ export class PDA extends Computer {
                 let stDwn = this.edges[i].localValue[j].stackDown
                 let stPsh = this.edges[i].localValue[j].stackPush
                 let mv = this.edges[i].localValue[j].move
-                if (stDwn === undefined || stPsh === undefined) {
+                if (stDwn === undefined || stPsh === undefined || stDwn === "" || stPsh.length === 0) {
                     stDwn = EPS
                     stPsh = [EPS]
                 }
@@ -62,6 +62,12 @@ export class PDA extends Computer {
                 })
             }
         }
+        this.alphabet.forEach((value, key) => console.log(value, ' ' ,key))
+        this.statements.forEach(value => console.log(value))
+        this.matrix.forEach(value => {
+            console.log()
+            value.forEach(value1 => console.log(value1))
+        })
     }
 
     protected cellMatrix (i: number, j: number) : statementCell[] {
@@ -371,15 +377,15 @@ export class PDA extends Computer {
         this.epsId = this.alphabet.get(EPS)
         this.createMatrix()
 
-        this.matrix.forEach(value => {
-            value.forEach(value1 => value1.forEach(value2 => {
-                console.log(value2.idLogic)
-                console.log(value2.stackDown)
-                console.log(value2.stackPush)
-                console.log(value2.stack)
-
-            }))
-        })
+        // this.matrix.forEach(value => {
+        //     value.forEach(value1 => value1.forEach(value2 => {
+        //         console.log(value2.idLogic)
+        //         console.log(value2.stackDown)
+        //         console.log(value2.stackPush)
+        //         console.log(value2.stack)
+        //
+        //     }))
+        // })
         this.stack.push(BOTTOM)
         this.curPosition = []//{stack: new Stack<string>(), stmt: startStatements}
 
@@ -401,7 +407,18 @@ export class PDA extends Computer {
             })
             // this.cycleEps(this.curPosition[0].stmt.idLogic, this.curPosition[0].stack!)
         }//
+        console.log('-------------------------')
         console.log(this.isDeterministic())
+        console.log("ALPHBT")
+        this.alphabet.forEach((value, key) => console.log(value, key))
+        console.log("STMTS")
+        this.statements.forEach(value => console.log(value))
+        console.log("MTX")
+        this.matrix.forEach(value => {
+            console.log()
+            value.forEach(value1 => console.log(value1))
+        })
+        console.log('-------------------------')
     }
 
     protected haveAdmitting (positions: position[]): boolean {
@@ -419,6 +436,8 @@ export class PDA extends Computer {
                     ret = true
                 }
             })
+            // console.log("ADMT")
+            // console.log(ret)
             return ret
         }
 
@@ -427,11 +446,14 @@ export class PDA extends Computer {
     private toNodes (positions: position[]): NodeCore[] {
         let retNodes: NodeCore[] = []
         positions.forEach(value => {
-            let temp: NodeCore = {...this.nodes[value.stmt.idLogic], stack: value.stack!.getStorage()
-            }
+            let temp: NodeCore = { ...this.nodes[value.stmt.idLogic], stack: value.stack!.getStorage() }
             retNodes.push(temp)
         })
         return retNodes
+    }
+
+    byEmptyStackAdmt = (isAdmt: boolean) => {
+        this.admitByEmptyStack = isAdmt
     }
 
     step = (): Step => {
@@ -443,6 +465,13 @@ export class PDA extends Computer {
         )
         this.counterSteps = ret.counter
         this.historiStep = ret.history
+
+
+        console.log("STEP stck: ")
+        ret.history.forEach(value => value.nodes.forEach(value1 => console.log(value1.stack)))
+        console.log("STEP admit: ")
+        console.log(ret.isAdmit)
+
         return ret
 
     }
@@ -460,6 +489,7 @@ export class PDA extends Computer {
             this.counterStepsForResult = tmp.counter
             this.historiRun = tmp.history
         }
+
         return this._step(
             this.counterStepsForResult,
             this.alphabet.get(this.input[this.counterStepsForResult].value),
@@ -601,13 +631,28 @@ export class PDA extends Computer {
             this.alphabet.forEach((value1, key) => {
                 let from = mp.get(JSON.stringify(value))!
                 let to = mp.get(JSON.stringify(dfaMatrix[from][value1]))
-                if (to) {
-                    edges.push({from: from, to: to, transitions: new Set<TransitionParams>([{title: key}])})
+                if (to !== undefined) {
+                    edges.push({from: from, to: to, transitions: new Set<TransitionParams[]>([[{title: key}]])})
                 }
             })
         })
 
-        return {nodes: nodes, edges: edges}
+        let _edges: EdgeCore[] = []
+        nodes.forEach(value => nodes.forEach(value1 => {
+            let acc: TransitionParams[] = []
+            edges.forEach(value2 => {
+                if (value.id === value2.from && value1.id === value2.to) {
+                    acc.push(Array.from(value2.transitions)[0][0])
+                    // console.log("->>", acc)
+                }
+            })
+            if (acc.length > 0) {
+                _edges.push({from: value.id, to: value1.id, transitions: new Set<TransitionParams[]>([acc])})
+                // console.log("->>", value.id, value1.id, acc)
+            }
+        }))
+
+        return {nodes: nodes, edges: _edges}
     }
 
 
@@ -702,12 +747,27 @@ export class PDA extends Computer {
                 edges.push({
                     from: index,
                     to: value[n].g,
-                    transitions: new Set<TransitionParams>([{title: lt}])
+                    transitions: new Set<TransitionParams[]>([[{title: lt}]])
                 })
             })
         })
 
-        return {nodes: nodes, edges: edges}
+        let _edges: EdgeCore[] = []
+        nodes.forEach(value => nodes.forEach(value1 => {
+            let acc: TransitionParams[] = []
+            edges.forEach(value2 => {
+                if (value.id === value2.from && value1.id === value2.to) {
+                    acc.push(Array.from(value2.transitions)[0][0])
+                    // console.log("->>", acc)
+                }
+            })
+            if (acc.length > 0) {
+                _edges.push({from: value.id, to: value1.id, transitions: new Set<TransitionParams[]>([acc])})
+                // console.log("->>", value.id, value1.id, acc)
+            }
+        }))
+
+        return {nodes: nodes, edges: _edges}
     }
 
 }
@@ -766,7 +826,7 @@ export class ImSet<T extends Record<any, any>> {
     has (value: T): boolean {
         let _v = this.normalize(value)
         let k = JSON.stringify(_v)
-         return this.table.has(k)
+        return this.table.has(k)
     }
 
     myForEach (callback: (value: T, index: number) => void) {
@@ -805,8 +865,22 @@ export class ImSet<T extends Record<any, any>> {
     }
 }
 
-
+// let nfa = new PDA (
+//     {
+//         nodes: [
+//             {id: 0, isAdmit: false},
+//             {id: 1, isAdmit: false}
 //
+//         ],
+//         edges: [
+//             {from: 0, to: 1, transitions: new Set([    [{title:      '0', stackDown: 'Z0', stackPush: [EPS] } ]])},
+//         ]
+//     }, [{id: 0, isAdmit: false}], ["0"],
+// )
+// nfa.byEmptyStackAdmt(true)
+// nfa.step()
+
+
 // let nfa = new PDA(
 //     {
 //         nodes: [
@@ -821,29 +895,30 @@ export class ImSet<T extends Record<any, any>> {
 //         ],
 //         edges: [
 //
-//             {from: 0, to: 1, transitions: new Set([    {title:      '0' }])},
-//             {from: 0, to: 2, transitions: new Set([    {title:      '1' }])},
+//             {from: 0, to: 1, transitions: new Set([    [{title:      '0' }]])},
+//             {from: 0, to: 2, transitions: new Set([    [{title:      '1' }]])},
 //
-//             {from: 1, to: 3, transitions: new Set([    {title:      '0' }])},
-//             {from: 1, to: 4, transitions: new Set([    {title:      '1' }])},
+//             {from: 1, to: 3, transitions: new Set([    [{title:      '0' }]])},
+//             {from: 1, to: 4, transitions: new Set([    [{title:      '1' }]])},
 //
-//             {from: 2, to: 3, transitions: new Set([    {title:      '0' }])},
-//             {from: 2, to: 5, transitions: new Set([    {title:      '1' }])},
+//             {from: 2, to: 3, transitions: new Set([    [{title:      '0' }]])},
+//             {from: 2, to: 5, transitions: new Set([    [{title:      '1' }]])},
 //
-//             {from: 3, to: 3, transitions: new Set([    {title:      '0' }])},
-//             {from: 3, to: 3, transitions: new Set([    {title:      '1' }])},
+//             {from: 3, to: 3, transitions: new Set([    [{title:      '0' }, {title:      '1' }]])},
+//             // {from: 3, to: 3, transitions: new Set([    [{title:      '1' }]])},
 //
-//             {from: 4, to: 4, transitions: new Set([    {title:      '0' }])},
-//             {from: 4, to: 6, transitions: new Set([    {title:      '1' }])},
+//             {from: 4, to: 4, transitions: new Set([    [{title:      '0' }]])},
+//             {from: 4, to: 6, transitions: new Set([    [{title:      '1' }]])},
 //
-//             {from: 5, to: 5, transitions: new Set([    {title:      '0' }])},
-//             {from: 5, to: 6, transitions: new Set([    {title:      '1' }])},
+//             {from: 5, to: 5, transitions: new Set([    [{title:      '0' }]])},
+//             {from: 5, to: 6, transitions: new Set([    [{title:      '1' }]])},
 //
-//             {from: 6, to: 6, transitions: new Set([    {title:      '0' }])},
-//             {from: 6, to: 6, transitions: new Set([    {title:      '1' }])},
+//             {from: 6, to: 6, transitions: new Set([    [{title:      '0' }, {title:      '1' }]])},
+//             // {from: 6, to: 6, transitions: new Set([    [{title:      '1' }]])},
 //
 //
 //         ]
-//     }, [{id: 0, isAdmit: false}], [])
+//     }, [{id: 0, isAdmit: false}], ["0", "1", "0"], )
 //
-// console.log(nfa.minimizeDfa())
+// nfa.nfaToDfa()
+// console.log(nfa.run())

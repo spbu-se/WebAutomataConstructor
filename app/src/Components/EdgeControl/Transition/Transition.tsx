@@ -4,7 +4,7 @@ import HighlightOffIcon from '@material-ui/icons/HighlightOff';
 import {TransitionParams} from "../../../Logic/IGraphTypes";
 
 export interface TransitionProps extends AllHTMLAttributes<HTMLElement> {
-    transition: TransitionParams,
+    transition: TransitionParams[],
     active: boolean,
     deleteTransition: () => void
 }
@@ -23,7 +23,7 @@ class Transition extends React.Component<TransitionProps, {}> {
                  {...restProps}
             >
                 {active ? <HighlightOffIcon className="transition__remove" onClick={() => deleteTransition()}/> : null}
-                {transition.title}
+                {transition.map(value => value.title)}
             </div>
         );
     }
