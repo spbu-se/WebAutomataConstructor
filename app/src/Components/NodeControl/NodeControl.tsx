@@ -3,11 +3,11 @@ import "./NodeControl.css";
 import {node} from "../../react-graph-vis-types";
 import ControlWrapper from "../ControlWrapper/ControlWrapper";
 
-import Switch from "@material-ui/core/Switch";
-import TextField from "@material-ui/core/TextField";
-import Button from "@material-ui/core/Button";
-import FormControlLabel from "@material-ui/core/FormControlLabel";
-import FormControl from "@material-ui/core/FormControl";
+import Switch from "@mui/material/Switch";
+import TextField from "@mui/material/TextField";
+import Button from "@mui/material/Button";
+import FormControlLabel from "@mui/material/FormControlLabel";
+import FormControl from "@mui/material/FormControl";
 
 interface nodeControlProps {
     node: node | null,
@@ -82,6 +82,7 @@ class NodeControl extends React.Component<nodeControlProps, nodeControlState> {
                     <div className="node-control__item">
                         <TextField
                             label="Имя"
+                            size="small"
                             value={this.state.label}
                             onChange={this.onLabelChange}
                         />
@@ -113,7 +114,6 @@ class NodeControl extends React.Component<nodeControlProps, nodeControlState> {
 
                     <div className="node-control__item">
                         <Button
-                            color="secondary"
                             onClick={this.onDeleteClick}
                         >
                             Удалить

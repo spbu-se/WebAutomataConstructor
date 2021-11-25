@@ -16,10 +16,13 @@ import EdgeControl from "./Components/EdgeControl/EdgeControl";
 import {computersInfo, decorateGraph, getNodeNamePrefix, getTransitionsTitles} from "./utils";
 import RunControl from "./Components/RunControl/RunControl";
 import ComputerTypePopout from "./Components/ComputerTypePopout/ComputerTypePopout";
-import Button from "@material-ui/core/Button";
-import Paper from "@material-ui/core/Paper";
-import MenuIcon from '@material-ui/icons/Menu';
+import Paper from "@mui/material/Paper";
 import SavingPopout from "./Components/SavingPopout/SavingPopout";
+import {Route, Switch, HashRouter} from "react-router-dom";
+import LoginPage from "./Components/Pages/LoginPage/LoginPage";
+import PingPage from "./Components/Pages/PingPage/PingPage";
+import FailedLoginPage from "./Components/Pages/FailedLoginPage/FailedLoginPage";
+import AppHeader from "./Components/AppHeader/AppHeader";
 import {TransitionParams} from "./Logic/IGraphTypes";
 
 interface appProps {
@@ -52,18 +55,10 @@ class App extends React.Component<appProps, appState> {
             elements: {nodes: [], edges: []},
             options: {
                 edges: {
-
-                    // font: {
-                    //     // align: "start"
-                    //     // vadjust: -10,
-                    //     multi: false
-                    // },
-                    // labelHighlightBold: true,
-
                     smooth: {
                         enabled: true,
                         type: "discrete",
-                        roundness: 0.5,
+                        roundness: 0.5
                     },
                     length: 200
                 },
@@ -77,22 +72,6 @@ class App extends React.Component<appProps, appState> {
                 physics: {
                     enabled: false
                 }
-                // edges: {
-                //     font: {
-                //         size: 12,
-                //     },
-                // },
-                // nodes: {
-                //     shape: "box",
-                //     font: {
-                //         bold: {
-                //             color: "#0077aa",
-                //         },
-                //     },
-                // },
-                // physics: {
-                //     enabled: false,
-                // },
             },
             initiallyStabilized: false,
             popout: null
@@ -105,7 +84,6 @@ class App extends React.Component<appProps, appState> {
     }
 
     network: any;
-
     lastNodeId = 0;
 
     subscribeToShortcuts = () => {
@@ -129,10 +107,8 @@ class App extends React.Component<appProps, appState> {
     saveCurrentGraph = () => {
         if (!this.state.computerType) return;
         this.setState({
-            popout: <SavingPopout computerType={this.state.computerType}
-                                  graph={this.state.elements}
-                                  changePopout={this.changePopout}
-                    />
+            popout: <SavingPopout computerType={this.state.computerType} graph={this.state.elements}
+                                  changePopout={this.changePopout}/>
         });
     }
 
@@ -152,7 +128,6 @@ class App extends React.Component<appProps, appState> {
         if (this.network !== null) {
             this.network.setData(decorateGraph(this.state.elements));
         }
-        // this.state.elements.edges.forEach(value => console.log('->', value))
     }
 
     changeNodeLabel = (id: number, label: string): void => {
@@ -186,6 +161,7 @@ class App extends React.Component<appProps, appState> {
             if (elements.nodes[i].isInitial) {
                 elements.nodes[i].isInitial = false;
             }
+
             if (elements.nodes[i].id === id) {
                 elements.nodes[i].isInitial = isInitial
             }
@@ -336,7 +312,6 @@ class App extends React.Component<appProps, appState> {
             }
         }
         this.setState({elements: elements}, () => this.updateGraph());
-
     }
 
     deleteEdge = (id: string): void => {
@@ -375,97 +350,93 @@ class App extends React.Component<appProps, appState> {
 
     render() {
         return (
-            <ComputerTypeContext.Provider value={this.state.computerType}>
-                <div className="app">
-                    {
-                        this.state.computerType === null ?
-                            <ComputerTypePopout
-                                changeComputerType={(computerType, graph: graph | null) => {
+            <HashRouter>
+                <Switch>
+                    <Route path="/login">
+                        <LoginPage/>
+                    </Route>
+                    <Route path="/ping">
+                        <PingPage/>
+                    </Route>
+                    <Route path="/failed-login">
+                        <FailedLoginPage/>
+                    </Route>
+                    <Route path="/">
+                        <ComputerTypeContext.Provider value={this.state.computerType}>
+                            <div className="app">
+                                {
+                                    this.state.computerType === null ?
+                                        <ComputerTypePopout
+                                            changeComputerType={(computerType, graph: graph | null) => {
 
-                                    const defaultGraph = graph || computersInfo[computerType!].defaultGraph;
+                                                const defaultGraph = graph || computersInfo[computerType!].defaultGraph;
 
-                                    console.log(defaultGraph);
-                                    console.log(defaultGraph["nodes"]);
+                                                console.log(defaultGraph);
+                                                console.log(defaultGraph["nodes"]);
 
-                                    this.lastNodeId = defaultGraph.nodes.length;
-                                    this.setState({
-                                        computerType: computerType,
-                                        elements: defaultGraph
-                                    }, () => this.updateGraph());
-                                }}
-                            />
-                            : null
-                    }
+                                                this.lastNodeId = defaultGraph.nodes.length;
+                                                this.setState({
+                                                    computerType: computerType,
+                                                    elements: defaultGraph
+                                                }, () => this.updateGraph());
+                                            }}
+                                        />
+                                        : null
+                                }
 
-                    {this.state.popout}
+                                {this.state.popout}
 
-                    <div className="hint-container">
-                        <Paper className="hint" variant="outlined">
-                            Ctrl+S — сохранить автомат
-                        </Paper>
-                        <Paper className="hint" variant="outlined">
-                            Удерживайте Shift чтобы создать ребро
-                        </Paper>
-                        <Paper className="hint" variant="outlined">
-                            Двойное нажатие чтобы создать вершину
-                        </Paper>
-                    </div>
+                                <div className="hint-container">
+                                    <Paper className="hint" variant="outlined">
+                                        Ctrl+S — сохранить автомат
+                                    </Paper>
+                                    <Paper className="hint" variant="outlined">
+                                        Удерживайте Shift чтобы создать ребро
+                                    </Paper>
+                                    <Paper className="hint" variant="outlined">
+                                        Двойное нажатие чтобы создать вершину
+                                    </Paper>
+                                </div>
 
-                    <div className="top-buttons">
-                        <div className="top-button">
-                            <Button
-                                variant="contained"
-                                color="primary"
-                                startIcon={<MenuIcon/>}
-                                onClick={() => {
-                                    this.setState({computerType: null})
-                                }}
-                            >
-                                Меню
-                            </Button>
-                        </div>
+                                <AppHeader
+                                    onMenuButtonClicked={() => this.setState({computerType: null})}
+                                    onSaveButtonClicked={this.saveCurrentGraph}
+                                />
 
-                        <div className="top-button">
-                            <Button
-                                variant="outlined"
-                                color="primary"
-                                onClick={this.saveCurrentGraph}
-                            >
-                                Сохранить
-                            </Button>
-                        </div>
-                    </div>
+                                <div className="field__container">
+                                    <Graph
+                                        getNetwork={(network: any) => this.network = network}
+                                        graph={{nodes: [], edges: []}}
+                                        options={this.state.options}
+                                        events={this.events}
+                                    />
+                                </div>
 
-                    <div className="field__container">
-                        <Graph
-                            getNetwork={(network: any) => this.network = network}
-                            graph={{nodes: [], edges: []}}
-                            options={this.state.options}
-                            events={this.events}
-                        />
-                    </div>
+                                <div className="app__right-menu">
+                                    <NodeControl
+                                        node={this.state.selectedNode}
+                                        changeNodeLabel={this.changeNodeLabel}
+                                        changeStateIsAdmit={this.changeStateIsAdmit}
+                                        changeStateIsInitial={this.changeStateIsInitial}
+                                        deleteNode={this.deleteNode}
+                                    />
+                                    <EdgeControl
+                                        edge={this.state.selectedEdge}
+                                        changeEdgeTransitions={this.changeEdgeTransition}
+                                        deleteEdge={this.deleteEdge}
+                                    />
+                                    <RunControl
+                                        elements={this.state.elements}
+                                        changeStateIsCurrent={this.changeStateIsCurrent}
+                                    />
+                                </div>
 
-                    <div className="app__right-menu">
-                        <NodeControl
-                            node={this.state.selectedNode}
-                            changeNodeLabel={this.changeNodeLabel}
-                            changeStateIsAdmit={this.changeStateIsAdmit}
-                            changeStateIsInitial={this.changeStateIsInitial}
-                            deleteNode={this.deleteNode}
-                        />
-                        <EdgeControl
-                            edge={this.state.selectedEdge}
-                            changeEdgeTransitions={this.changeEdgeTransition}
-                            deleteEdge={this.deleteEdge}
-                        />
-                        <RunControl
-                            elements={this.state.elements}
-                            changeStateIsCurrent={this.changeStateIsCurrent}
-                        />
-                    </div>
+                            </div>
+                        </ComputerTypeContext.Provider>
+                    </Route>
+                </Switch>
+            </HashRouter>
 
-                </div>
-            </ComputerTypeContext.Provider>
         )
     }
 }

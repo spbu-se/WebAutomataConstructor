@@ -36,17 +36,3 @@
 .hint:not(:last-child) {
     margin-bottom: 8px;
 }
-
-.top-buttons {
-    position: absolute;
-    left: 16px;
-    top: 16px;
-
-    z-index: 2;
-
-    display: flex;
-}
-
-.top-button:not(:last-child) {
-    margin-right: 16px;
-}

@@ -2,11 +2,11 @@ import React from "react";
 import {ComputerType, edge} from "../../react-graph-vis-types";
 import {getTransitionsTitles, transitionsToLabel} from "../../utils";
 import ControlWrapper from "../ControlWrapper/ControlWrapper";
-import Button from "@material-ui/core/Button";
+import Button from "@mui/material/Button";
 import "./EdgeControl.css";
 import Transition from "./Transition/Transition";
-import EditIcon from '@material-ui/icons/Edit';
-import TextField from "@material-ui/core/TextField";
+import EditIcon from '@mui/icons-material/Edit';
+import TextField from "@mui/material/TextField";
 import {withComputerType} from "../../hoc";
 import {EPS} from "../../Logic/Computer";
 import {TransitionParams} from "../../Logic/IGraphTypes";
@@ -258,6 +258,7 @@ class EdgeControl extends React.Component<EdgeControlProps, EdgeControlState> {
                             this.state.editMode ?
                                 <TextField
                                     label="Переходы"
+                                    size="small"
                                     value={this.state.transitionsText}
                                     onChange={this.changeTransitions}
                                     helperText={this.props.computerType === "nfa-eps" ? 'Список символов или "eps" через запятую' : "Список символов через запятую"}
@@ -288,7 +289,6 @@ class EdgeControl extends React.Component<EdgeControlProps, EdgeControlState> {
 
                     <div className="edge-control__item">
                         <Button
-                            color="secondary"
                             onClick={this.deleteEdge}
                         >
                             Удалить

@@ -1,7 +1,7 @@
 import React, {AllHTMLAttributes} from "react";
 import "./ControlWrapper.css";
-import Paper from "@material-ui/core/Paper";
-import Typography from "@material-ui/core/Typography";
+import Paper from "@mui/material/Paper";
+import Typography from "@mui/material/Typography";
 
 export interface ControlWrapperProps extends AllHTMLAttributes<HTMLElement> {
     title: string,
