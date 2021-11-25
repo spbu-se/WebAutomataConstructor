@@ -10,7 +10,7 @@ import TextField from "@mui/material/TextField";
 import {withComputerType} from "../../hoc";
 import {EPS} from "../../Logic/Computer";
 import {TransitionParams} from "../../Logic/IGraphTypes";
-import Input from '@material-ui/core/Input';
+// import {Input} from '@material-ui/core/Input';
 
 interface EdgeControlProps {
     edge: edge | null,
@@ -218,16 +218,16 @@ class EdgeControl extends React.Component<EdgeControlProps, EdgeControlState> {
         })
     }
     
-    private addRulesInBlock() {
-        return this.state.rules.map((rule, index) =>
-        <div>
-            <Input
-                defaultValue={rule.value}
-                value={rule.value}
-            />
-        </div>
-        )
-    }
+    // private addRulesInBlock() {
+    //     return this.state.rules.map((rule, index) =>
+    //     <div>
+    //         <Input
+    //             defaultValue={rule.value}
+    //             value={rule.value}
+    //         />
+    //     </div>
+    //     )
+    // }
     // deleteEdge = (): void => {
     //     if (this.props.edge !== null) {
     //         this.props.deleteEdge(this.props.edge.id!);

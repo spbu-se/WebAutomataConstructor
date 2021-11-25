@@ -13,14 +13,14 @@ import DoneIcon from '@mui/icons-material/Done';
 import CloseIcon from '@mui/icons-material/Close';
 import Typography from "@mui/material/Typography";
 
-import Button from "@material-ui/core/Button";
-import TextField from "@material-ui/core/TextField";
-import DoneIcon from '@material-ui/icons/Done';
-import CloseIcon from '@material-ui/icons/Close';
+// import Button from "@material-ui/core/Button";
+// import TextField from "@material-ui/core/TextField";
+// import DoneIcon from '@material-ui/icons/Done';
+// import CloseIcon from '@material-ui/icons/Close';
 import Tooltip from '@mui/material/Tooltip';
 
 
-import Typography from "@material-ui/core/Typography";
+// import Typography from "@material-ui/core/Typography";
 import {EpsilonNFA} from "../../Logic/EpsilonNFA";
 import {PDA} from "../../Logic/PDA";
 
@@ -208,9 +208,12 @@ class RunControl extends React.Component<runControlProps, runControlState> {
             console.error("Computer is not initialized yet");
             return;
         }
+
+        this.reset();
+
+
         // this.componentDidMount();
         const result = this.state.computer.run();
-        // this.reset();
 
         this.setState({result: result.isAdmit, currentInputIndex: -1, history: []});
         this.setState({ wasRuned: true })
@@ -294,8 +297,12 @@ class RunControl extends React.Component<runControlProps, runControlState> {
                         </div>
 
 
-                        {
-                            this.props.computerType === "pda" ?
+
+
+                    </div>
+
+                    {
+                        this.props.computerType === "pda" ?
                             <div className="run-control__button">
                                 <Button
                                     variant="outlined"
@@ -312,12 +319,10 @@ class RunControl extends React.Component<runControlProps, runControlState> {
                                         this.reset();
                                     }}
                                 >
-                                    {this.state.byEmptyStack ?  "by\nempty" : "!by\nempty"}
+                                    {this.state.byEmptyStack ?  "По стеку" : "По состоянию"}
                                 </Button>
                             </div> : <div/>
-                        }
-
-                    </div>
+                    }
 
                     <div className="run-control__item run-control__history">
                         <div className="run-control__history__header">
