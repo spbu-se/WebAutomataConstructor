@@ -1,85 +1,215 @@
-import React, {AllHTMLAttributes, ReactNode} from "react";
-import "./SavingPopout.css";
-import {ComputerType, graph} from "../../react-graph-vis-types";
-import PopoutWrapper from "../PopoutWrapper/PopoutWrapper";
-import {Button, FormControl, TextField} from "@mui/material";
-import Loader from "../../Loader";
+import React, {useEffect, useState} from "react";
 
-export interface SavingPopoutProps extends AllHTMLAttributes<HTMLElement> {
+import {ComputerType, graph} from "../../react-graph-vis-types";
+
+import BrowserSavesManager from "../../SavesManager/BrowserSavesManager";
+import CloudSavesManager from "../../SavesManager/CloudSavesManager";
+import {SaveMeta} from "../../SavesManager/Save";
+
+import Dialog from "@mui/material/Dialog";
+import DialogTitle from "@mui/material/DialogTitle";
+import DialogContent from "@mui/material/DialogContent";
+import DialogActions from "@mui/material/DialogActions";
+import TextField from "@mui/material/TextField";
+import Button from "@mui/material/Button";
+import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
+import ToggleButton from "@mui/material/ToggleButton";
+import List from "@mui/material/List";
+import ListItem from "@mui/material/ListItem";
+import ListItemButton from "@mui/material/ListItemButton";
+import ListItemText from "@mui/material/ListItemText";
+import Paper from "@mui/material/Paper";
+import Skeleton from "@mui/material/Skeleton";
+
+import "./SavingPopout.css";
+
+export interface SavingPopoutProps {
+    open: boolean,
+    onClose: () => void
+
     computerType: ComputerType,
     graph: graph,
-    changePopout: (popout: ReactNode | null) => void
 }
 
-interface SavingPopoutState {
-    name: string,
-    nameError: string | null
-}
+export const SavingPopout: React.FunctionComponent<SavingPopoutProps> = (
+    {
+        open,
+        onClose,
+        graph,
+        computerType
+    }) => {
+    const onSavesOriginChanged = (_: React.MouseEvent<HTMLElement>, value: string) => {
+        value = value || savesOrigin;
+        setSavesOrigin(value);
+    }
 
-class SavingPopout extends React.Component<SavingPopoutProps, SavingPopoutState> {
-    constructor(props: SavingPopoutProps) {
-        super(props);
+    const onSaveNameClicked = (_: React.MouseEvent<HTMLDivElement>, saveMeta: SaveMeta) => {
+        setSaveName(saveMeta.name);
+    }
 
-        this.state = {
-            name: "",
-            nameError: null
+    const onSaveNameChanged = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const value = event.target.value;
+        setSaveName(value);
+    }
+
+    const onSaveClicked = (_: React.MouseEvent<HTMLButtonElement>) => {
+        switch (savesOrigin) {
+            case "cloud":
+                cloudSavesManager.save(saveName, graph, computerType);
+                break;
+            case "browser":
+                browserSavesManager.save(saveName, graph, computerType);
+                break;
+            default:
+                break;
         }
+
+        updateNames();
+        onClose();
     }
 
-    changeName = (event: React.ChangeEvent<HTMLInputElement>) => {
-        this.setState({name: event.target.value, nameError: null});
-    }
+    const updateNames = async () => {
+        setLoadingSavesMeta(true);
 
-    close = () => {
-        this.props.changePopout(null);
-    }
+        let savesMeta: SaveMeta[] = [];
 
-    save = () => {
-        if (this.state.name.length === 0) {
-            this.setState({nameError: "Имя сохранения не должно быть пустым"});
-            return;
+        switch (savesOrigin) {
+            case "cloud":
+                savesMeta = await cloudSavesManager.getSavesMeta();
+                break;
+            case "browser":
+                savesMeta = await browserSavesManager.getSavesMeta();
+                break;
+            default:
+                setSavesMeta([]);
+                break;
         }
 
-        Loader.Save(this.state.name, this.props.graph, this.props.computerType);
-
-        this.close();
+        setSavesMeta(savesMeta);
+        setLoadingSavesMeta(false);
     }
 
-    render() {
-        return (
-            <PopoutWrapper>
-                <div className="saving-popout">
-                    <div className="saving-popout__name">
-                        <FormControl fullWidth>
-                            <TextField
-                                label="Название сохранения"
-                                value={this.state.name}
-                                onChange={this.changeName}
-                                error={this.state.nameError !== null}
-                                helperText={this.state.nameError}
-                            />
-                        </FormControl>
+    const [browserSavesManager] = useState<BrowserSavesManager>(new BrowserSavesManager());
+    const [cloudSavesManager] = useState<CloudSavesManager>(new CloudSavesManager());
+    const [savesOrigin, setSavesOrigin] = useState<string>("cloud");
+    const [savesMeta, setSavesMeta] = useState<SaveMeta[]>([]);
+    const [loadingSavesMeta, setLoadingSavesMeta] = useState<boolean>(false);
+    const [saveName, setSaveName] = useState<string>("");
+
+    useEffect(() => {
+        if (open) {
+            updateNames();
+        }
+    }, [open]);
+
+    useEffect(() => {
+        updateNames();
+    }, [savesOrigin]);
+
+    useEffect(() => {
+        setSaveName("");
+    }, [savesOrigin, open]);
+
+
+    return (
+        <Dialog open={open} onClose={onClose}>
+            <DialogTitle>
+                <p>Сохранение</p>
+            </DialogTitle>
+
+            <DialogContent>
+                <div className="saving-popout__body">
+                    <div className="saving-popout__body__sidebar">
+                        <ToggleButtonGroup
+                            orientation="vertical"
+                            exclusive
+                            value={savesOrigin}
+                            onChange={onSavesOriginChanged}
+                        >
+                            <ToggleButton value="cloud">Облако</ToggleButton>
+                            <ToggleButton value="browser">Браузер</ToggleButton>
+                        </ToggleButtonGroup>
                     </div>
-                    <div className="saving-popout__buttons">
-                        <Button
-                            className="saving-popout__button"
+
+                    <div className="saving-popout__body__main">
+                        <Paper
+                            className="saving-popout__body__main__paper"
                             variant="outlined"
-                            onClick={this.close}
                         >
-                            Отмена
-                        </Button>
-                        <Button
-                            className="saving-popout__button"
-                            variant="contained"
-                            onClick={this.save}
-                        >
-                            Сохранить
-                        </Button>
+                            {
+                                loadingSavesMeta
+                                    ?
+                                    <div className="saving-popout__body__main__skeleton">
+                                        <Skeleton
+                                            className="saving-popout__body__main__skeleton__bar"
+                                            animation="wave"
+                                            variant="rectangular"
+                                            height="36"
+                                        />
+
+                                        <Skeleton
+                                            className="saving-popout__body__main__skeleton__bar"
+                                            animation="wave"
+                                            variant="rectangular"
+                                            height="36"
+                                        />
+
+                                        <Skeleton
+                                            className="saving-popout__body__main__skeleton__bar"
+                                            animation="wave"
+                                            variant="rectangular"
+                                            height="36"
+                                        />
+                                    </div>
+                                    :
+                                    <List dense>
+                                        {
+                                            savesMeta.map(saveMeta => (
+                                                <ListItem
+                                                    key={saveMeta.id}
+                                                    disablePadding
+                                                >
+                                                    <ListItemButton onClick={e => onSaveNameClicked(e, saveMeta)}>
+                                                        <ListItemText primary={saveMeta.name}/>
+                                                    </ListItemButton>
+                                                </ListItem>
+                                            ))
+                                        }
+                                    </List>
+                            }
+
+                        </Paper>
                     </div>
                 </div>
-            </PopoutWrapper>
-        )
-    }
+
+                <TextField
+                    className="saving-popout__save-name-input"
+                    variant="standard"
+                    size="small"
+                    label="Имя сохранения"
+                    value={saveName}
+                    onChange={onSaveNameChanged}
+                />
+
+                <DialogActions>
+                    <Button
+                        color="primary"
+                        onClick={onSaveClicked}
+                    >
+                        Сохранить
+                    </Button>
+
+                    <Button
+                        color="primary"
+                        onClick={onClose}
+                    >
+                        Отмена
+                    </Button>
+                </DialogActions>
+
+            </DialogContent>
+        </Dialog>
+    );
 }
 
 export default SavingPopout;
