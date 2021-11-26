@@ -1,15 +1,18 @@
 import React, {AllHTMLAttributes} from "react";
 import "./ComputerTypePopout.css";
-import PopoutWrapper from "../PopoutWrapper/PopoutWrapper";
 import GitHubIcon from "@mui/icons-material/GitHub";
 import {computersInfo} from "../../utils";
 import {ComputerType, graph} from "../../react-graph-vis-types";
-import {Button, Paper} from "@mui/material";
+import {Button, Dialog, DialogContent, Paper} from "@mui/material";
 import BrowserSavesManager from "../../SavesManager/BrowserSavesManager";
 import {SaveMeta} from "../../SavesManager/Save";
+import DialogTitle from "@mui/material/DialogTitle";
+import Typography from "@mui/material/Typography";
 
 interface ComputerTypePopoutProps extends AllHTMLAttributes<HTMLElement> {
-    changeComputerType: (computerType: null | ComputerType, graph: graph | null) => void
+    changeComputerType: (computerType: null | ComputerType, graph: graph | null) => void,
+    open: boolean,
+    onClose: () => void
 }
 
 interface ComputerTypePopoutState {
@@ -29,32 +32,48 @@ class ComputerTypePopout extends React.Component<ComputerTypePopoutProps, Comput
         this.setState({savesMeta: await (new BrowserSavesManager()).getSavesMeta()});
     }
 
-    loadSaving = async (saveMeta: SaveMeta) => {
+    onSaveClicked = async (saveMeta: SaveMeta) => {
         let save = await (new BrowserSavesManager()).getSave(saveMeta);
+
         if (save) {
             this.props.changeComputerType(save.save.type, save.save.graph);
         }
+
+        this.props.onClose();
+    }
+
+    onCreateTemplateClicked = (type: ComputerType) => {
+        this.props.changeComputerType(type, null);
+        this.props.onClose();
+    }
+
+    onCreateEmptyClicked = (type: ComputerType) => {
+        this.props.changeComputerType(type, {nodes: [], edges: []});
+        this.props.onClose();
     }
 
     render() {
-        const {changeComputerType, className, style, ...restProps} = this.props;
+        const {changeComputerType, open, onClose, className, style, ...restProps} = this.props;
         const {savesMeta} = this.state;
 
         return (
-            <PopoutWrapper
-                className={"computer-type-popout__wrapper " + className}
-                style={style}
-                {...restProps}
-            >
-                <div className="computer-type-popout__content">
-                    <div className="computer-type-popout__header">
-                        Симулятор автоматов
-                    </div>
+
+            <Dialog open={open} onClose={onClose} maxWidth="md">
+
+                <DialogTitle>
+                    <p>Симулятор автоматов</p>
+                </DialogTitle>
+
+                <DialogContent>
                     <div className="computer-type-popout__sections">
-                        <div className="computer-type-popout__savings">
-                            <div className="computer-type-popout__section__header">
+                        <div className="computer-type-popout__section">
+                            <Typography
+                                variant="subtitle1"
+                                gutterBottom
+                            >
                                 Сохранения
-                            </div>
+                            </Typography>
+
                             <div className="computer-type-popout__savings__container">
                                 {
                                     savesMeta.map(saveMeta => (
@@ -62,7 +81,7 @@ class ComputerTypePopout extends React.Component<ComputerTypePopoutProps, Comput
                                             key={saveMeta.id}
                                             className="computer-type-popout__saving"
                                             variant="outlined"
-                                            onClick={() => this.loadSaving(saveMeta)}
+                                            onClick={() => this.onSaveClicked(saveMeta)}
                                         >
                                             {saveMeta.name}
                                         </Paper>
@@ -70,10 +89,15 @@ class ComputerTypePopout extends React.Component<ComputerTypePopoutProps, Comput
                                 }
                             </div>
                         </div>
-                        <div className="computer-type-popout__templates">
-                            <div className="computer-type-popout__section__header">
+
+                        <div className="computer-type-popout__section">
+                            <Typography
+                                variant="subtitle1"
+                                gutterBottom
+                            >
                                 Шаблоны
-                            </div>
+                            </Typography>
+
                             <div className="computer-type-popout__templates__container">
                                 {
                                     Object.entries(computersInfo).map((entry, index) =>
@@ -96,7 +120,7 @@ class ComputerTypePopout extends React.Component<ComputerTypePopoutProps, Comput
                                                     color="primary"
                                                     size="small"
                                                     fullWidth
-                                                    onClick={() => this.props.changeComputerType(entry[0] as ComputerType, null)}
+                                                    onClick={() => this.onCreateTemplateClicked(entry[0] as ComputerType)}
                                                 >
                                                     Создать
                                                 </Button>
@@ -106,10 +130,7 @@ class ComputerTypePopout extends React.Component<ComputerTypePopoutProps, Comput
                                                     color="primary"
                                                     size="small"
                                                     fullWidth
-                                                    onClick={() => this.props.changeComputerType(entry[0] as ComputerType, {
-                                                        nodes: [],
-                                                        edges: []
-                                                    })}
+                                                    onClick={() => this.onCreateEmptyClicked(entry[0] as ComputerType)}
                                                 >
                                                     Создать пустым
                                                 </Button>
@@ -120,10 +141,15 @@ class ComputerTypePopout extends React.Component<ComputerTypePopoutProps, Comput
                                 }
                             </div>
                         </div>
-                        <div className="computer-type-popout__credits">
-                            <div className="computer-type-popout__section__header">
+
+                        <div className="computer-type-popout__section">
+                            <Typography
+                                variant="subtitle1"
+                                gutterBottom
+                            >
                                 Проект
-                            </div>
+                            </Typography>
+
                             <div className="computer-type-popout__credits__line">
                                 <div className="computer-type-popout__credits__line__icon">
                                     <GitHubIcon/>
@@ -134,9 +160,10 @@ class ComputerTypePopout extends React.Component<ComputerTypePopoutProps, Comput
                             </div>
                         </div>
                     </div>
-                </div>
-            </PopoutWrapper>
+                </DialogContent>
+            </Dialog>
         );
+        // {/*</PopoutWrapper>*/
     }
 }
 

@@ -1,5 +1,9 @@
 .computer-type-popout__content {
     width: 800px;
+    margin: 16px 16px 40px 16px;
+}
+
+.computer-type-popout__section:not(:last-child) {
     margin-bottom: 24px;
 }
 

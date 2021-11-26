@@ -39,6 +39,7 @@ interface appState {
     initiallyStabilized: boolean,
     popout: ReactNode | null,
     savePopoutOpen: boolean,
+    computerTypePopoutOpen: boolean,
 }
 
 export const ComputerTypeContext = React.createContext<null | ComputerType>(null);
@@ -77,12 +78,14 @@ class App extends React.Component<appProps, appState> {
             initiallyStabilized: false,
             popout: null,
             savePopoutOpen: false,
+            computerTypePopoutOpen: false,
         };
     }
 
     componentDidMount() {
         this.updateGraph();
         this.subscribeToShortcuts();
+        this.openComputerTypePopout();
     }
 
     network: any;
@@ -112,6 +115,14 @@ class App extends React.Component<appProps, appState> {
 
     closeSavePopout = () => {
         this.setState({savePopoutOpen: false});
+    }
+
+    openComputerTypePopout = () => {
+        this.setState({computerTypePopoutOpen: true});
+    }
+
+    closeComputerTypePopout = () => {
+        this.setState({computerTypePopoutOpen: false});
     }
 
     changePopout = (popout: ReactNode | null) => {
@@ -366,25 +377,23 @@ class App extends React.Component<appProps, appState> {
                     <Route path="/">
                         <ComputerTypeContext.Provider value={this.state.computerType}>
                             <div className="app">
-                                {
-                                    this.state.computerType === null ?
-                                        <ComputerTypePopout
-                                            changeComputerType={(computerType, graph: graph | null) => {
+                                <ComputerTypePopout
+                                    open={this.state.computerTypePopoutOpen}
+                                    onClose={this.closeComputerTypePopout}
+                                    changeComputerType={(computerType, graph: graph | null) => {
 
-                                                const defaultGraph = graph || computersInfo[computerType!].defaultGraph;
+                                        const defaultGraph = graph || computersInfo[computerType!].defaultGraph;
 
-                                                console.log(defaultGraph);
-                                                console.log(defaultGraph["nodes"]);
+                                        console.log(defaultGraph);
+                                        console.log(defaultGraph["nodes"]);
 
-                                                this.lastNodeId = defaultGraph.nodes.length;
-                                                this.setState({
-                                                    computerType: computerType,
-                                                    elements: defaultGraph
-                                                }, () => this.updateGraph());
-                                            }}
-                                        />
-                                        : null
-                                }
+                                        this.lastNodeId = defaultGraph.nodes.length;
+                                        this.setState({
+                                            computerType: computerType,
+                                            elements: defaultGraph
+                                        }, () => this.updateGraph());
+                                    }}
+                                />
 
                                 {this.state.popout}
 
@@ -406,7 +415,7 @@ class App extends React.Component<appProps, appState> {
                                 </div>
 
                                 <AppHeader
-                                    onMenuButtonClicked={() => this.setState({computerType: null})}
+                                    onMenuButtonClicked={this.openComputerTypePopout}
                                     onSaveButtonClicked={this.openSavePopout}
                                 />
 
