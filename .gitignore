@@ -10,4 +10,4 @@ app/.idea
 
 # production
 app/build
-
+app/$HOME
