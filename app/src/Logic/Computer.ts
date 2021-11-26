@@ -1,5 +1,5 @@
 import {Edge, elementOfAlphabet, statement, Step} from "./Types";
-import {GraphCore, NodeCore} from "./IGraphTypes";
+import {GraphCore, NodeCore, TransitionParams} from "./IGraphTypes";
 
 export const eof: statement = {isAdmit: false, idLogic: -1, id: -1}
 export const EPS: string = 'Epsilon'
@@ -16,25 +16,23 @@ export abstract class Computer {
     protected currentNode: NodeCore
     protected counterSteps: number = 0
     protected counterStepsForResult: number = 0
-    protected alphabetDBG: any = []
-    protected alphabetSize: number = 0;
 
     public abstract restart: () => void
     public abstract run: () => Step
     public abstract step: () => Step
     public abstract setInput: (input: string[]) => void
+    public abstract byEmptyStackAdmt: (isAdmt: boolean) => void
 
     protected getAlphabetFromEdges(): void {
         let alphabetSet: Set<string> = new Set()
         for (let i = 0; i < this.edges.length; i++) {
             this.edges[i].localValue.forEach(value => {
-                alphabetSet.add(value)
+                alphabetSet.add(value.title)
             })
         }
         let i = 0
         alphabetSet.forEach(value => {
             this.alphabet.set(value, i)
-            this.alphabetDBG.push(value)
             i++
         })
     }
@@ -49,7 +47,8 @@ export abstract class Computer {
         if (startStatements.length > 1 && this.alphabet.get(EPS) === undefined) {
             this.alphabet.set(EPS, this.alphabet.size)
             startStatements.forEach(value => startStatements.forEach(value1 => {
-                graph.edges.push({from: value.id, to: value1.id, transitions: new Set<string>([EPS])})
+                graph.edges.push({from: value.id, to: value1.id, transitions: new Set<TransitionParams[]>([[{title: EPS}]])})
+                // graph.edges.push({from: value.id, to: value1.id, transitions: new Set<string>([EPS])})
             }))
         }
     }
@@ -64,24 +63,21 @@ export abstract class Computer {
                     from: value.from,
                     to: value.to,
                     localValue: [],
-                    stackDown: value.stackDown,
-                    stackPush: value.stackPush
                 }))
 
         for (let i = 0; i < this.edges.length; i++) {
             this.edges[i].localValue = []
-            this.edges[i].transitions
-                .forEach(value => this.edges[i].localValue!.push(value))
+            this.edges[i].transitions.forEach(value =>
+                value.forEach(value1 => this.edges[i].localValue!.push(value1))
+            //    this.edges[i].localValue!.push(value)
+            )
         }
-        // console.log('EDGES: ', this.edges)
+
         this.getAlphabetFromEdges()
-        // console.log('ALPHABET: ', this.alphabet)
         this.getStatementsFromNodes(graph.nodes)
-        // console.log('STATEMENTS: ', this.statements)
         this.startStatements = startStatements
         this.currentNode = startStatements[0]
         this.nodes = graph.nodes
-        // console.log("S: ", this.nodes[11])
     }
 
 

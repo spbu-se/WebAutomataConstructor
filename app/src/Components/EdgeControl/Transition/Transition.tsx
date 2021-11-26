@@ -1,9 +1,12 @@
 import React, {AllHTMLAttributes} from "react";
 import "./Transition.css";
+// import HighlightOffIcon from '@material-ui/icons/HighlightOff';
+import {TransitionParams} from "../../../Logic/IGraphTypes";
 import HighlightOffIcon from '@mui/icons-material/HighlightOff';
+import {getTransitionsTitles, transitionsToLabel} from "../../../utils";
 
 export interface TransitionProps extends AllHTMLAttributes<HTMLElement> {
-    transition: string,
+    transition: TransitionParams[],
     active: boolean,
     deleteTransition: () => void
 }
@@ -22,7 +25,8 @@ class Transition extends React.Component<TransitionProps, {}> {
                  {...restProps}
             >
                 {active ? <HighlightOffIcon className="transition__remove" onClick={() => deleteTransition()}/> : null}
-                {transition}
+                {/*{transition.map(value => value.title)}*/}
+                {getTransitionsTitles(new Set<TransitionParams[]>([transition])) }
             </div>
         );
     }

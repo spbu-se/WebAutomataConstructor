@@ -13,7 +13,7 @@ import {
 import {cloneDeep} from "lodash";
 import NodeControl from "./Components/NodeControl/NodeControl";
 import EdgeControl from "./Components/EdgeControl/EdgeControl";
-import {computersInfo, decorateGraph, getNodeNamePrefix, transitionsToLabel} from "./utils";
+import {computersInfo, decorateGraph, getNodeNamePrefix, getTransitionsTitles} from "./utils";
 import RunControl from "./Components/RunControl/RunControl";
 import ComputerTypePopout from "./Components/ComputerTypePopout/ComputerTypePopout";
 import Paper from "@mui/material/Paper";
@@ -23,6 +23,7 @@ import LoginPage from "./Components/Pages/LoginPage/LoginPage";
 import PingPage from "./Components/Pages/PingPage/PingPage";
 import FailedLoginPage from "./Components/Pages/FailedLoginPage/FailedLoginPage";
 import AppHeader from "./Components/AppHeader/AppHeader";
+import {TransitionParams} from "./Logic/IGraphTypes";
 
 interface appProps {
 }
@@ -126,7 +127,7 @@ class App extends React.Component<appProps, appState> {
     }
 
     updateGraph = (): void => {
-        if (this.network) {
+        if (this.network !== null) {
             this.network.setData(decorateGraph(this.state.elements));
         }
     }
@@ -296,23 +297,22 @@ class App extends React.Component<appProps, appState> {
 
         for (let i = 0; i < elements.edges.length; i++) {
             if (elements.edges[i].id === id) {
-                elements.edges[i].label = label;
+                elements.edges[i].label = 'label';
             }
         }
 
         this.setState({elements: elements}, () => this.updateGraph());
     }
 
-    changeEdgeTransition = (id: string, transitions: Set<string>): void => {
-        const elements = cloneDeep(this.state.elements);
-
+    changeEdgeTransition = (id: string, transitions: Set<TransitionParams[]>): void => {
+        const elements: graph = cloneDeep(this.state.elements);
         for (let i = 0; i < elements.edges.length; i++) {
             if (elements.edges[i].id === id) {
                 elements.edges[i].transitions = transitions;
-                elements.edges[i].label = transitionsToLabel(transitions);
+                // elements.edges[i].transitions.forEach(value => console.log("vv: ", value))
+                elements.edges[i].label = getTransitionsTitles(transitions);
             }
         }
-
         this.setState({elements: elements}, () => this.updateGraph());
     }
 

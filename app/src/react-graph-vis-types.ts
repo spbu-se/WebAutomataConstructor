@@ -1,6 +1,6 @@
 import {EdgeCore, GraphCore, NodeCore} from "./Logic/IGraphTypes";
 
-export type ComputerType = "dfa" | "nfa" | "nfa-eps";
+export type ComputerType = "dfa" | "nfa" | "nfa-eps" | "pda";
 
 export type ComputerInfo = {
     name: string
@@ -19,7 +19,7 @@ export interface node extends NodeCore{
     isInitial: boolean,
     isCurrent: boolean,
     borderWidth?: number,
-    borderWidthSelected?: number
+    borderWidthSelected?: number,
 }
 
 export interface edge extends EdgeCore {

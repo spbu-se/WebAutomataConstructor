@@ -90,3 +90,7 @@
     color: var(--secondary);
     text-align: center;
 }
+
+.display-linebreak {
+    white-space: pre-line;
+}

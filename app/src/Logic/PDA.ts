@@ -1,11 +1,13 @@
 import {History, statement, Step} from "./Types";
-import {GraphCore, NodeCore} from "./IGraphTypes";
+import {EdgeCore, GraphCore, Move, NodeCore, TransitionParams} from "./IGraphTypes";
 import {BOTTOM, Computer, EPS} from "./Computer";
 import {Stack} from "./Stack";
+import {cloneDeep} from "lodash";
 
 type statementCell = {
     readonly stackDown?: string
     readonly stackPush?: string[]
+    readonly move?: Move
 } & statement
 
 type statementCells = Array<statementCell>
@@ -17,17 +19,17 @@ type element = {
 
 type position = {
     stmt: statement,
-    stack: Stack<string>
+    stack?: Stack<string>
 }
 
 export class PDA extends Computer {
 
     private epsId: any
-    private matrix: statementCells[][] = []
+    protected matrix: statementCells[][] = []
     private stack: Stack<string> = new Stack<string>()
-    private curPosition: position[]
-    private historiStep: History[] = []
-    private historiRun: History[] = []
+    protected curPosition: position[]
+    protected historiStep: History[] = []
+    protected historiRun: History[] = []
     private admitByEmptyStack: boolean | undefined
 
 
@@ -42,17 +44,33 @@ export class PDA extends Computer {
             let statementFrom: statement = this.statements.get(this.edges[i].from)
             let statementTo: statement = this.statements.get(this.edges[i].to)
             for (let j = 0; j < this.edges[i].localValue.length; j++) {
-                let letterId = this.alphabet.get(this.edges[i].localValue[j])
+                let letterId = this.alphabet.get(this.edges[i].localValue[j].title)
+                // console.log(letterId)
+                let stDwn = this.edges[i].localValue[j].stackDown
+                let stPsh = this.edges[i].localValue[j].stackPush
+                let mv = this.edges[i].localValue[j].move
+                if (stDwn === undefined || stPsh === undefined || stDwn === "" || stPsh.length === 0) {
+                    stDwn = EPS
+                    stPsh = [EPS]
+                }
+                // console.log(statementTo.move)
                 this.matrix[statementFrom.idLogic][letterId].push({
                     ...statementTo,
-                    stackDown: this.edges[i].stackDown,
-                    stackPush: this.edges[i].stackPush,
+                    stackDown: stDwn,
+                    stackPush: stPsh,
+                    move: mv
                 })
             }
         }
+        this.alphabet.forEach((value, key) => console.log(value, ' ' ,key))
+        this.statements.forEach(value => console.log(value))
+        this.matrix.forEach(value => {
+            console.log()
+            value.forEach(value1 => console.log(value1))
+        })
     }
 
-    private cellMatrix (i: number, j: number) : statementCell[] {
+    protected cellMatrix (i: number, j: number) : statementCell[] {
         return this.matrix[i][j]
     }
 
@@ -74,27 +92,78 @@ export class PDA extends Computer {
         this.pushReverse(pushVals, newStack)
     }
 
-    private static permute(permutation: statementCell[]): statementCell[][] {
-        let length = permutation.length,
-            result = [permutation.slice()],
-            c = new Array(length).fill(0),
-            i = 1, k, p;
+    private static permute0(permutation: statementCell[]): statementCell[][] {
+        let r: statementCell[] = cloneDeep(permutation)
+        function cmp(a : statementCell, b : statementCell) {
+            if (a.stackDown && b.stackDown) {
+                if (a.stackDown < b.stackDown) {
+                    return -1;
+                }
+                if (a.stackDown > b.stackDown) {
+                    return 1;
+                }
+                return 0;
+            }
+            return 0;
+        }
 
-        while (i < length) {
-            if (c[i] < i) {
-                k = i % 2 && c[i];
-                p = permutation[i];
-                permutation[i] = permutation[k];
-                permutation[k] = p;
-                ++c[i];
-                i = 1;
-                result.push(permutation.slice());
+        r = r.sort(cmp)
+        let tmp: statementCell [][] = []
+        let _tmp: statementCell[] = []
+        let dwn: string | undefined = r[0].stackDown
+
+        for (let i = 0; i < r.length; i++) {
+            if (r[i].stackDown === dwn) {
+                _tmp.push(r[i])
             } else {
-                c[i] = 0;
-                ++i;
+                tmp.push(_tmp)
+                dwn = r[i].stackDown
+                _tmp = []
+                _tmp.push(r[i])
             }
         }
-        return result;
+        tmp.push(_tmp)
+
+        let ret: statementCell[][] = []
+        const _detour  = (lvl: number, cur: number, acc: statementCell[]) => {
+            if (lvl < tmp.length) {
+                for (let i = 0; i < tmp[lvl].length; i++) {
+                    let a = cloneDeep(acc)
+                    a.push(tmp[lvl][i])
+                    _detour (lvl + 1, i, a)
+                }
+            }
+            else {
+                ret.push(acc)
+            }
+        }
+
+        _detour(0,0,[])
+        return ret
+    }
+
+    private static permute(permutation: statementCell[]): statementCell[][] {
+        let length = permutation.length
+        let result = [permutation.slice()]
+        let c = new Array(length).fill(0)
+        let i = 1
+        let k: number
+        let p: statementCell
+        while (i < length) {
+            if (c[i] < i) {
+                k = i % 2 && c[i]
+                p = permutation[i]
+                permutation[i] = permutation[k]
+                permutation[k] = p
+                c[i]++
+                i = 1
+                result.push(permutation.slice())
+            } else {
+                c[i] = 0
+                i++
+            }
+        }
+        return result
     }
 
     private rmRepetitions (htable: Map<string, position>, value: position, positions: position[], idLogic: number, newStack: Stack<string>) {
@@ -110,12 +179,18 @@ export class PDA extends Computer {
         }
     }
 
+
     public cycleEps (curLId: number, stack0: Stack<string>): position[] {
         let htable: Map<string, position> = new Map<string, position>()
         let positions: position[] = []
         let visited: boolean[] = []
         this.cellMatrix(curLId, this.epsId).forEach(() => visited.push(false))
-        let permutes: statementCell[][] = PDA.permute(this.cellMatrix(curLId, this.epsId))
+
+        let permutes = this.cellMatrix(curLId, this.epsId)[0] !== undefined ? PDA.permute0 (this.cellMatrix(curLId, this.epsId)) : [(this.cellMatrix(curLId, this.epsId))]
+        // permutes.push(this.cellMatrix(curLId, this.epsId))
+        // let permutes: statementCell[][] = PDA.permute(this.cellMatrix(curLId, this.epsId))
+
+
 
         const cycle = (cell: statementCell[], idx: number, idLogic: number, stack: Stack<string>): void => {
             visited[idx] = true
@@ -175,7 +250,7 @@ export class PDA extends Computer {
             this.cycleEps(id, stack).forEach(value => {
                 elements.push({
                     idLogic: id,
-                    top: value.stack
+                    top: value.stack!
                 })
             })
             elements.push({
@@ -273,14 +348,47 @@ export class PDA extends Computer {
         this.restart()
     }
 
+    protected haveEpsilon(): boolean {
+        return this.epsId !== undefined
+    }
+
+    protected isDeterministic(): boolean {
+        let ret = true
+        this.matrix.forEach(value => {
+            value.forEach(value1 => {
+                if (value1.length > 1) {
+                    let tmp: statementCell = value1[0]
+                    value1.forEach((value2, index) => {
+                        if (index !== 0 && tmp.stackDown === undefined && value2.stackDown || index !== 0 && tmp.stackDown === value2.stackDown ) {
+                            ret = false
+                        }
+                    })
+                }
+
+            })
+        })
+        return ret && (!this.haveEpsilon())
+    }
+
     constructor(graph: GraphCore, startStatements: NodeCore[], input: string[], byEmpty?: boolean) {
         super(graph, startStatements)
 
         this.admitByEmptyStack = byEmpty
         this.epsId = this.alphabet.get(EPS)
         this.createMatrix()
+
+        // this.matrix.forEach(value => {
+        //     value.forEach(value1 => value1.forEach(value2 => {
+        //         console.log(value2.idLogic)
+        //         console.log(value2.stackDown)
+        //         console.log(value2.stackPush)
+        //         console.log(value2.stack)
+        //
+        //     }))
+        // })
         this.stack.push(BOTTOM)
         this.curPosition = []//{stack: new Stack<string>(), stmt: startStatements}
+
         startStatements.forEach(value => {
             let stack = new Stack<string>()
             stack.push(BOTTOM)
@@ -293,24 +401,44 @@ export class PDA extends Computer {
         })
         this.setInput(input)
 
-        this.cycleEps(this.curPosition[0].stmt.idLogic, this.curPosition[0].stack)
+        if (this.epsId) {//
+            this.curPosition.forEach(value => {
+                this.cycleEps(value.stmt.idLogic, value.stack!)
+            })
+            // this.cycleEps(this.curPosition[0].stmt.idLogic, this.curPosition[0].stack!)
+        }//
+        console.log('-------------------------')
+        console.log(this.isDeterministic())
+        console.log("ALPHBT")
+        this.alphabet.forEach((value, key) => console.log(value, key))
+        console.log("STMTS")
+        this.statements.forEach(value => console.log(value))
+        console.log("MTX")
+        this.matrix.forEach(value => {
+            console.log()
+            value.forEach(value1 => console.log(value1))
+        })
+        console.log('-------------------------')
     }
 
-    private haveAdmitting (positions: position[]): boolean {
+    protected haveAdmitting (positions: position[]): boolean {
+        let ret = false
         if (this.admitByEmptyStack === false || this.admitByEmptyStack === undefined) {
             positions.forEach(value => {
                 if (value.stmt.isAdmit) {
-                    return true
+                    ret = true
                 }
             })
-            return false
+            return ret
         } else {
             positions.forEach(value => {
-                if (value.stack.size() === 0) {
-                    return true
+                if (value.stack!.size() === 0) {
+                    ret = true
                 }
             })
-            return false
+            // console.log("ADMT")
+            // console.log(ret)
+            return ret
         }
 
     }
@@ -318,22 +446,34 @@ export class PDA extends Computer {
     private toNodes (positions: position[]): NodeCore[] {
         let retNodes: NodeCore[] = []
         positions.forEach(value => {
-            let temp: NodeCore = {...this.nodes[value.stmt.idLogic], stack: value.stack.getStorage()}
+            let temp: NodeCore = { ...this.nodes[value.stmt.idLogic], stack: value.stack!.getStorage() }
             retNodes.push(temp)
         })
         return retNodes
+    }
+
+    byEmptyStackAdmt = (isAdmt: boolean) => {
+        this.admitByEmptyStack = isAdmt
     }
 
     step = (): Step => {
         let ret = this._step
         (
             this.counterSteps,
-            this.alphabet.get(this.input[this.counterSteps].value),
+            this.alphabet.get(this.input[this.counterSteps]?.value),
             this.historiStep
         )
         this.counterSteps = ret.counter
         this.historiStep = ret.history
+
+
+        console.log("STEP stck: ")
+        ret.history.forEach(value => value.nodes.forEach(value1 => console.log(value1.stack)))
+        console.log("STEP admit: ")
+        console.log(ret.isAdmit)
+
         return ret
+
     }
 
     run = (): Step => {
@@ -349,6 +489,7 @@ export class PDA extends Computer {
             this.counterStepsForResult = tmp.counter
             this.historiRun = tmp.history
         }
+
         return this._step(
             this.counterStepsForResult,
             this.alphabet.get(this.input[this.counterStepsForResult].value),
@@ -356,7 +497,7 @@ export class PDA extends Computer {
         )
     }
 
-    private _step = (counter: number, tr: number, histori: History[]): Step => {
+    protected _step = (counter: number, tr: number, histori: History[]): Step => {
         let newPosSet: position[] = []
         const updCurPos = () => {
             this.curPosition = []
@@ -365,13 +506,13 @@ export class PDA extends Computer {
         }
         const epsStep = () => {
             this.curPosition.forEach(value => {
-                let pPos = this.epsilonStep!(value.stmt.idLogic, value.stack.peek()!, value.stack)
+                let pPos = this.epsilonStep(value.stmt.idLogic, value.stack?.peek()!, value.stack!)
                 pPos?.forEach(value1 => newPosSet.push(value1))
             })
         }
         const letterSter = () => {
             this.curPosition.forEach(value => {
-                let pPos = this.letterStep(tr, value.stmt.idLogic, value.stack.peek()!, value.stack)
+                let pPos = this.letterStep(tr, value.stmt.idLogic, value.stack!.peek()!, value.stack!)
                 pPos.forEach(value1 => newPosSet.push(value1))
             })
         }
@@ -391,14 +532,13 @@ export class PDA extends Computer {
         if (this.epsId !== undefined) {
             epsStep()
             updCurPos()
+
         }
         if (counter < this.input.length) {
             letterSter()
             updCurPos()
             if (this.epsId !== undefined) {
                 epsStep()
-                updCurPos()
-            } else {
                 updCurPos()
             }
         } else {
@@ -452,15 +592,294 @@ export class PDA extends Computer {
         })
     }
 
+// move to Nfa
+    nfaToDfa = (): GraphCore => {
+        this.restart()
+        let start: position[] = this.curPosition
+        let dfaStmts: ImSet<position[]> = new ImSet<position[]>()
+        let tmp: position[][] = []
+        let i = 0
+        let dfaMatrix: position[][][] = []
+
+        dfaStmts.add(this.curPosition)
+        while (i < dfaStmts.size()) {
+            this.curPosition = dfaStmts.getNth(i)
+            this.alphabet.forEach((value) => {
+                this._step(0, value, [])
+                if (this.curPosition.length > 0) {
+                    dfaStmts.add(this.curPosition)
+                }
+                tmp.push(this.curPosition)
+                this.curPosition = dfaStmts.getNth(i)
+            })
+            dfaMatrix.push(tmp)
+            tmp = []
+            i++
+        }
+
+        let nodes: NodeCore[] = []
+        let edges: EdgeCore[] = []
+        let mp: Map<string, number> = new Map<string, number>()
+
+        dfaStmts.myForEach((value, index) => {
+            mp.set(JSON.stringify(value), index)
+            let isAdmt = this.haveAdmitting(value)
+            nodes.push({id: index, isAdmit: isAdmt})
+        })
+
+        dfaStmts.myForEach((value, index) => {
+            this.alphabet.forEach((value1, key) => {
+                let from = mp.get(JSON.stringify(value))!
+                let to = mp.get(JSON.stringify(dfaMatrix[from][value1]))
+                if (to !== undefined) {
+                    edges.push({from: from, to: to, transitions: new Set<TransitionParams[]>([[{title: key}]])})
+                }
+            })
+        })
+
+        let _edges: EdgeCore[] = []
+        nodes.forEach(value => nodes.forEach(value1 => {
+            let acc: TransitionParams[] = []
+            edges.forEach(value2 => {
+                if (value.id === value2.from && value1.id === value2.to) {
+                    acc.push(Array.from(value2.transitions)[0][0])
+                    // console.log("->>", acc)
+                }
+            })
+            if (acc.length > 0) {
+                _edges.push({from: value.id, to: value1.id, transitions: new Set<TransitionParams[]>([acc])})
+                // console.log("->>", value.id, value1.id, acc)
+            }
+        }))
+
+        return {nodes: nodes, edges: _edges}
+    }
+
+
+//https://www.usna.edu/Users/cs/wcbrown/courses/F17SI340/lec/l22/lec.html
+// move to Dfa
+    minimizeDfa = (): GraphCore => {
+        this.restart()
+        let groups: ImSet<[number]>[] = []
+        groups.push(new ImSet<[number]>())
+        groups.push(new ImSet<[number]>())
+
+        let gTable: { group: number, value: statementCell}[][] =
+            this.matrix.map(value => value.map(value1 => ({ group: - 1, value: value1[0]})))
+
+        this.statements.forEach(value => {
+            if (value.isAdmit) {
+                groups[0].add([value.idLogic])
+            } else {
+                groups[1].add([value.idLogic])
+            }
+        })
+
+        gTable.forEach(value => value.forEach(value1 => {
+            if (value1.value.isAdmit) {
+                value1.group = 0
+                groups[0].add([value1.value.idLogic])
+            } else {
+                value1.group = 1
+                groups[1].add([value1.value.idLogic])
+            }
+        }))
+
+        const mkGrp = (i: number, gTable: { group: number, value: statementCell}[][]): ImSet<[number]> => {
+            let h: number = groups[i].getNth(0)[0]
+            let rs = JSON.stringify(gTable[h].map(value => value.group))
+            let newGrp: ImSet<[number]> = new ImSet<[number]>()
+            gTable.forEach((value, index) => {
+                if (rs === JSON.stringify(value.map(value1 => value1.group)) && groups[i].has([index])) {
+                    newGrp.add([index])
+                }
+            })
+            return newGrp
+        }
+
+        const filter = (arr: ImSet<[number]>, el: [number]): ImSet<[number]> => {
+            let upd: ImSet<[number]> = new ImSet<[number]>()
+            arr.myForEach(value => {
+                if (value[0] !== el[0]) {
+                    upd.add(value)
+                }
+            })
+            return upd
+        }
+
+        let q: Queue<number> = new Queue<number>()
+        groups.forEach((value, index) => q.enqueue(index))
+        while (q.size() > 0) {
+            let id = q.dequeue()
+            if (id !== undefined) {
+                let grp = mkGrp(id, gTable)
+
+                if (groups[id].size() > grp.size()) {
+                    q.enqueue(groups.length)
+                    q.enqueue(id)
+                    groups.push(grp)
+
+                    groups[groups.length - 1].myForEach((value, index) => {
+                        if (id !== undefined) {
+                            groups[id] = filter(groups[id], groups[groups.length - 1].getNth(index))
+                        }
+                    })
+                    groups = groups.filter(value => value.size() > 0)
+
+                    gTable.forEach((gtvalue, index) => gtvalue.forEach(gtvalue1 => {
+                        if (groups[groups.length - 1].has([gtvalue1.value.idLogic])) {
+                            gtvalue1.group = groups.length - 1
+                        }
+                    }))
+                }
+            }
+        }
+
+        let gt =
+            groups.map(value => gTable[value.getNth(0)[0]].map(value1 => ({g: value1.group, admt: value1.value.isAdmit})))
+        let nodes: NodeCore[] =
+            groups.map((value, index) => ({id: index, isAdmit: index === 0}))
+
+        let edges: EdgeCore[] = []
+
+        gt.forEach((value, index) => {
+            this.alphabet.forEach((n, lt) => {
+                edges.push({
+                    from: index,
+                    to: value[n].g,
+                    transitions: new Set<TransitionParams[]>([[{title: lt}]])
+                })
+            })
+        })
+
+        let _edges: EdgeCore[] = []
+        nodes.forEach(value => nodes.forEach(value1 => {
+            let acc: TransitionParams[] = []
+            edges.forEach(value2 => {
+                if (value.id === value2.from && value1.id === value2.to) {
+                    acc.push(Array.from(value2.transitions)[0][0])
+                    // console.log("->>", acc)
+                }
+            })
+            if (acc.length > 0) {
+                _edges.push({from: value.id, to: value1.id, transitions: new Set<TransitionParams[]>([acc])})
+                // console.log("->>", value.id, value1.id, acc)
+            }
+        }))
+
+        return {nodes: nodes, edges: _edges}
+    }
+
 }
 
-// let toSet = (str: string[]) => {
-//     let set: Set<string> = new Set()
-//     for (let i = 0; i < str.length; i++) {
-//         set.add(str[i])
-//     }
-//     return set;
-// }
+
+class Queue<T> {
+    private storage: T[] = [];
+
+    constructor(private capacity: number = Infinity) {}
+
+    enqueue(item: T): void {
+        if (this.size() === this.capacity) {
+            throw Error("Queue has reached max capacity, you cannot add more items");
+        }
+        this.storage.push(item);
+    }
+
+    dequeue(): T | undefined {
+        return this.storage.shift();
+    }
+
+    size(): number {
+        return this.storage.length;
+    }
+
+    getStorage(): T[] {
+        return this.storage
+    }
+}
+
+
+export class ImSet<T extends Record<any, any>> {
+    private table: Map<string, T> = new Map<string, T>()
+    public set: T[] = []
+
+    private normalize (v: T): T {
+        let _v = cloneDeep(v)
+        _v = _v.sort()
+        return _v
+    }
+
+    getItter (value: T): number {
+        if (!this.has(value)) {
+            throw Error
+        }
+        let it: number = 0
+        let _v = this.normalize(value)
+        this.set.forEach((value1, index) => {
+            if (JSON.stringify(_v) === JSON.stringify(value1)) {
+                it = index
+            }
+        })
+        return it
+    }
+
+    has (value: T): boolean {
+        let _v = this.normalize(value)
+        let k = JSON.stringify(_v)
+        return this.table.has(k)
+    }
+
+    myForEach (callback: (value: T, index: number) => void) {
+        this.set.forEach((value1, index) => {
+            callback(value1, index)
+        })
+    }
+
+    add (value: T) {
+        let _v = this.normalize(value)
+        let k = JSON.stringify(_v)
+        if (!this.table.has(k)) {
+            this.table.set(k, _v)
+            this.set.push(_v)
+        }
+    }
+
+    size (): number {
+        return this.set.length
+    }
+
+    getNth (i: number): T {
+        return this.set[i]
+    }
+
+    getIter (value: T): number {
+        let _v = this.normalize(value)
+        let k = JSON.stringify(_v)
+        let iter = 0
+        this.set.forEach((v, index) => {
+            if (JSON.stringify(v) === k) {
+                iter = index
+            }
+        })
+        return iter
+    }
+}
+
+// let nfa = new PDA (
+//     {
+//         nodes: [
+//             {id: 0, isAdmit: false},
+//             {id: 1, isAdmit: false}
+//
+//         ],
+//         edges: [
+//             {from: 0, to: 1, transitions: new Set([    [{title:      '0', stackDown: 'Z0', stackPush: [EPS] } ]])},
+//         ]
+//     }, [{id: 0, isAdmit: false}], ["0"],
+// )
+// nfa.byEmptyStackAdmt(true)
+// nfa.step()
+
 
 // let nfa = new PDA(
 //     {
@@ -468,17 +887,38 @@ export class PDA extends Computer {
 //             {id: 0, isAdmit: false},
 //             {id: 1, isAdmit: false},
 //             {id: 2, isAdmit: false},
+//             {id: 3, isAdmit: false},
+//             {id: 4, isAdmit: true},
+//             {id: 5, isAdmit: true},
+//             {id: 6, isAdmit: false},
+//
 //         ],
 //         edges: [
 //
-//             {from: 0, to: 1, transitions: toSet([EPS]), stackDown: 'Z0', stackPush: ['A', 'Z0']},
-//             {from: 1, to: 1, transitions: toSet([EPS]), stackDown: 'A', stackPush: ['0', 'A', '1']},
-//             {from: 1, to: 1, transitions: toSet([EPS]), stackDown: 'A', stackPush: ['B']},
-//             {from: 1, to: 1, transitions: toSet([EPS]), stackDown: 'B', stackPush: ['#']},
-//             {from: 1, to: 1, transitions: toSet(['0']), stackDown: '0', stackPush: [EPS]},
-//             {from: 1, to: 1, transitions: toSet(['1']), stackDown: '1', stackPush: [EPS]},
-//             {from: 1, to: 1, transitions: toSet(['#']), stackDown: '#', stackPush: [EPS]},
+//             {from: 0, to: 1, transitions: new Set([    [{title:      '0' }]])},
+//             {from: 0, to: 2, transitions: new Set([    [{title:      '1' }]])},
+//
+//             {from: 1, to: 3, transitions: new Set([    [{title:      '0' }]])},
+//             {from: 1, to: 4, transitions: new Set([    [{title:      '1' }]])},
+//
+//             {from: 2, to: 3, transitions: new Set([    [{title:      '0' }]])},
+//             {from: 2, to: 5, transitions: new Set([    [{title:      '1' }]])},
+//
+//             {from: 3, to: 3, transitions: new Set([    [{title:      '0' }, {title:      '1' }]])},
+//             // {from: 3, to: 3, transitions: new Set([    [{title:      '1' }]])},
+//
+//             {from: 4, to: 4, transitions: new Set([    [{title:      '0' }]])},
+//             {from: 4, to: 6, transitions: new Set([    [{title:      '1' }]])},
+//
+//             {from: 5, to: 5, transitions: new Set([    [{title:      '0' }]])},
+//             {from: 5, to: 6, transitions: new Set([    [{title:      '1' }]])},
+//
+//             {from: 6, to: 6, transitions: new Set([    [{title:      '0' }, {title:      '1' }]])},
+//             // {from: 6, to: 6, transitions: new Set([    [{title:      '1' }]])},
+//
 //
 //         ]
-//     }, [{id: 0, isAdmit: false}], ['0','0','#','1','1'])
+//     }, [{id: 0, isAdmit: false}], ["0", "1", "0"], )
+//
+// nfa.nfaToDfa()
 // console.log(nfa.run())
