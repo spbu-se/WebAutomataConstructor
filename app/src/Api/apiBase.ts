@@ -1,0 +1,32 @@
+import {getCookie} from "../utils";
+
+export const BASE_URL = new URL("http://localhost");
+export const AUTH_PORT = "8080";
+export const PING_PORT = "8081";
+export const SAVES_PORT = "8082";
+
+export function getAuthHeaders(): Headers {
+    const headers = new Headers();
+
+    headers.set("tt", "g");
+    headers.set("t", getCookie("token") || "");
+
+    return headers;
+}
+
+export function getParams(headers: Headers): RequestInit {
+    return {
+        method: "GET",
+        headers: headers,
+    };
+}
+
+export function postParams(headers: Headers, body: BodyInit): RequestInit {
+    headers.set("Content-Type", "application/json");
+
+    return {
+        method: "POST",
+        headers: headers,
+        body: body,
+    };
+}

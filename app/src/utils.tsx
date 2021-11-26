@@ -191,17 +191,17 @@ export const computersInfo: Record<ComputerType, ComputerInfo> = {
 
             ]
         }
-    }, 
+    },
     pda: {
         name: "МП",
-        description: "Конечный автомат, который использует стек для хранения состояний", 
-        preview:"pda.png", 
+        description: "Конечный автомат, который использует стек для хранения состояний",
+        preview:"pda.png",
         defaultGraph: {
             nodes:[
-                {id: 1, x: 0, y: 0, label: "S0", isAdmit: false, isInitial: true, isCurrent: false}, 
+                {id: 1, x: 0, y: 0, label: "S0", isAdmit: false, isInitial: true, isCurrent: false},
                 {id: 2, x: 100, y: 0, label: "S1", isAdmit: false, isInitial: false, isCurrent: false},
                 {id: 3, x: 200, y: 0, label: "S2", isAdmit: false, isInitial: false, isCurrent: false},
-            ], 
+            ],
             edges: [
                 {from: 1, to: 1, transitions: new Set([
                     [
@@ -241,4 +241,10 @@ export const computersInfo: Record<ComputerType, ComputerInfo> = {
         }
     }
 
+}
+
+export const getCookie = (name: string) => {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop()?.split(';').shift();
 }
