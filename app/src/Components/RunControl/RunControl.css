@@ -54,7 +54,7 @@
 }
 
 .run-control__history__row:not(:last-child) {
-    margin-bottom: 12px
+    margin-bottom: 20px
 }
 
 .run-control__history__index {
