@@ -1,21 +1,5 @@
-.computer-type-popout__content {
-    width: 800px;
+.computer-type-popout__section:not(:last-child) {
     margin-bottom: 24px;
-}
-
-.computer-type-popout__header {
-    font-size: 24px;
-    font-weight: 500;
-}
-
-.computer-type-popout__sections {
-    margin-left: 12px;
-}
-
-.computer-type-popout__section__header {
-    font-size: 18px;
-    margin-top: 24px;
-    margin-bottom: 12px;
 }
 
 .computer-type-popout__templates__container {
@@ -62,7 +46,6 @@
 .computer-type-popout__templates__card__create-button:not(:last-child) {
     margin-bottom: 8px;
 }
-
 
 .computer-type-popout__credits__line {
     display: flex;
