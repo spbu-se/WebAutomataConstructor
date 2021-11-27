@@ -17,7 +17,7 @@ export default function getSave(request: GetSaveRequest): Promise<GetSaveRespons
         const url = BASE_URL;
         url.port = SAVES_PORT;
         url.pathname = "/saves";
-        url.pathname = "/" + request.id;
+        url.pathname += "/" + request.id;
 
         const headers = getAuthHeaders();
         const params = getParams(headers);
