@@ -24,6 +24,7 @@ import PingPage from "./Components/Pages/PingPage/PingPage";
 import FailedLoginPage from "./Components/Pages/FailedLoginPage/FailedLoginPage";
 import AppHeader from "./Components/AppHeader/AppHeader";
 import {TransitionParams} from "./Logic/IGraphTypes";
+import SuccessLoginPage from "./Components/Pages/SuccessLoginPage/SuccessLoginPage";
 
 interface appProps {
 }
@@ -138,7 +139,7 @@ class App extends React.Component<appProps, appState> {
     }
 
     updateGraph = (): void => {
-        if (this.network !== null) {
+        if (this.network) {
             this.network.setData(decorateGraph(this.state.elements));
         }
     }
@@ -275,12 +276,16 @@ class App extends React.Component<appProps, appState> {
     }
 
     enterEdgeMode = (): void => {
-        this.network.addEdgeMode();
+        if (this.network) {
+            this.network.addEdgeMode();
+        }
         this.setState({inEdgeMode: true});
     }
 
     leaveEdgeMode = (): void => {
-        this.network.disableEditMode();
+        if (this.network) {
+            this.network.disableEditMode();
+        }
         this.setState({inEdgeMode: false});
     }
 
@@ -373,6 +378,9 @@ class App extends React.Component<appProps, appState> {
                     </Route>
                     <Route path="/failed-login">
                         <FailedLoginPage/>
+                    </Route>
+                    <Route path="/success-login">
+                        <SuccessLoginPage/>
                     </Route>
                     <Route path="/">
                         <ComputerTypeContext.Provider value={this.state.computerType}>

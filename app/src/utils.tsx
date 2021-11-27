@@ -3,14 +3,14 @@ import {EPS} from "./Logic/Computer";
 import {TransitionParams} from "./Logic/IGraphTypes";
 
 export const transitionsToLabel = (transitions: Set<TransitionParams[]>): string => {
-     let str = "                  "
+    let str = "                  "
     transitions.forEach(value => {
         value.forEach(value1 => {
             if (value1.title !== undefined && value1.title.length > 0) {
                 str += value1.title === EPS ? "ε" : value1.title
                 if (value1.stackDown !== undefined && value1.stackDown.length > 0) {
                     str += ", " + (value1.stackDown === EPS ? "ε" : value1.stackDown)
-                        // value1.stackDown
+                    // value1.stackDown
                 }
                 if (value1.stackPush !== undefined && value1.stackPush.length > 0 && value1.stackDown !== '') {
                     str += " | " + value1.stackPush.map(value2 => value2 === EPS ? "ε" : value2).join(":")
@@ -195,23 +195,25 @@ export const computersInfo: Record<ComputerType, ComputerInfo> = {
     pda: {
         name: "МП",
         description: "Конечный автомат, который использует стек для хранения состояний",
-        preview:"pda.png",
+        preview: "pda.png",
         defaultGraph: {
-            nodes:[
+            nodes: [
                 {id: 1, x: 0, y: 0, label: "S0", isAdmit: false, isInitial: true, isCurrent: false},
                 {id: 2, x: 100, y: 0, label: "S1", isAdmit: false, isInitial: false, isCurrent: false},
                 {id: 3, x: 200, y: 0, label: "S2", isAdmit: false, isInitial: false, isCurrent: false},
             ],
             edges: [
-                {from: 1, to: 1, transitions: new Set([
-                    [
-                        {title: '0',  stackDown: 'Z0', stackPush: ['0', 'Z0']},
-                        {title: '1',  stackDown: 'Z0', stackPush: ['1', 'Z0']},
-                        {title: '0',  stackDown: '0',  stackPush: ['0', '0' ]},
-                        {title: '0',  stackDown: '1',  stackPush: ['0', '1' ]},
-                        {title: '1',  stackDown: '0',  stackPush: ['1', '0' ]},
-                        {title: '1',  stackDown: '1',  stackPush: ['1', '1' ]}
-                    ]])},
+                {
+                    from: 1, to: 1, transitions: new Set([
+                        [
+                            {title: '0', stackDown: 'Z0', stackPush: ['0', 'Z0']},
+                            {title: '1', stackDown: 'Z0', stackPush: ['1', 'Z0']},
+                            {title: '0', stackDown: '0', stackPush: ['0', '0']},
+                            {title: '0', stackDown: '1', stackPush: ['0', '1']},
+                            {title: '1', stackDown: '0', stackPush: ['1', '0']},
+                            {title: '1', stackDown: '1', stackPush: ['1', '1']}
+                        ]])
+                },
 
                 // {from: 1, to: 1, transitions: new Set([[{title: '1',  stackDown: 'Z0', stackPush: ['1', 'Z0']}]])},
                 // {from: 1, to: 1, transitions: new Set([[{title: '0',  stackDown: '0',  stackPush: ['0', '0' ]}]])},
@@ -219,23 +221,27 @@ export const computersInfo: Record<ComputerType, ComputerInfo> = {
                 // {from: 1, to: 1, transitions: new Set([[{title: '1',  stackDown: '0',  stackPush: ['1', '0' ]}]])},
                 // {from: 1, to: 1, transitions: new Set([[{title: '1',  stackDown: '1',  stackPush: ['1', '1' ]}]])},
 
-                {from: 1, to: 2, transitions: new Set([
-                    [
-                        {title: EPS,  stackDown: 'Z0', stackPush: ['Z0'     ]},
-                        {title: EPS,  stackDown: '0',  stackPush: ['0'      ]},
-                        {title: EPS,  stackDown: '1',  stackPush: ['1'      ]}
-                    ]])},
+                {
+                    from: 1, to: 2, transitions: new Set([
+                        [
+                            {title: EPS, stackDown: 'Z0', stackPush: ['Z0']},
+                            {title: EPS, stackDown: '0', stackPush: ['0']},
+                            {title: EPS, stackDown: '1', stackPush: ['1']}
+                        ]])
+                },
                 // {from: 1, to: 2, transitions: new Set([[{title: EPS,  stackDown: '0',  stackPush: ['0'      ]}]])},
                 // {from: 1, to: 2, transitions: new Set([[{title: EPS,  stackDown: '1',  stackPush: ['1'      ]}]])},
 
-                {from: 2, to: 2, transitions: new Set([
-                    [
-                        {title: '0',  stackDown: '0',  stackPush: [EPS      ]},
-                        {title: '1',  stackDown: '1',  stackPush: [EPS      ]}
-                    ]])},
+                {
+                    from: 2, to: 2, transitions: new Set([
+                        [
+                            {title: '0', stackDown: '0', stackPush: [EPS]},
+                            {title: '1', stackDown: '1', stackPush: [EPS]}
+                        ]])
+                },
                 // {from: 2, to: 2, transitions: new Set([[{title: '1',  stackDown: '1',  stackPush: [EPS      ]}]])},
 
-                {from: 2, to: 3, transitions: new Set([[{title: EPS,  stackDown: 'Z0', stackPush: ['Z0'     ]}]])},
+                {from: 2, to: 3, transitions: new Set([[{title: EPS, stackDown: 'Z0', stackPush: ['Z0']}]])},
 
             ]
         }
@@ -247,4 +253,15 @@ export const getCookie = (name: string) => {
     const value = `; ${document.cookie}`;
     const parts = value.split(`; ${name}=`);
     if (parts.length === 2) return parts.pop()?.split(';').shift();
+}
+
+
+export const getRandomString = (length: number): string => {
+    let result = '';
+    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    const charactersLength = characters.length;
+    for (let i = 0; i < length; i++) {
+        result += characters.charAt(Math.floor(Math.random() * charactersLength));
+    }
+    return result;
 }

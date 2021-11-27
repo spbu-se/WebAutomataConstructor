@@ -16,7 +16,7 @@ const PingPage: FC<PingPageProps> = ({}) => {
 
 
     useEffect(() => {
-        const ping_domain = "http://localhost:8080/ping";
+        const ping_domain = "https://sscss.ru:2102/ping";
 
         const fetch_init: RequestInit = {
             headers: new Headers({
