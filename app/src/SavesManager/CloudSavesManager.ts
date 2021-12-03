@@ -15,7 +15,14 @@ export default class CloudSavesManager implements SavesManager {
         let save = null;
 
         try {
-            save = await getSave(request)
+            const response = await getSave(request);
+
+            save = {
+                id: response.id,
+                name: response.name,
+                save: JSON.parse(response.save),
+                user_id: response.user_id,
+            };
         } catch (error) {
             console.error(error);
         }

@@ -8,7 +8,7 @@ export type GetSaveRequest = {
 export type GetSaveResponse = {
     id: number,
     name: string,
-    save: { graph: graph, type: ComputerType },
+    save: string,
     user_id: string,
 };
 
