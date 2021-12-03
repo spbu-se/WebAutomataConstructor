@@ -109,7 +109,7 @@ export const getNodeNamePrefix = (graph: graph): string => {
 export const computersInfo: Record<ComputerType, ComputerInfo> = {
     dfa: {
         name: "ДКА",
-        description: "Конечный автомат, принимающий или отклоняющий заданную строку символов путём прохождения через последовательность состояний, определённых строкой",
+        description: "Конечный автомат, принимающий или отклоняющий заданную строку символов",
         preview: "dfa.png",
         defaultGraph: {
             nodes: [
@@ -132,7 +132,7 @@ export const computersInfo: Record<ComputerType, ComputerInfo> = {
     },
     nfa: {
         name: "НКА",
-        description: "Автомат отличается от ДКА, тем что может находиться в нескольких состояниях одновременно",
+        description: "Может находиться в нескольких состояниях одновременно",
         preview: "nfa.png",
         defaultGraph: {
             nodes: [
@@ -156,7 +156,7 @@ export const computersInfo: Record<ComputerType, ComputerInfo> = {
     },
     "nfa-eps": {
         name: "ε-НКА",
-        description: "Расширение НКА, в котором используются ε-переходы – переходы между состояниями без входного символа",
+        description: "Расширение НКА, в котором используются ε-переходы",
         preview: "nfa-eps.png",
         defaultGraph: {
             nodes: [
@@ -194,7 +194,7 @@ export const computersInfo: Record<ComputerType, ComputerInfo> = {
     },
     pda: {
         name: "МП",
-        description: "Конечный автомат, который использует стек для хранения состояний",
+        description: "Использует стек для хранения состояний",
         preview: "pda.png",
         defaultGraph: {
             nodes: [

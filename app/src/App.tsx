@@ -15,7 +15,7 @@ import NodeControl from "./Components/NodeControl/NodeControl";
 import EdgeControl from "./Components/EdgeControl/EdgeControl";
 import {computersInfo, decorateGraph, getNodeNamePrefix, getTransitionsTitles} from "./utils";
 import RunControl from "./Components/RunControl/RunControl";
-import ComputerTypePopout from "./Components/ComputerTypePopout/ComputerTypePopout";
+import WelcomePopout from "./Components/WelcomePopout/WelcomePopout";
 import Paper from "@mui/material/Paper";
 import SavingPopout from "./Components/SavingPopout/SavingPopout";
 import {Route, Switch, HashRouter} from "react-router-dom";
@@ -40,7 +40,7 @@ interface appState {
     initiallyStabilized: boolean,
     popout: ReactNode | null,
     savePopoutOpen: boolean,
-    computerTypePopoutOpen: boolean,
+    welcomePopoutOpen: boolean,
 }
 
 export const ComputerTypeContext = React.createContext<null | ComputerType>(null);
@@ -79,14 +79,14 @@ class App extends React.Component<appProps, appState> {
             initiallyStabilized: false,
             popout: null,
             savePopoutOpen: false,
-            computerTypePopoutOpen: false,
+            welcomePopoutOpen: false,
         };
     }
 
     componentDidMount() {
         this.updateGraph();
         this.subscribeToShortcuts();
-        this.openComputerTypePopout();
+        this.openWelcomePopout();
     }
 
     network: any;
@@ -118,12 +118,12 @@ class App extends React.Component<appProps, appState> {
         this.setState({savePopoutOpen: false});
     }
 
-    openComputerTypePopout = () => {
-        this.setState({computerTypePopoutOpen: true});
+    openWelcomePopout = () => {
+        this.setState({welcomePopoutOpen: true});
     }
 
-    closeComputerTypePopout = () => {
-        this.setState({computerTypePopoutOpen: false});
+    closeWelcomePopout = () => {
+        this.setState({welcomePopoutOpen: false});
     }
 
     changePopout = (popout: ReactNode | null) => {
@@ -385,9 +385,9 @@ class App extends React.Component<appProps, appState> {
                     <Route path="/">
                         <ComputerTypeContext.Provider value={this.state.computerType}>
                             <div className="app">
-                                <ComputerTypePopout
-                                    open={this.state.computerTypePopoutOpen}
-                                    onClose={this.closeComputerTypePopout}
+                                <WelcomePopout
+                                    open={this.state.welcomePopoutOpen}
+                                    onClose={this.closeWelcomePopout}
                                     changeComputerType={(computerType, graph: graph | null) => {
 
                                         const defaultGraph = graph || computersInfo[computerType!].defaultGraph;
@@ -423,7 +423,7 @@ class App extends React.Component<appProps, appState> {
                                 </div>
 
                                 <AppHeader
-                                    onMenuButtonClicked={this.openComputerTypePopout}
+                                    onMenuButtonClicked={this.openWelcomePopout}
                                     onSaveButtonClicked={this.openSavePopout}
                                 />
 
