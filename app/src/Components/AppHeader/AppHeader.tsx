@@ -11,12 +11,14 @@ import "./AppHeader.css";
 export interface AppHeaderProps {
     onMenuButtonClicked: (event: React.MouseEvent) => void,
     onSaveButtonClicked: (event: React.MouseEvent) => void,
+    isLogin: boolean,
 }
 
 export const AppHeader: React.FunctionComponent<AppHeaderProps> = (
     {
         onMenuButtonClicked,
-        onSaveButtonClicked
+        onSaveButtonClicked,
+        isLogin,
     }) => {
     const history = useHistory();
 
@@ -46,13 +48,17 @@ export const AppHeader: React.FunctionComponent<AppHeaderProps> = (
                 </div>
 
                 <div className="app__header__right">
-                    <Button
-                        className="app__header__button"
-                        color="inherit"
-                        onClick={onSignInButtonClicked}
-                    >
-                        Войти
-                    </Button>
+                    {
+                        !isLogin ?
+                            <Button
+                                className="app__header__button"
+                                color="inherit"
+                                onClick={onSignInButtonClicked}
+                            >
+                                Войти
+                            </Button>
+                            : null
+                    }
                 </div>
             </Toolbar>
         </AppBar>
