@@ -409,6 +409,7 @@ class App extends React.Component<appProps, appState> {
 
                                 <SavingPopout open={this.state.savePopoutOpen}
                                               onClose={this.closeSavePopout}
+                                              isLogin={this.state.isLogin}
                                               graph={this.state.elements}
                                               computerType={this.state.computerType!}/>
 

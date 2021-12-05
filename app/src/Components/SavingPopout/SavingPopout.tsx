@@ -25,7 +25,8 @@ import "./SavingPopout.css";
 
 export interface SavingPopoutProps {
     open: boolean,
-    onClose: () => void
+    onClose: () => void,
+    isLogin: boolean,
 
     computerType: ComputerType,
     graph: graph,
@@ -35,6 +36,7 @@ export const SavingPopout: React.FunctionComponent<SavingPopoutProps> = (
     {
         open,
         onClose,
+        isLogin,
         graph,
         computerType
     }) => {
@@ -91,7 +93,7 @@ export const SavingPopout: React.FunctionComponent<SavingPopoutProps> = (
 
     const [browserSavesManager] = useState<BrowserSavesManager>(new BrowserSavesManager());
     const [cloudSavesManager] = useState<CloudSavesManager>(new CloudSavesManager());
-    const [savesOrigin, setSavesOrigin] = useState<string>("cloud");
+    const [savesOrigin, setSavesOrigin] = useState<string>(isLogin ? "cloud" : "browser");
     const [savesMeta, setSavesMeta] = useState<SaveMeta[]>([]);
     const [loadingSavesMeta, setLoadingSavesMeta] = useState<boolean>(false);
     const [saveName, setSaveName] = useState<string>("");
@@ -126,7 +128,7 @@ export const SavingPopout: React.FunctionComponent<SavingPopoutProps> = (
                             value={savesOrigin}
                             onChange={onSavesOriginChanged}
                         >
-                            <ToggleButton value="cloud">Облако</ToggleButton>
+                            <ToggleButton value="cloud" disabled={!isLogin}>Облако</ToggleButton>
                             <ToggleButton value="browser">Браузер</ToggleButton>
                         </ToggleButtonGroup>
                     </div>
