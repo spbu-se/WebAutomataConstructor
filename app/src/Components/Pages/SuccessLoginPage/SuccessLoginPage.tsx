@@ -8,7 +8,11 @@ import obtainAuth from "../../../Api/obtainAuth";
 
 import "./SuccessLoginPage.css";
 
-export const SuccessLoginPage: React.FunctionComponent = ({}) => {
+export interface SuccessLoginPageProps {
+    onAuthSuccess: () => void,
+}
+
+export const SuccessLoginPage: React.FunctionComponent<SuccessLoginPageProps> = ({onAuthSuccess}) => {
     const updateAuth = async () => {
         const state = getCookie("state") || "";
 
@@ -16,6 +20,7 @@ export const SuccessLoginPage: React.FunctionComponent = ({}) => {
 
         try {
             response = await obtainAuth({state: state});
+            onAuthSuccess();
         } catch (error) {
             console.error(error);
             return;

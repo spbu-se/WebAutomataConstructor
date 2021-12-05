@@ -27,6 +27,7 @@ export interface SavingPopoutProps {
     open: boolean,
     onClose: () => void,
     isLogin: boolean,
+    onAuthFailed: () => void,
 
     computerType: ComputerType,
     graph: graph,
@@ -37,6 +38,7 @@ export const SavingPopout: React.FunctionComponent<SavingPopoutProps> = (
         open,
         onClose,
         isLogin,
+        onAuthFailed,
         graph,
         computerType
     }) => {
@@ -92,7 +94,7 @@ export const SavingPopout: React.FunctionComponent<SavingPopoutProps> = (
     }
 
     const [browserSavesManager] = useState<BrowserSavesManager>(new BrowserSavesManager());
-    const [cloudSavesManager] = useState<CloudSavesManager>(new CloudSavesManager());
+    const [cloudSavesManager] = useState<CloudSavesManager>(new CloudSavesManager(onAuthFailed));
     const [savesOrigin, setSavesOrigin] = useState<string>(isLogin ? "cloud" : "browser");
     const [savesMeta, setSavesMeta] = useState<SaveMeta[]>([]);
     const [loadingSavesMeta, setLoadingSavesMeta] = useState<boolean>(false);

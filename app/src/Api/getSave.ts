@@ -12,7 +12,7 @@ export type GetSaveResponse = {
     user_id: string,
 };
 
-export default function getSave(request: GetSaveRequest): Promise<GetSaveResponse> {
+export default function getSave(request: GetSaveRequest, onAuthFailed: () => void): Promise<GetSaveResponse> {
     return new Promise(function (resolve, reject) {
         const url = BASE_URL;
         url.port = SAVES_PORT;
@@ -24,6 +24,9 @@ export default function getSave(request: GetSaveRequest): Promise<GetSaveRespons
 
         fetch(url.href, params)
             .then(response => {
+                if (response.status == 401) {
+                    onAuthFailed();
+                }
                 if (!response.ok) {
                     throw new Error(response.status + response.statusText);
                 }
