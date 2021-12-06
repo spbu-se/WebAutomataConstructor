@@ -25,7 +25,9 @@ import "./SavingPopout.css";
 
 export interface SavingPopoutProps {
     open: boolean,
-    onClose: () => void
+    onClose: () => void,
+    isLogin: boolean,
+    onAuthFailed: () => void,
 
     computerType: ComputerType,
     graph: graph,
@@ -35,6 +37,8 @@ export const SavingPopout: React.FunctionComponent<SavingPopoutProps> = (
     {
         open,
         onClose,
+        isLogin,
+        onAuthFailed,
         graph,
         computerType
     }) => {
@@ -89,15 +93,20 @@ export const SavingPopout: React.FunctionComponent<SavingPopoutProps> = (
         setLoadingSavesMeta(false);
     }
 
+    const updateDefaultOrigin = () => {
+        setSavesOrigin(isLogin ? "cloud" : "browser");
+    }
+
     const [browserSavesManager] = useState<BrowserSavesManager>(new BrowserSavesManager());
-    const [cloudSavesManager] = useState<CloudSavesManager>(new CloudSavesManager());
-    const [savesOrigin, setSavesOrigin] = useState<string>("cloud");
+    const [cloudSavesManager] = useState<CloudSavesManager>(new CloudSavesManager(onAuthFailed));
+    const [savesOrigin, setSavesOrigin] = useState<string>(isLogin ? "cloud" : "browser");
     const [savesMeta, setSavesMeta] = useState<SaveMeta[]>([]);
     const [loadingSavesMeta, setLoadingSavesMeta] = useState<boolean>(false);
     const [saveName, setSaveName] = useState<string>("");
 
     useEffect(() => {
         if (open) {
+            updateDefaultOrigin();
             updateNames();
         }
     }, [open]);
@@ -126,7 +135,7 @@ export const SavingPopout: React.FunctionComponent<SavingPopoutProps> = (
                             value={savesOrigin}
                             onChange={onSavesOriginChanged}
                         >
-                            <ToggleButton value="cloud">Облако</ToggleButton>
+                            <ToggleButton value="cloud" disabled={!isLogin}>Облако</ToggleButton>
                             <ToggleButton value="browser">Браузер</ToggleButton>
                         </ToggleButtonGroup>
                     </div>

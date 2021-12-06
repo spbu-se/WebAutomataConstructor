@@ -30,7 +30,7 @@ interface appProps {
 }
 
 interface appState {
-    computerType: null | ComputerType
+    computerType: null | ComputerType,
 
     selectedNode: node | null,
     selectedEdge: edge | null,
@@ -41,6 +41,7 @@ interface appState {
     popout: ReactNode | null,
     savePopoutOpen: boolean,
     welcomePopoutOpen: boolean,
+    isLogin: boolean,
 }
 
 export const ComputerTypeContext = React.createContext<null | ComputerType>(null);
@@ -80,6 +81,7 @@ class App extends React.Component<appProps, appState> {
             popout: null,
             savePopoutOpen: false,
             welcomePopoutOpen: false,
+            isLogin: true,
         };
     }
 
@@ -124,6 +126,14 @@ class App extends React.Component<appProps, appState> {
 
     closeWelcomePopout = () => {
         this.setState({welcomePopoutOpen: false});
+    }
+
+    login = () => {
+        this.setState({isLogin: true});
+    }
+
+    logout = () => {
+        this.setState({isLogin: false});
     }
 
     changePopout = (popout: ReactNode | null) => {
@@ -380,7 +390,7 @@ class App extends React.Component<appProps, appState> {
                         <FailedLoginPage/>
                     </Route>
                     <Route path="/success-login">
-                        <SuccessLoginPage/>
+                        <SuccessLoginPage onAuthSuccess={this.login}/>
                     </Route>
                     <Route path="/">
                         <ComputerTypeContext.Provider value={this.state.computerType}>
@@ -388,6 +398,7 @@ class App extends React.Component<appProps, appState> {
                                 <WelcomePopout
                                     open={this.state.welcomePopoutOpen}
                                     onClose={this.closeWelcomePopout}
+                                    onAuthFailed={this.logout}
                                     changeComputerType={(computerType, graph: graph | null) => {
 
                                         const defaultGraph = graph || computersInfo[computerType!].defaultGraph;
@@ -407,6 +418,8 @@ class App extends React.Component<appProps, appState> {
 
                                 <SavingPopout open={this.state.savePopoutOpen}
                                               onClose={this.closeSavePopout}
+                                              isLogin={this.state.isLogin}
+                                              onAuthFailed={this.logout}
                                               graph={this.state.elements}
                                               computerType={this.state.computerType!}/>
 
@@ -425,6 +438,7 @@ class App extends React.Component<appProps, appState> {
                                 <AppHeader
                                     onMenuButtonClicked={this.openWelcomePopout}
                                     onSaveButtonClicked={this.openSavePopout}
+                                    isLogin={this.state.isLogin}
                                 />
 
                                 <div className="field__container">

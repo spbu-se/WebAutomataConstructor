@@ -25,8 +25,8 @@ import {IconButton} from "@mui/material";
 
 export interface WelcomePopoutProps {
     open: boolean,
-    onClose: () => void
-
+    onClose: () => void,
+    onAuthFailed: () => void,
     changeComputerType: (computerType: null | ComputerType, graph: graph | null) => void,
 }
 
@@ -34,10 +34,11 @@ export const WelcomePopout: React.FunctionComponent<WelcomePopoutProps> = (
     {
         open,
         onClose,
+        onAuthFailed,
         changeComputerType
     }) => {
     const browserSavesManager = new BrowserSavesManager();
-    const cloudSavesManager = new CloudSavesManager();
+    const cloudSavesManager = new CloudSavesManager(onAuthFailed);
 
     const onCreateTemplateClicked = (type: ComputerType) => {
         changeComputerType(type, null);

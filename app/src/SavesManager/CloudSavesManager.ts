@@ -7,6 +7,12 @@ import {default as apiSave, SaveRequest} from "../Api/save";
 import getSave, {GetSaveRequest} from "../Api/getSave";
 
 export default class CloudSavesManager implements SavesManager {
+    private readonly onAuthFailed;
+
+    constructor(onAuthFailed: () => void) {
+        this.onAuthFailed = onAuthFailed;
+    }
+
     async getSave(saveMeta: SaveMeta): Promise<Save | null> {
         const request: GetSaveRequest = {
             id: saveMeta.id
@@ -15,7 +21,7 @@ export default class CloudSavesManager implements SavesManager {
         let save = null;
 
         try {
-            const response = await getSave(request);
+            const response = await getSave(request, this.onAuthFailed);
 
             save = {
                 id: response.id,
@@ -34,7 +40,7 @@ export default class CloudSavesManager implements SavesManager {
         let saves: GetSavesResponse = [];
 
         try {
-            saves = await getSaves();
+            saves = await getSaves(this.onAuthFailed);
         } catch (error) {
             console.error(error);
         }
@@ -54,7 +60,7 @@ export default class CloudSavesManager implements SavesManager {
         };
 
         try {
-            await apiSave(request);
+            await apiSave(request, this.onAuthFailed);
         } catch (error) {
             console.error(error);
         }

@@ -5,7 +5,7 @@ export type SaveRequest = {
     save: string,
 };
 
-export default function save(request: SaveRequest): Promise<void> {
+export default function save(request: SaveRequest, onAuthFailed: () => void): Promise<void> {
     return new Promise(function (resolve, reject) {
         const url = BASE_URL;
         url.port = SAVES_PORT;
@@ -17,6 +17,9 @@ export default function save(request: SaveRequest): Promise<void> {
 
         fetch(url.href, params)
             .then(response => {
+                if (response.status == 401) {
+                    onAuthFailed();
+                }
                 if (!response.ok) {
                     throw new Error(response.status + response.statusText);
                 }
