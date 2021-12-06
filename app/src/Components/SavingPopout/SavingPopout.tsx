@@ -93,6 +93,10 @@ export const SavingPopout: React.FunctionComponent<SavingPopoutProps> = (
         setLoadingSavesMeta(false);
     }
 
+    const updateDefaultOrigin = () => {
+        setSavesOrigin(isLogin ? "cloud" : "browser");
+    }
+
     const [browserSavesManager] = useState<BrowserSavesManager>(new BrowserSavesManager());
     const [cloudSavesManager] = useState<CloudSavesManager>(new CloudSavesManager(onAuthFailed));
     const [savesOrigin, setSavesOrigin] = useState<string>(isLogin ? "cloud" : "browser");
@@ -102,6 +106,7 @@ export const SavingPopout: React.FunctionComponent<SavingPopoutProps> = (
 
     useEffect(() => {
         if (open) {
+            updateDefaultOrigin();
             updateNames();
         }
     }, [open]);
