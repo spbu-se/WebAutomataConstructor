@@ -438,6 +438,7 @@ class App extends React.Component<appProps, appState> {
                                 <AppHeader
                                     onMenuButtonClicked={this.openWelcomePopout}
                                     onSaveButtonClicked={this.openSavePopout}
+                                    onLogoutButtonClicked={this.logout}
                                     isLogin={this.state.isLogin}
                                 />
 
