@@ -11,6 +11,7 @@ import "./AppHeader.css";
 export interface AppHeaderProps {
     onMenuButtonClicked: (event: React.MouseEvent) => void,
     onSaveButtonClicked: (event: React.MouseEvent) => void,
+    onLogoutButtonClicked: () => void,
     isLogin: boolean,
 }
 
@@ -18,6 +19,7 @@ export const AppHeader: React.FunctionComponent<AppHeaderProps> = (
     {
         onMenuButtonClicked,
         onSaveButtonClicked,
+        onLogoutButtonClicked,
         isLogin,
     }) => {
     const history = useHistory();
@@ -25,6 +27,12 @@ export const AppHeader: React.FunctionComponent<AppHeaderProps> = (
     const onSignInButtonClicked = () => {
         history.push("/login");
     }
+
+    const onSignOutButtonClicked = () => {
+        document.cookie = "token=; path=/; secure; max-age=-99999999";
+        onLogoutButtonClicked();
+    }
+
 
     return (
         <AppBar position="sticky">
@@ -48,17 +56,13 @@ export const AppHeader: React.FunctionComponent<AppHeaderProps> = (
                 </div>
 
                 <div className="app__header__right">
-                    {
-                        !isLogin ?
-                            <Button
-                                className="app__header__button"
-                                color="inherit"
-                                onClick={onSignInButtonClicked}
-                            >
-                                Войти
-                            </Button>
-                            : null
-                    }
+                    <Button
+                        className="app__header__button"
+                        color="inherit"
+                        onClick={isLogin ? onSignOutButtonClicked : onSignInButtonClicked}
+                    >
+                        {isLogin ? "Выйти" : "Войти"}
+                    </Button>
                 </div>
             </Toolbar>
         </AppBar>
