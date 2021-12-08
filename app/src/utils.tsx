@@ -3,7 +3,29 @@ import {EPS} from "./Logic/Computer";
 import {TransitionParams} from "./Logic/IGraphTypes";
 
 export const transitionsToLabel = (transitions: Set<TransitionParams[]>): string => {
-    let str = "                  "
+    const maxLength = (): number => {
+        let max: number = 0;
+        transitions.forEach(value => {
+            value.forEach(value1 => {
+                if (value1.stackDown !== undefined && value1.stackPush !== undefined) {
+                    const phs: number = Math.max(...value1.stackPush.map(o => o === EPS ? 0 : o.length), 0)
+                    const ttl: number = value1.title === EPS ? 0 : value1.title.length
+                    const std: number = value1.stackDown === EPS ? 0 : value1.stackDown.length
+                    max = Math.max(...[phs, ttl, std, max].map(o => o), 0)
+                }
+            } )
+        })
+        return max
+    }
+
+    let spc = ""
+    const pdng_k = 7
+
+    for (let i = 0; i < maxLength() * pdng_k ; i++) {
+        spc += " "
+    }
+
+    let str = "" + spc
     transitions.forEach(value => {
         value.forEach(value1 => {
             if (value1.title !== undefined && value1.title.length > 0) {
@@ -18,14 +40,12 @@ export const transitionsToLabel = (transitions: Set<TransitionParams[]>): string
                 if (value1.move !== undefined) {
                     str += (value1.move === 0 ? "L" : "R")
                 }
-                str += "\n                  "
-                // console.log("LLLLLLL ", str)
 
+                str = str + "\n" + spc
             }
         })
+
     })
-    // let _str = str.split('')
-    // _str.shift()
     return str
 }
 
@@ -44,7 +64,7 @@ export const getTransitionsTitles = (transitions: Set<TransitionParams[]>): stri
                 if (value1.move !== undefined) {
                     str += (value1.move === 0 ? "L" : "R")
                 }
-                str += "; "
+                str += ";\n"
 
             }
         })

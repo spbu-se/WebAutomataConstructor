@@ -13,14 +13,8 @@ import DoneIcon from '@mui/icons-material/Done';
 import CloseIcon from '@mui/icons-material/Close';
 import Typography from "@mui/material/Typography";
 
-// import Button from "@material-ui/core/Button";
-// import TextField from "@material-ui/core/TextField";
-// import DoneIcon from '@material-ui/icons/Done';
-// import CloseIcon from '@material-ui/icons/Close';
 import Tooltip from '@mui/material/Tooltip';
 
-
-// import Typography from "@material-ui/core/Typography";
 import {EpsilonNFA} from "../../Logic/EpsilonNFA";
 import {PDA} from "../../Logic/PDA";
 

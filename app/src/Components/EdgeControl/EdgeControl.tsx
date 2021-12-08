@@ -10,6 +10,7 @@ import TextField from "@mui/material/TextField";
 import {withComputerType} from "../../hoc";
 import {EPS} from "../../Logic/Computer";
 import {TransitionParams} from "../../Logic/IGraphTypes";
+import { TextareaAutosize } from "@mui/material";
 // import {Input} from '@material-ui/core/Input';
 
 interface EdgeControlProps {
@@ -65,9 +66,6 @@ class EdgeControl extends React.Component<EdgeControlProps, EdgeControlState> {
         }
     }
 
-    // deleteTransition = (): void => {
-    // }
-
     selectTransition = (transition: TransitionParams[] | null): void => {
         if (this.state.activeTransition === transition) {
             this.setState({activeTransition: null});
@@ -116,6 +114,7 @@ class EdgeControl extends React.Component<EdgeControlProps, EdgeControlState> {
         });
 
     }
+
     changeStackDown = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
         const value = event.target.value;
 
@@ -128,24 +127,6 @@ class EdgeControl extends React.Component<EdgeControlProps, EdgeControlState> {
             );
         }
     }
-    
-    // changeStackPush = (event: React.ChangeEvent<HTMLInputElement>) => {
-    //     const value = event.target.value;
-    //
-    //     this.setState({stackPushText: value});
-    //
-    //     if (value.slice(-1) === ",") {
-    //         const transitions: Set<TransitionParams> = new Set<TransitionParams>(
-    //             //value
-    //             //.split(",")
-    //             //.map(stack => stack === "eps" && this.props.computerType === "pda"?  {title: EPS, stackPush[0]: EPS} : {title: stack, stackPush[0]: stack})
-    //         );
-    //
-    //         //this.props.changeEdgeTransitions(this.props.edge!.id!, transitions);
-    //         this.setState({stackPushText: stackDownToLabel(transitions)}
-    //         );
-    //     }
-    // }
 
     deleteEdge = (): void => {
         if (this.props.edge !== null) {
@@ -158,16 +139,6 @@ class EdgeControl extends React.Component<EdgeControlProps, EdgeControlState> {
         let newRow = {id: this.state.rules.length, value: value};
         this.setState({rules: this.state.rules.concat(newRow)});
     }
-    
-     //deleteTransition = (): void => {
-       //  if (this.props.edge !== null && this.state.activeTransition !== null) {
-         //    const transitions = this.state.transitions;
-           //  transitions.delete(this.state.activeTransition);
-    
-             //this.props.changeEdgeTransitions(this.props.edge.id!, transitions);
-             //this.setState({transitions: transitions, transitionsText: transitionsToLabel(transitions)});
-         //}
-     //}
     
      changeEditMode = () => {
          this.setState({editMode: !this.state.editMode});
@@ -201,7 +172,6 @@ class EdgeControl extends React.Component<EdgeControlProps, EdgeControlState> {
                         stackDown: value.snd === 'eps' ? EPS : value.snd,
                         stackPush: value.trd?.split(':').map(value => value === 'eps' ? EPS : value),
 
-                        // stackPush: value.trd?.split(':'),
                         move: undefined
                     }
                 )
@@ -212,29 +182,9 @@ class EdgeControl extends React.Component<EdgeControlProps, EdgeControlState> {
         this.props.changeEdgeTransitions(this.props.edge!.id!, transitions);
         this.setState({
             transitionsText: getTransitionsTitles(transitions),
-            // transitions: transitions
-                    // transitionsToLabel(transitions),
             transitions: transitions
         })
     }
-    
-    // private addRulesInBlock() {
-    //     return this.state.rules.map((rule, index) =>
-    //     <div>
-    //         <Input
-    //             defaultValue={rule.value}
-    //             value={rule.value}
-    //         />
-    //     </div>
-    //     )
-    // }
-    // deleteEdge = (): void => {
-    //     if (this.props.edge !== null) {
-    //         this.props.deleteEdge(this.props.edge.id!);
-    //     }
-    // }
-
-
 
     deleteTransition = (): void => {
         if (this.props.edge !== null && this.state.activeTransition !== null) {
@@ -255,28 +205,18 @@ class EdgeControl extends React.Component<EdgeControlProps, EdgeControlState> {
                 <div className="edge-control__container">
                     <div className="edge-control__item edge-control__transitions">
                         {
-                            this.state.editMode ?
                                 <TextField
+                                    id="filled-multiline-static"
+                                    multiline
+                                    rows={3}
+                                    variant="standard"
                                     label="Переходы"
                                     size="small"
                                     value={this.state.transitionsText}
                                     onChange={this.changeTransitions}
-                                    helperText={this.props.computerType === "nfa-eps" ? 'Список символов или "eps" через запятую' : "Список символов через запятую"}
+                                    helperText={this.props.computerType === "nfa-eps" || "pda" ? 'Список символов или "eps" через запятую' : "Список символов через запятую"}
                                     onBlur={this.updateTransitions}
                                 />
-                                :
-                                Array.from(this.state.transitions || []).map((transition, index) => (
-                                    <Transition
-                                        key={index}
-                                        className="edge-control__transition"
-                                         transition={
-                                             // (transition.title === EPS) ? {title: "ε"} :
-                                             transition}
-                                         active={this.state.activeTransition === transition}
-                                         deleteTransition={this.deleteTransition}
-                                         onClick={() => this.selectTransition(transition)}
-                                    />
-                                ))
                         }
 
                         <div className="edge-control__edit-transitions"
@@ -297,63 +237,6 @@ class EdgeControl extends React.Component<EdgeControlProps, EdgeControlState> {
 
                 </div>
             </ControlWrapper>
-            // :
-            // <ControlWrapper title="Правила перехода" visible={this.props.edge !== null}>
-            //     <TextField
-            //         label="Переход"
-            //         value={this.state.transitionsText}
-            //         onChange={this.changeTransitions}
-            //         helperText={'Символ или "eps"'}
-            //         onBlur={this.updateTransitions}
-            //     />
-            //
-            //     {/*<TextField*/}
-            //     {/*    label="Извлечь из стека"*/}
-            //     {/*    value={this.state.stackDownText}*/}
-            //     {/*    onChange={this.changeStackDown}*/}
-            //     {/*    helperText={'Символ или "eps"'}*/}
-            //     {/*/> */}
-            //     {/*<TextField*/}
-            //     {/*    label="Поместить в стек"*/}
-            //     {/*    value={this.state.stackPushText}*/}
-            //     {/*    onChange={this.changeStackPush}*/}
-            //     {/*    helperText={'Список символов или "eps" через запятую'}*/}
-            //     {/*/>*/}
-            //
-            //     {/*<div className="edge-control__item edge-control__buttons">*/}
-            //     {/*{*/}
-            //     {/*    <div className="edge-control__button">*/}
-            //     {/*        <Button*/}
-            //     {/*            variant="outlined"*/}
-            //     {/*            color="secondary"*/}
-            //     {/*            onClick={() => this.addInstruction(this.state.transitionsText)}*/}
-            //     {/*        >*/}
-            //     {/*            Добавить*/}
-            //     {/*        </Button>*/}
-            //     {/*    </div>*/}
-            //     {/*}*/}
-            //     {/*</div>*/}
-            //
-            //     {/*<div className="edge-control__item">*/}
-            //     {/*{*/}
-            //     {/*    (this.state.editMode) ?*/}
-            //     {/*        (<div className="edge-control__header">*/}
-            //     {/*            <Typography variant="h6">Правила</Typography>*/}
-            //     {/*                </div> &&*/}
-            //     {/*                <div className="edge-control__placeholder"> Здесь будет отображаться список правил для выбранного ребра </div>)*/}
-            //     {/*            : (!this.state.editMode) ?*/}
-            //     {/*                <div className="edge-control__header">*/}
-            //     {/*                    <Typography variant="h6">Правила</Typography>*/}
-            //     {/*                </div>*/}
-            //     {/*            : null*/}
-            //     {/*         }*/}
-            //     {/*</div> */}
-            //     {/*<div className="edge-control__item">*/}
-            //     {/*    {this.addRulesInBlock()}*/}
-            //     {/*</div> */}
-            //
-            //
-            // </ControlWrapper>
             );
         }
 }
