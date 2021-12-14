@@ -1,0 +1,17 @@
+[package]
+name = "ping"
+version = "0.1.0"
+authors = ["ususucsus <usarti01@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+core = {version = "0.1", path="../core"}
+
+actix-web = "3.3"
+actix-service = "1.0.6" # actix-web middlewares dependency
+dotenv = "0.15"
+simple_logger = "1.13"
+log = "0.4"
+futures = "0.3"
+serde = "1.0"
+reqwest = { version = "0.11", features = ["json", "blocking"] }
