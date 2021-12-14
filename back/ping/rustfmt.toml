@@ -1,0 +1,27 @@
+# Stable
+
+max_width = 120
+
+use_field_init_shorthand = true
+use_try_shorthand = true
+
+
+# Nightly
+
+version = "Two"
+unstable_features = true
+
+wrap_comments = true
+comment_width = 80
+
+condense_wildcard_suffixes = true
+format_macro_matchers = true
+format_strings = true
+imports_layout = "HorizontalVertical"
+match_block_trailing_comma = true
+imports_granularity = "Module"
+normalize_comments = true
+normalize_doc_attributes = true
+reorder_impl_items = true
+report_fixme = "Always"
+report_todo = "Always"

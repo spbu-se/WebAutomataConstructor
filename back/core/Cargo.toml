@@ -1,0 +1,11 @@
+[package]
+name = "core"
+version = "0.1.0"
+edition = "2018"
+
+[dependencies]
+actix-cors = "0.5"
+diesel = { version = "1.4", features = ["postgres", "chrono"] }
+chrono = "0.4"
+dotenv = "0.15"
+serde = "1.0"
