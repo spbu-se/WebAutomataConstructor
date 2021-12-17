@@ -9,9 +9,9 @@ import EditIcon from '@mui/icons-material/Edit';
 import TextField from "@mui/material/TextField";
 import {withComputerType} from "../../hoc";
 import {EPS} from "../../Logic/Computer";
-import {TransitionParams} from "../../Logic/IGraphTypes";
+import {Move, TransitionParams} from "../../Logic/IGraphTypes";
 import { TextareaAutosize } from "@mui/material";
-// import {Input} from '@material-ui/core/Input';
+
 
 interface EdgeControlProps {
     edge: edge | null,
@@ -78,7 +78,7 @@ class EdgeControl extends React.Component<EdgeControlProps, EdgeControlState> {
         const value = event.target.value;
         this.setState({transitionsText: value});
 
-        let t: { fst: string | undefined, snd: string | undefined, trd: string | undefined }[] = []
+        let t: { fst: string | undefined, snd: string | undefined, trd: string | undefined, fth: string | undefined }[] = []
         this.state.transitionsText
             .split('')
             .filter(x => x !== " " && x !== "\n")
@@ -87,10 +87,22 @@ class EdgeControl extends React.Component<EdgeControlProps, EdgeControlState> {
             .forEach(value => {
                 let tmp = value.split(",")
                 let fst = tmp.shift()
-                tmp = tmp.join('').split("|")
+                tmp = tmp.join('').split("|" || ">")
                 let snd = tmp.shift()
                 let trd = tmp
-                t.push({ fst: fst, snd: snd, trd: trd.join(':')})
+                let fth
+
+                if (this.props.computerType === "tm") {
+                    let bebra = tmp.join("").split(">")
+                    bebra.reverse()
+                    fth = bebra.shift()
+                    bebra.reverse()
+                    trd = bebra
+                    console.log("tmp")
+                    console.log(bebra)
+                }
+
+                t.push({ fst: fst, snd: snd, trd: trd.join(':'), fth: fth })
             })
         let acc: TransitionParams[] = []
         t.forEach(value => {
@@ -100,7 +112,7 @@ class EdgeControl extends React.Component<EdgeControlProps, EdgeControlState> {
                         title: value.fst === 'eps' ? EPS : value.fst,
                         stackDown: value.snd === 'eps' ? EPS : value.snd,
                         stackPush: value.trd?.split(':').map(value => value === 'eps' ? EPS : value),
-                        move: undefined
+                        move: value.fth === 'L' ? Move.L : Move.R
                     }
                 )
             }
@@ -148,7 +160,7 @@ class EdgeControl extends React.Component<EdgeControlProps, EdgeControlState> {
     updateTransitions = () => {
         const transitions = new Set<TransitionParams[]>();
 
-        let t: { fst: string | undefined, snd: string | undefined, trd: string | undefined }[] = []
+        let t: { fst: string | undefined, snd: string | undefined, trd: string | undefined, fth: string | undefined }[] = []
         this.state.transitionsText
             .split('')
             .filter(x => x !== " " && x !== "\n")
@@ -160,7 +172,19 @@ class EdgeControl extends React.Component<EdgeControlProps, EdgeControlState> {
                 tmp = tmp.join('').split("|")
                 let snd = tmp.shift()
                 let trd = tmp
-                t.push({ fst: fst, snd: snd, trd: trd.join(':')})
+                let fth
+
+                if (this.props.computerType === "tm") {
+                    let bebra = tmp.join("").split(">")
+                    bebra.reverse()
+                    fth = bebra.shift()
+                    bebra.reverse()
+                    trd = bebra
+                    console.log("tmp")
+                    console.log(bebra)
+                }
+
+                t.push({ fst: fst, snd: snd, trd: trd.join(':'), fth: fth })
             })
         // t.forEach(value =>  console.log(value))
         let acc: TransitionParams[] = []
@@ -172,7 +196,7 @@ class EdgeControl extends React.Component<EdgeControlProps, EdgeControlState> {
                         stackDown: value.snd === 'eps' ? EPS : value.snd,
                         stackPush: value.trd?.split(':').map(value => value === 'eps' ? EPS : value),
 
-                        move: undefined
+                        move: value.fth === 'L' ? Move.L : Move.R
                     }
                 )
             }

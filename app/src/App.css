@@ -36,3 +36,50 @@
 .hint:not(:last-child) {
     margin-bottom: 8px;
 }
+
+.app__mem_field {
+    display: flex;
+    /*left: 50%;*/
+    /*margin-right: -50%;*/
+    position: absolute;
+    z-index: 1;
+}
+
+
+.app__mem_ribbon {
+    max-width: 500px;
+    overflow: scroll;
+    display: flex;
+
+    position: absolute;
+    left: 50%;
+    margin-right: -50%;
+    transform: translate(-50%, -50%);
+
+    bottom: 64px;
+
+    z-index: 1;
+
+
+}
+
+.app__mem_cell {
+    height: 36px;
+    min-width: 20px;
+
+    padding-left: 8px;
+    padding-right: 8px;
+
+    border-radius: 8px;
+
+    font-size: 18px;
+    line-height: 36px;
+    text-align: center;
+
+    margin-right: 8px;
+
+    /*display: flex;*/
+    flex-direction: row;
+}
+
+

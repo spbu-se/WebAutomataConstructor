@@ -25,6 +25,7 @@ import FailedLoginPage from "./Components/Pages/FailedLoginPage/FailedLoginPage"
 import AppHeader from "./Components/AppHeader/AppHeader";
 import {TransitionParams} from "./Logic/IGraphTypes";
 import SuccessLoginPage from "./Components/Pages/SuccessLoginPage/SuccessLoginPage";
+import { Box } from '@mui/material';
 
 interface appProps {
 }
@@ -42,11 +43,17 @@ interface appState {
     savePopoutOpen: boolean,
     welcomePopoutOpen: boolean,
     isLogin: boolean,
+    mem: string[] | undefined,
+    ptr: number | undefined
 }
 
 export const ComputerTypeContext = React.createContext<null | ComputerType>(null);
 
 class App extends React.Component<appProps, appState> {
+
+    memRef = React.createRef<HTMLDivElement>();
+
+
     constructor(props: appProps) {
         super(props);
 
@@ -82,8 +89,15 @@ class App extends React.Component<appProps, appState> {
             savePopoutOpen: false,
             welcomePopoutOpen: false,
             isLogin: true,
+            mem: undefined,
+            ptr: undefined
         };
     }
+
+    componentDidUpdate() {
+    }
+
+
 
     componentDidMount() {
         this.updateGraph();
@@ -366,6 +380,16 @@ class App extends React.Component<appProps, appState> {
         }
     }
 
+    updMem = (mem: string[], ptr: number): void => {
+        this.setState({ mem: mem, ptr: ptr });
+    }
+
+    memPos = (index: number | undefined): void => {
+        // if (index !== undefined && index > 5) {
+            this.memRef?.current?.scrollIntoView({behavior: 'smooth'})
+        // }
+    }
+
     events = {
         doubleClick: this.createNode,
         selectNode: this.selectNode,
@@ -435,6 +459,28 @@ class App extends React.Component<appProps, appState> {
                                     </Paper>
                                 </div>
 
+
+                                {
+                                        this.state.computerType === "tm" ?
+                                            <div className="app__mem_ribbon">
+                                                    {
+                                                        this.state.mem?.map((value, index) =>
+                                                            <div
+                                                                className="app__mem_cell"
+                                                                style={{border: `${index === this.state.ptr ? "#0041d0" : "#000000" } 2px solid`}}
+                                                            >
+
+                                                                {Math.abs (Math.abs(index) - Math.abs(this.state.ptr!)) <= 5  ? <div ref={this.memRef}/> : <div/>}
+                                                                {value}
+                                                                {this.memRef?.current?.scrollIntoView({behavior: 'smooth'})                                                                }
+                                                            </div>
+                                                        )
+                                                    }
+                                            </div>
+                                        : <div/>
+                                    }
+
+
                                 <AppHeader
                                     onMenuButtonClicked={this.openWelcomePopout}
                                     onSaveButtonClicked={this.openSavePopout}
@@ -465,6 +511,7 @@ class App extends React.Component<appProps, appState> {
                                         deleteEdge={this.deleteEdge}
                                     />
                                     <RunControl
+                                        updMem = {this.updMem}
                                         elements={this.state.elements}
                                         changeStateIsCurrent={this.changeStateIsCurrent}
                                     />

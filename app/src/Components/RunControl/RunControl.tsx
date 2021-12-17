@@ -17,11 +17,13 @@ import Tooltip from '@mui/material/Tooltip';
 
 import {EpsilonNFA} from "../../Logic/EpsilonNFA";
 import {PDA} from "../../Logic/PDA";
+import { TM } from "../../Logic/TM";
 
 interface runControlProps {
     computerType: ComputerType,
     elements: graph,
     changeStateIsCurrent: (ids: number[], isCurrent: boolean) => void
+    updMem: ((mem: string[] | undefined, ptr: number | undefined) => void)
 }
 
 interface runControlState {
@@ -32,7 +34,8 @@ interface runControlState {
     currentInputIndex: number,
     history: { a: node, b: string[] | undefined }[][],
     byEmptyStack: boolean,
-    wasRuned: boolean
+    wasRuned: boolean,
+    memory: string[] | undefined
 }
 
 
@@ -52,7 +55,8 @@ class RunControl extends React.Component<runControlProps, runControlState> {
             currentInputIndex: -1,
             history: [],
             byEmptyStack: false,
-            wasRuned: false
+            wasRuned: false,
+            memory: undefined
         };
     }
 
@@ -70,6 +74,9 @@ class RunControl extends React.Component<runControlProps, runControlState> {
                 return new EpsilonNFA(graph, [initialNode], input);
             case "pda":
                 return new PDA(graph, [initialNode], input, this.state.byEmptyStack);
+            case "tm":
+                return new TM(graph, [initialNode], input);
+
         }
     }
 
@@ -152,12 +159,15 @@ class RunControl extends React.Component<runControlProps, runControlState> {
             this.reset();
         }
 
-        if (this.state.currentInputIndex === this.state.input.length - 1) return;
-        if (this.state.result !== undefined && this.state.currentInputIndex !== -1) return;
+        if (this.state.currentInputIndex === this.state.input.length - 1 && this.props.computerType !== "tm") return;
+        if (this.state.result !== undefined && this.state.currentInputIndex !== -1 && this.props.computerType !== "tm") return;
 
         const stepResult = this.state.computer.step();
 
+        console.log("~~~", stepResult)
+
         this.props.changeStateIsCurrent(stepResult.nodes.map(node => node.id), true);
+        this.props.updMem(stepResult.memory, stepResult.pointer)
 
         let result = undefined;
         if (stepResult.counter === this.state.input.length) {
@@ -172,17 +182,16 @@ class RunControl extends React.Component<runControlProps, runControlState> {
             .filter((node): node is node => node !== undefined);
 
         const _nodes = nodes.map(function(e, i){
-            return {a: e, b: stepResult.nodes[i].stack}
+            return { a: e, b: stepResult.nodes[i].stack }
         })
-
-        // console.log("AAAA")
-        // _nodes.forEach(value => console.log(value.a, value.b))
 
         this.setState({
             result: result,
             currentInputIndex: this.state.currentInputIndex + 1,
-            history: [...this.state.history, _nodes]
+            history: [...this.state.history, _nodes],
+            memory: stepResult.memory
         }, () => this.historyEndRef?.current?.scrollIntoView({behavior: 'smooth'}));
+
 
     }
 
@@ -193,7 +202,7 @@ class RunControl extends React.Component<runControlProps, runControlState> {
         this.state.computer?.restart();
         this.props.changeStateIsCurrent([], true); // resets all nodes
         this.setState({result: undefined, currentInputIndex: -1, history: []});
-        // this.componentDidMount();
+        this.state.computer?.setInput(this.state.input.split(""))
 
     }
 
@@ -205,8 +214,6 @@ class RunControl extends React.Component<runControlProps, runControlState> {
 
         this.reset();
 
-
-        // this.componentDidMount();
         const result = this.state.computer.run();
 
         this.setState({result: result.isAdmit, currentInputIndex: -1, history: []});

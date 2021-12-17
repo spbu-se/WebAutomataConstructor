@@ -26,6 +26,7 @@ export type Step = {
     isAdmit: boolean
     history: History[]
     memory?: string[]
+    pointer?: number
 }
 
 

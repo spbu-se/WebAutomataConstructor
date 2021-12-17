@@ -1,6 +1,6 @@
 import {ComputerInfo, ComputerType, graph} from "./react-graph-vis-types";
 import {EPS} from "./Logic/Computer";
-import {TransitionParams} from "./Logic/IGraphTypes";
+import {Move, TransitionParams} from "./Logic/IGraphTypes";
 
 export const transitionsToLabel = (transitions: Set<TransitionParams[]>): string => {
     const maxLength = (): number => {
@@ -62,26 +62,16 @@ export const getTransitionsTitles = (transitions: Set<TransitionParams[]>): stri
                     str += " | " + value1.stackPush.map(value2 => value2 === EPS ? "eps" : value2).join(":")
                 }
                 if (value1.move !== undefined) {
-                    str += (value1.move === 0 ? "L" : "R")
+                    str += ">" + (value1.move === 0 ? "L" : "R")
                 }
                 str += ";\n"
 
             }
         })
     })
-    // console.log("AAAAAA", str)
     return str
-    // return Array.from(transitions).map(value => value.map(value1 => (value1.title, value1.))).join(";")
-    // transitions.forEach(value => value.forEach(value1 => value1.))
 }
 
-// export const stackDownToLabel = (transitions: Set<TransitionParams>) : string => {
-//     return Array.from(transitions).map(transitions => transitions.stackDown === EPS ? "ε": transitions.stackDown).join(",");
-// }
-//
-// export const stackPushToLabel = (transitions: Set<TransitionParams>) : string => {
-//     return Array.from(transitions).map(transitions => (transitions.stackPush !== undefined && transitions.stackPush[0] === EPS) ? "ε": transitions.stackDown).join(",");
-// }
 
 export const decorateGraph = (graph: graph): graph => {
     graph.nodes.forEach(node => {
@@ -265,7 +255,28 @@ export const computersInfo: Record<ComputerType, ComputerInfo> = {
 
             ]
         }
-    }
+    },
+    tm: {
+        name: "Машина Тьюринга",
+        description: "_",
+        preview: "_.png",
+        defaultGraph: {
+            nodes: [
+                {id: 1, x: 0, y: 20, label: "S0", isAdmit: false, isInitial: true, isCurrent: false},
+                {id: 2, x: 200, y: 0, label: "S1", isAdmit: false, isInitial: false, isCurrent: false},
+                {id: 3, x: 0, y: 180, label: "S2", isAdmit: true, isInitial: false, isCurrent: false},
+                {id: 4, x: 180, y: 200, label: "S3", isAdmit: true, isInitial: false, isCurrent: false},
+            ],
+            edges: [
+                { from: 1, to: 1, transitions: new Set([[{title: EPS, stackDown: '0', stackPush: ['0'], move: Move.R}, {title: EPS, stackDown: '1', stackPush: ['1'], move: Move.R} ]]) },
+                { from: 1, to: 2, transitions: new Set([[{title: EPS, stackDown: '_', stackPush: ['_'], move: Move.L} ]]) },
+                { from: 2, to: 2, transitions: new Set([[{title: EPS, stackDown: '1', stackPush: ['0'], move: Move.L} ]]) },
+                { from: 2, to: 3, transitions: new Set([[{title: EPS, stackDown: '0', stackPush: ['1'], move: Move.L} ]]) },
+                { from: 2, to: 4, transitions: new Set([[{title: EPS, stackDown: '_', stackPush: ['1'], move: Move.L} ]]) },
+            ]
+        }
+    },
+
 
 }
 
