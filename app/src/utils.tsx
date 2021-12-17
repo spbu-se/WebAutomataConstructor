@@ -251,7 +251,7 @@ export const computersInfo: Record<ComputerType, ComputerInfo> = {
                 },
                 // {from: 2, to: 2, transitions: new Set([[{title: '1',  stackDown: '1',  stackPush: [EPS      ]}]])},
 
-                {from: 2, to: 3, transitions: new Set([[{title: EPS, stackDown: 'Z0', stackPush: ['Z0']}]])},
+                {from: 2, to: 3, transitions: new Set([[{title: EPS, stackDown: 'Z0', stackPush: [EPS]}]])},
 
             ]
         }
