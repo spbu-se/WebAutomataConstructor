@@ -24,6 +24,7 @@ interface runControlProps {
     elements: graph,
     changeStateIsCurrent: (ids: number[], isCurrent: boolean) => void
     updMem: ((mem: string[] | undefined, ptr: number | undefined) => void)
+    ptr: number | undefined
 }
 
 interface runControlState {
@@ -35,7 +36,7 @@ interface runControlState {
     history: { a: node, b: string[] | undefined }[][],
     byEmptyStack: boolean,
     wasRuned: boolean,
-    memory: string[] | undefined
+    memory: string[] | undefined,
 }
 
 
@@ -56,7 +57,7 @@ class RunControl extends React.Component<runControlProps, runControlState> {
             history: [],
             byEmptyStack: false,
             wasRuned: false,
-            memory: undefined
+            memory: undefined,
         };
     }
 
@@ -162,9 +163,8 @@ class RunControl extends React.Component<runControlProps, runControlState> {
         if (this.state.currentInputIndex === this.state.input.length - 1 && this.props.computerType !== "tm") return;
         if (this.state.result !== undefined && this.state.currentInputIndex !== -1 && this.props.computerType !== "tm") return;
 
-        const stepResult = this.state.computer.step();
 
-        console.log("~~~", stepResult)
+        const stepResult = this.state.computer.step();
 
         this.props.changeStateIsCurrent(stepResult.nodes.map(node => node.id), true);
         this.props.updMem(stepResult.memory, stepResult.pointer)
@@ -172,7 +172,6 @@ class RunControl extends React.Component<runControlProps, runControlState> {
         let result = undefined;
         if (stepResult.counter === this.state.input.length) {
             result = stepResult.isAdmit
-            // result = stepResult.nodes.some(node => node.isAdmit);
         } else if (this.state.currentInputIndex + 2 !== stepResult.counter) {
             result = false;
         }
@@ -189,7 +188,7 @@ class RunControl extends React.Component<runControlProps, runControlState> {
             result: result,
             currentInputIndex: this.state.currentInputIndex + 1,
             history: [...this.state.history, _nodes],
-            memory: stepResult.memory
+            memory: stepResult.memory,
         }, () => this.historyEndRef?.current?.scrollIntoView({behavior: 'smooth'}));
 
 
@@ -198,12 +197,10 @@ class RunControl extends React.Component<runControlProps, runControlState> {
 
 
     reset = (): void => {
-
         this.state.computer?.restart();
         this.props.changeStateIsCurrent([], true); // resets all nodes
         this.setState({result: undefined, currentInputIndex: -1, history: []});
         this.state.computer?.setInput(this.state.input.split(""))
-
     }
 
     run = (): void => {

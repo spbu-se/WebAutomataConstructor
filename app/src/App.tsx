@@ -26,7 +26,17 @@ import AppHeader from "./Components/AppHeader/AppHeader";
 import {TransitionParams} from "./Logic/IGraphTypes";
 import SuccessLoginPage from "./Components/Pages/SuccessLoginPage/SuccessLoginPage";
 import { Box } from '@mui/material';
-
+import Vis from 'vis'
+import { VisNetwork } from './VisNetwork';
+import { DFA } from './Logic/DFA';
+import {
+    DataSet,
+    Network,
+    Options,
+    Data,
+} from "vis-network/standalone/esm/vis-network";
+// import VisNetwork from './VisNetwork';
+import { Iedge } from "./VisNetwork"
 interface appProps {
 }
 
@@ -44,7 +54,12 @@ interface appState {
     welcomePopoutOpen: boolean,
     isLogin: boolean,
     mem: string[] | undefined,
-    ptr: number | undefined
+    ptr: number | undefined,
+
+    myDfa: DFA | undefined,
+    myNodes: DataSet<node>, myEdges: DataSet<Iedge>, myData: {nodes: DataSet<node, "id">, edges: DataSet<Iedge, "id">},
+    counter: number
+
 }
 
 export const ComputerTypeContext = React.createContext<null | ComputerType>(null);
@@ -56,6 +71,10 @@ class App extends React.Component<appProps, appState> {
 
     constructor(props: appProps) {
         super(props);
+
+
+        const myNodes = new DataSet<node>()
+        const myEdges = new DataSet<Iedge>()
 
         this.state = {
             computerType: null,
@@ -78,6 +97,7 @@ class App extends React.Component<appProps, appState> {
                     font: "18px Roboto black",
                     labelHighlightBold: false,
                     widthConstraint: 40,
+                    color: "red",
                     heightConstraint: 40
                 },
                 physics: {
@@ -90,7 +110,14 @@ class App extends React.Component<appProps, appState> {
             welcomePopoutOpen: false,
             isLogin: true,
             mem: undefined,
-            ptr: undefined
+            ptr: undefined,
+
+            myDfa: undefined,
+            myNodes: myNodes,
+            myEdges: myEdges,
+            myData: { nodes: myNodes, edges: myEdges },
+            counter: 0
+
         };
     }
 
@@ -239,6 +266,8 @@ class App extends React.Component<appProps, appState> {
         this.setState({elements: elements}, () => this.updateGraph());
     }
 
+
+
     createNode = (args: doubleClickEventArgs): void => {
         const x = args.pointer.canvas.x;
         const y = args.pointer.canvas.y;
@@ -386,142 +415,245 @@ class App extends React.Component<appProps, appState> {
 
     memPos = (index: number | undefined): void => {
         // if (index !== undefined && index > 5) {
-            this.memRef?.current?.scrollIntoView({behavior: 'smooth'})
+        this.memRef?.current?.scrollIntoView({behavior: 'smooth'})
         // }
     }
 
+    getNodes = (nodes: DataSet<node>): node[] => {
+        const ret: node[] = []
+        nodes.forEach(node => {
+            ret.push({
+                id: node.id,
+                label: node.label,
+                isInitial: node.isInitial,
+                isCurrent: node.isCurrent,
+                isAdmit: node.isAdmit
+            })
+        })
+        return ret
+    }
+
+    getEdges = (edges: DataSet<Iedge>): edge[] => {
+        const ret: edge[] = []
+        edges.forEach(edge => {
+            ret.push({
+                label: edge.label,
+                from: edge.from,
+                to: edge.to,
+                transitions: new Set([[{title: edge.label}]])
+            })
+        })
+        return ret
+    }
+
+    onDoubleClick = (e: { pointer: { canvas: { x: any; y: any; }; }; }) => {
+        const max = this.state.myData.nodes.max("id")
+        const id = max ? max.id + 1 : 1
+        const node = {
+            id: id,
+            label: 'S' + (id),
+            x: e.pointer.canvas.x,
+            y: e.pointer.canvas.y,
+            isAdmit: id === 2,
+            isInitial: id === 1,
+            isCurrent: false,
+            color: id === 1 ? { border: '#6984ff', background: '#ffffff' } : { border: '#000000', background: '#ffffff' }
+        }
+        this.state.myNodes.add(node);
+        this.setState({
+            elements: {
+                nodes: this.getNodes(this.state.myData.nodes),
+                edges: this.getEdges(this.state.myData.edges)
+            }
+        })
+    }
+
+    onKeyDown = (e: { event: { srcEvent: any; }; edges: number[]; nodes: number[]; }) => {
+        const jsEvent = e.event.srcEvent
+        if (jsEvent.altKey) {
+            const edgesIDs: number[] = e.edges;
+            const nodeIDs: number[] = e.nodes;
+            const clickedEdges = this.state.myEdges.get(edgesIDs);
+            const clickedNodes = this.state.myNodes.get(nodeIDs);
+            const fstClicked = this.state.myEdges.get(edgesIDs)[0];
+            if (fstClicked !== undefined && nodeIDs.length === 0) {
+                this.state.myEdges.update({id: fstClicked.id, label: "0"});
+            }
+        }
+
+        this.setState({
+            elements: {
+                nodes: this.getNodes(this.state.myData.nodes),
+                edges: this.getEdges(this.state.myData.edges)
+            }
+        })
+
+        this.state.elements.edges.forEach(e => console.log(e.from, e.to, e.label))
+        // setElements({edges: getEdges(edges), nodes: getNodes(nodes)})
+    }
+
+    step = () => {
+        console.log(this.state.elements)
+        const dfa = new DFA(this.state.elements, [this.state.elements.nodes[0]], ['0'])
+        console.log("*-*-*")
+        const curNodes = dfa.step()
+        this.state.myNodes.forEach(v => {
+            this.state.myNodes.update({id: v.id, isCurrent: true, color: {border: '#000000', background: '#ffffff'} })
+        })
+        curNodes.nodes.forEach(node => {
+            this.state.myNodes.update({id: node.id, isCurrent: true, color: {border: '#6986f6', background: '#ffffff'} })
+        })
+        console.log("----")
+        this.state.myNodes.forEach(node => console.log(node))
+    }
+
     events = {
-        doubleClick: this.createNode,
-        selectNode: this.selectNode,
-        selectEdge: this.selectEdge,
-        deselectNode: this.deselectNode,
-        deselectEdge: this.deselectEdge,
-        controlNodeDragEnd: this.onEdgeDragEnd,
-        dragEnd: this.onDragEnd
+        doubleClick:
+        this.createNode,
+        // selectNode: this.selectNode,
+        // selectEdge: this.selectEdge,
+        // deselectNode: this.deselectNode,
+        // deselectEdge: this.deselectEdge,
+        // controlNodeDragEnd: this.onEdgeDragEnd,
+        // dragEnd: this.onDragEnd
     };
 
     render() {
         return (
-            <HashRouter>
-                <Switch>
-                    <Route path="/login">
-                        <LoginPage/>
-                    </Route>
-                    <Route path="/ping">
-                        <PingPage/>
-                    </Route>
-                    <Route path="/failed-login">
-                        <FailedLoginPage/>
-                    </Route>
-                    <Route path="/success-login">
-                        <SuccessLoginPage onAuthSuccess={this.login}/>
-                    </Route>
-                    <Route path="/">
-                        <ComputerTypeContext.Provider value={this.state.computerType}>
-                            <div className="app">
-                                <WelcomePopout
-                                    open={this.state.welcomePopoutOpen}
-                                    onClose={this.closeWelcomePopout}
-                                    onAuthFailed={this.logout}
-                                    changeComputerType={(computerType, graph: graph | null) => {
+            <div className="field__container">
+                <VisNetwork
+                    nodes={this.state.myNodes}
+                    edges={this.state.myEdges}
+                    data={this.state.myData}
+                    onDoubleClick={this.onDoubleClick}
+                    onKeyDown={this.onKeyDown}
+                    txt="0"
+                />
+                <button onClick={this.step}>
+                    Step
+                </button>
+            </div>
 
-                                        const defaultGraph = graph || computersInfo[computerType!].defaultGraph;
-
-                                        console.log(defaultGraph);
-                                        console.log(defaultGraph["nodes"]);
-
-                                        this.lastNodeId = defaultGraph.nodes.length;
-                                        this.setState({
-                                            computerType: computerType,
-                                            elements: defaultGraph
-                                        }, () => this.updateGraph());
-                                    }}
-                                />
-
-                                {this.state.popout}
-
-                                <SavingPopout open={this.state.savePopoutOpen}
-                                              onClose={this.closeSavePopout}
-                                              isLogin={this.state.isLogin}
-                                              onAuthFailed={this.logout}
-                                              graph={this.state.elements}
-                                              computerType={this.state.computerType!}/>
-
-                                <div className="hint-container">
-                                    <Paper className="hint" variant="outlined">
-                                        Ctrl+S — сохранить автомат
-                                    </Paper>
-                                    <Paper className="hint" variant="outlined">
-                                        Удерживайте Shift чтобы создать ребро
-                                    </Paper>
-                                    <Paper className="hint" variant="outlined">
-                                        Двойное нажатие чтобы создать вершину
-                                    </Paper>
-                                </div>
-
-
-                                {
-                                        this.state.computerType === "tm" ?
-                                            <div className="app__mem_ribbon">
-                                                    {
-                                                        this.state.mem?.map((value, index) =>
-                                                            <div
-                                                                className="app__mem_cell"
-                                                                style={{border: `${index === this.state.ptr ? "#0041d0" : "#000000" } 2px solid`}}
-                                                            >
-
-                                                                {Math.abs (Math.abs(index) - Math.abs(this.state.ptr!)) <= 5  ? <div ref={this.memRef}/> : <div/>}
-                                                                {value}
-                                                                {this.memRef?.current?.scrollIntoView({behavior: 'smooth'})                                                                }
-                                                            </div>
-                                                        )
-                                                    }
-                                            </div>
-                                        : <div/>
-                                    }
-
-
-                                <AppHeader
-                                    onMenuButtonClicked={this.openWelcomePopout}
-                                    onSaveButtonClicked={this.openSavePopout}
-                                    onLogoutButtonClicked={this.logout}
-                                    isLogin={this.state.isLogin}
-                                />
-
-                                <div className="field__container">
-                                    <Graph
-                                        getNetwork={(network: any) => this.network = network}
-                                        graph={{nodes: [], edges: []}}
-                                        options={this.state.options}
-                                        events={this.events}
-                                    />
-                                </div>
-
-                                <div className="app__right-menu">
-                                    <NodeControl
-                                        node={this.state.selectedNode}
-                                        changeNodeLabel={this.changeNodeLabel}
-                                        changeStateIsAdmit={this.changeStateIsAdmit}
-                                        changeStateIsInitial={this.changeStateIsInitial}
-                                        deleteNode={this.deleteNode}
-                                    />
-                                    <EdgeControl
-                                        edge={this.state.selectedEdge}
-                                        changeEdgeTransitions={this.changeEdgeTransition}
-                                        deleteEdge={this.deleteEdge}
-                                    />
-                                    <RunControl
-                                        updMem = {this.updMem}
-                                        elements={this.state.elements}
-                                        changeStateIsCurrent={this.changeStateIsCurrent}
-                                    />
-                                </div>
-
-                            </div>
-                        </ComputerTypeContext.Provider>
-                    </Route>
-                </Switch>
-            </HashRouter>
+            // <HashRouter>
+            //     <Switch>
+            //         <Route path="/login">
+            //             <LoginPage/>
+            //         </Route>
+            //         <Route path="/ping">
+            //             <PingPage/>
+            //         </Route>
+            //         <Route path="/failed-login">
+            //             <FailedLoginPage/>
+            //         </Route>
+            //         <Route path="/success-login">
+            //             <SuccessLoginPage onAuthSuccess={this.login}/>
+            //         </Route>
+            //         <Route path="/">
+            //             <ComputerTypeContext.Provider value={this.state.computerType}>
+            //                 <div className="app">
+            //                     <WelcomePopout
+            //                         open={this.state.welcomePopoutOpen}
+            //                         onClose={this.closeWelcomePopout}
+            //                         onAuthFailed={this.logout}
+            //                         changeComputerType={(computerType, graph: graph | null) => {
+            //
+            //                             const defaultGraph = graph || computersInfo[computerType!].defaultGraph;
+            //
+            //                             console.log(defaultGraph);
+            //                             console.log(defaultGraph["nodes"]);
+            //
+            //                             this.lastNodeId = defaultGraph.nodes.length;
+            //                             this.setState({
+            //                                 computerType: computerType,
+            //                                 elements: defaultGraph
+            //                             }, () => this.updateGraph());
+            //                         }}
+            //                     />
+            //
+            //                     {this.state.popout}
+            //
+            //                     <SavingPopout open={this.state.savePopoutOpen}
+            //                                   onClose={this.closeSavePopout}
+            //                                   isLogin={this.state.isLogin}
+            //                                   onAuthFailed={this.logout}
+            //                                   graph={this.state.elements}
+            //                                   computerType={this.state.computerType!}/>
+            //
+            //                     <div className="hint-container">
+            //                         <Paper className="hint" variant="outlined">
+            //                             Ctrl+S — сохранить автомат
+            //                         </Paper>
+            //                         <Paper className="hint" variant="outlined">
+            //                             Удерживайте Shift чтобы создать ребро
+            //                         </Paper>
+            //                         <Paper className="hint" variant="outlined">
+            //                             Двойное нажатие чтобы создать вершину
+            //                         </Paper>
+            //                     </div>
+            //
+            //
+            //                     {
+            //                         this.state.computerType === "tm" ?
+            //                             <div className="app__mem_ribbon">
+            //                                 {
+            //                                     this.state.mem?.map((value, index) =>
+            //                                         <div
+            //                                             className="app__mem_cell"
+            //                                             style={{border: `${index === this.state.ptr ? "#0041d0" : "#000000" } 2px solid`}}
+            //                                         >
+            //
+            //                                             {Math.abs (Math.abs(index) - Math.abs(this.state.ptr!)) <= 5  ? <div ref={this.memRef}/> : <div/>}
+            //                                             {value}
+            //                                             {this.memRef?.current?.scrollIntoView({behavior: 'smooth'})                                                                }
+            //                                         </div>
+            //                                     )
+            //                                 }
+            //                             </div>
+            //                             : <div/>
+            //                     }
+            //
+            //
+            //                     <AppHeader
+            //                         onMenuButtonClicked={this.openWelcomePopout}
+            //                         onSaveButtonClicked={this.openSavePopout}
+            //                         onLogoutButtonClicked={this.logout}
+            //                         isLogin={this.state.isLogin}
+            //                     />
+            //
+            //                     <div className="field__container">
+            //                         <Graph
+            //                             getNetwork={(network: any) => this.network = network}
+            //                             graph={{nodes: [], edges: []}}
+            //                             options={this.state.options}
+            //                             events={this.events}
+            //                         />
+            //                     </div>
+            //
+            //                     <div className="app__right-menu">
+            //                         <NodeControl
+            //                             node={this.state.selectedNode}
+            //                             changeNodeLabel={this.changeNodeLabel}
+            //                             changeStateIsAdmit={this.changeStateIsAdmit}
+            //                             changeStateIsInitial={this.changeStateIsInitial}
+            //                             deleteNode={this.deleteNode}
+            //                         />
+            //                         <EdgeControl
+            //                             edge={this.state.selectedEdge}
+            //                             changeEdgeTransitions={this.changeEdgeTransition}
+            //                             deleteEdge={this.deleteEdge}
+            //                         />
+            //                         <RunControl
+            //                             updMem = {this.updMem}
+            //                             elements={this.state.elements}
+            //                             changeStateIsCurrent={this.changeStateIsCurrent}
+            //                         />
+            //                     </div>
+            //
+            //                 </div>
+            //             </ComputerTypeContext.Provider>
+            //         </Route>
+            //     </Switch>
+            // </HashRouter>
 
         )
     }
