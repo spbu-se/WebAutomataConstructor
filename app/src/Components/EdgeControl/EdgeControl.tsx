@@ -79,20 +79,21 @@ class EdgeControl extends React.Component<EdgeControlProps, EdgeControlState> {
         this.setState({transitionsText: value});
 
         let t: { fst: string | undefined, snd: string | undefined, trd: string | undefined, fth: string | undefined }[] = []
-        this.state.transitionsText
-            .split('')
-            .filter(x => x !== " " && x !== "\n")
-            .join('')
-            .split(";")
-            .forEach(value => {
-                let tmp = value.split(",")
-                let fst = tmp.shift()
-                tmp = tmp.join('').split("|" || ">")
-                let snd = tmp.shift()
-                let trd = tmp
-                let fth
 
-                if (this.props.computerType === "tm") {
+        if (this.props.computerType === "tm") {
+            this.state.transitionsText
+                .split('')
+                .filter(x => x !== " " && x !== "\n")
+                .join('')
+                .split(";")
+                .forEach(value => {
+                    let tmp = value.split('')
+                    let fst = tmp.shift()
+                    tmp = tmp.join('').split("|" || ">")
+                    let snd = tmp.shift()
+                    let trd = tmp
+                    let fth = undefined
+
                     let bebra = tmp.join("").split(">")
                     bebra.reverse()
                     fth = bebra.shift()
@@ -100,10 +101,39 @@ class EdgeControl extends React.Component<EdgeControlProps, EdgeControlState> {
                     trd = bebra
                     console.log("tmp")
                     console.log(bebra)
-                }
 
-                t.push({ fst: fst, snd: snd, trd: trd.join(':'), fth: fth })
-            })
+                    t.push({ fst: EPS, snd: snd, trd: trd.join(':'), fth: fth })
+                })
+
+        } else {
+            this.state.transitionsText
+                .split('')
+                .filter(x => x !== " " && x !== "\n")
+                .join('')
+                .split(";")
+                .forEach(value => {
+                    let tmp = value.split(",")
+                    let fst = tmp.shift()
+                    tmp = tmp.join('').split("|" || ">")
+                    let snd = tmp.shift()
+                    let trd = tmp
+                    // let fth = undefined
+
+                    // if (this.props.computerType === "tm") {
+                    //     let bebra = tmp.join("").split(">")
+                    //     bebra.reverse()
+                    //     fth = bebra.shift()
+                    //     bebra.reverse()
+                    //     trd = bebra
+                    //     console.log("tmp")
+                    //     console.log(bebra)
+                    // }
+
+                    t.push({ fst: fst, snd: snd, trd: trd.join(':'), fth: undefined })
+                })
+        }
+
+
         let acc: TransitionParams[] = []
         t.forEach(value => {
             if (value.fst !== undefined) {
@@ -112,7 +142,7 @@ class EdgeControl extends React.Component<EdgeControlProps, EdgeControlState> {
                         title: value.fst === 'eps' ? EPS : value.fst,
                         stackDown: value.snd === 'eps' ? EPS : value.snd,
                         stackPush: value.trd?.split(':').map(value => value === 'eps' ? EPS : value),
-                        move: value.fth === 'L' ? Move.L : Move.R
+                        move: value.fth !== undefined ? value.fth === 'L' ? Move.L : Move.R : undefined
                     }
                 )
             }
@@ -127,87 +157,73 @@ class EdgeControl extends React.Component<EdgeControlProps, EdgeControlState> {
 
     }
 
-    changeStackDown = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
-        const value = event.target.value;
-
-        // this.setState({stackDownText: value});
-        if (value.slice(-1) === ",") {
-            const transitions: Set<TransitionParams[]> = new Set<TransitionParams[]>();
-
-            this.props.changeEdgeTransitions(this.props.edge!.id!, transitions);
-            this.setState({transitionsText: transitionsToLabel(transitions)}
-            );
-        }
-    }
-
     deleteEdge = (): void => {
         if (this.props.edge !== null) {
             this.props.deleteEdge(this.props.edge.id!);
         }
     }
     
-
     private addInstruction(value: string) {
         let newRow = {id: this.state.rules.length, value: value};
         this.setState({rules: this.state.rules.concat(newRow)});
     }
     
-     changeEditMode = () => {
+    changeEditMode = () => {
          this.setState({editMode: !this.state.editMode});
          this.updateTransitions();
      }
     
     updateTransitions = () => {
-        const transitions = new Set<TransitionParams[]>();
-
-        let t: { fst: string | undefined, snd: string | undefined, trd: string | undefined, fth: string | undefined }[] = []
-        this.state.transitionsText
-            .split('')
-            .filter(x => x !== " " && x !== "\n")
-            .join('')
-            .split(";")
-            .forEach(value => {
-                let tmp = value.split(",")
-                let fst = tmp.shift()
-                tmp = tmp.join('').split("|")
-                let snd = tmp.shift()
-                let trd = tmp
-                let fth
-
-                if (this.props.computerType === "tm") {
-                    let bebra = tmp.join("").split(">")
-                    bebra.reverse()
-                    fth = bebra.shift()
-                    bebra.reverse()
-                    trd = bebra
-                    console.log("tmp")
-                    console.log(bebra)
-                }
-
-                t.push({ fst: fst, snd: snd, trd: trd.join(':'), fth: fth })
-            })
-        // t.forEach(value =>  console.log(value))
-        let acc: TransitionParams[] = []
-        t.forEach(value => {
-            if (value.fst !== undefined) {
-                acc.push(
-                    {
-                        title: value.fst === 'eps' ? EPS : value.fst,
-                        stackDown: value.snd === 'eps' ? EPS : value.snd,
-                        stackPush: value.trd?.split(':').map(value => value === 'eps' ? EPS : value),
-
-                        move: value.fth === 'L' ? Move.L : Move.R
-                    }
-                )
-            }
-        })
-        acc = acc.filter(x => x.title.length > 0)
-        transitions.add(acc)
-        this.props.changeEdgeTransitions(this.props.edge!.id!, transitions);
-        this.setState({
-            transitionsText: getTransitionsTitles(transitions),
-            transitions: transitions
-        })
+        // const transitions = new Set<TransitionParams[]>();
+        //
+        // let t: { fst: string | undefined, snd: string | undefined, trd: string | undefined, fth: string | undefined }[] = []
+        // this.state.transitionsText
+        //     .split('')
+        //     .filter(x => x !== " " && x !== "\n")
+        //     .join('')
+        //     .split(";")
+        //     .forEach(value => {
+        //         let tmp = value.split(",")
+        //         let fst = tmp.shift()
+        //         tmp = tmp.join('').split("|")
+        //         let snd = tmp.shift()
+        //         let trd = tmp
+        //         let fth
+        //
+        //         if (this.props.computerType === "tm") {
+        //             let bebra = tmp.join("").split(">")
+        //             bebra.reverse()
+        //             fth = bebra.shift()
+        //             bebra.reverse()
+        //             trd = bebra
+        //             console.log("tmp")
+        //             console.log(bebra)
+        //         }
+        //
+        //         t.push({ fst: fst, snd: snd, trd: trd.join(':'), fth: fth })
+        //     })
+        // // t.forEach(value =>  console.log(value))
+        // let acc: TransitionParams[] = []
+        // t.forEach(value => {
+        //     if (value.fst !== undefined) {
+        //         acc.push(
+        //             {
+        //                 title: value.fst === 'eps' ? EPS : value.fst,
+        //                 stackDown: value.snd === 'eps' ? EPS : value.snd,
+        //                 stackPush: value.trd?.split(':').map(value => value === 'eps' ? EPS : value),
+        //
+        //                 move: value.fth === 'L' ? Move.L : Move.R
+        //             }
+        //         )
+        //     }
+        // })
+        // acc = acc.filter(x => x.title.length > 0)
+        // transitions.add(acc)
+        // this.props.changeEdgeTransitions(this.props.edge!.id!, transitions);
+        // this.setState({
+        //     transitionsText: getTransitionsTitles(transitions),
+        //     transitions: transitions
+        // })
     }
 
     deleteTransition = (): void => {

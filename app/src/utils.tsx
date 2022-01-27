@@ -1,20 +1,23 @@
 import {ComputerInfo, ComputerType, graph} from "./react-graph-vis-types";
 import {EPS} from "./Logic/Computer";
 import {Move, TransitionParams} from "./Logic/IGraphTypes";
+import { Elements } from "./App";
 
 export const transitionsToLabel = (transitions: Set<TransitionParams[]>): string => {
     const maxLength = (): number => {
         let max: number = 0;
-        transitions.forEach(value => {
-            value.forEach(value1 => {
-                if (value1.stackDown !== undefined && value1.stackPush !== undefined) {
-                    const phs: number = Math.max(...value1.stackPush.map(o => o === EPS ? 0 : o.length), 0)
-                    const ttl: number = value1.title === EPS ? 0 : value1.title.length
-                    const std: number = value1.stackDown === EPS ? 0 : value1.stackDown.length
-                    max = Math.max(...[phs, ttl, std, max].map(o => o), 0)
-                }
-            } )
-        })
+        if (transitions !== undefined) {
+            transitions.forEach(value => {
+                value.forEach(value1 => {
+                    if (value1.stackDown !== undefined && value1.stackPush !== undefined) {
+                        const phs: number = Math.max(...value1.stackPush.map(o => o === EPS ? 0 : o.length), 0)
+                        const ttl: number = value1.title === EPS ? 0 : value1.title.length
+                        const std: number = value1.stackDown === EPS ? 0 : value1.stackDown.length
+                        max = Math.max(...[phs, ttl, std, max].map(o => o), 0)
+                    }
+                })
+            })
+        }
         return max
     }
 
@@ -26,26 +29,39 @@ export const transitionsToLabel = (transitions: Set<TransitionParams[]>): string
     }
 
     let str = "" + spc
-    transitions.forEach(value => {
-        value.forEach(value1 => {
-            if (value1.title !== undefined && value1.title.length > 0) {
-                str += value1.title === EPS ? "ε" : value1.title
-                if (value1.stackDown !== undefined && value1.stackDown.length > 0) {
-                    str += ", " + (value1.stackDown === EPS ? "ε" : value1.stackDown)
-                    // value1.stackDown
-                }
-                if (value1.stackPush !== undefined && value1.stackPush.length > 0 && value1.stackDown !== '') {
-                    str += " | " + value1.stackPush.map(value2 => value2 === EPS ? "ε" : value2).join(":")
-                }
-                if (value1.move !== undefined) {
-                    str += (value1.move === 0 ? "L" : "R")
-                }
+    if (transitions !== undefined) {
+        transitions.forEach(value => {
+            value.forEach(value1 => {
+                if (value1.title !== undefined && value1.title.length > 0) {
+                    if (value1.move !== undefined) {
+                        if (value1.stackDown !== undefined && value1.stackDown.length > 0) {
+                            str += value1.stackDown === EPS ? "ε" : value1.stackDown
+                            // value1.stackDown
+                        }
+                        if (value1.stackPush !== undefined && value1.stackPush.length > 0 && value1.stackDown !== '') {
+                            str += " | " + value1.stackPush.map(value2 => value2 === EPS ? "ε" : value2).join(":")
+                        }
+                        str += (value1.move === 0 ? "L" : "R")
+                    } else {
+                        str += value1.title === EPS ? "ε" : value1.title
+                        if (value1.stackDown !== undefined && value1.stackDown.length > 0) {
+                            str += ", " + (value1.stackDown === EPS ? "ε" : value1.stackDown)
+                            // value1.stackDown
+                        }
+                        if (value1.stackPush !== undefined && value1.stackPush.length > 0 && value1.stackDown !== '') {
+                            str += " | " + value1.stackPush.map(value2 => value2 === EPS ? "ε" : value2).join(":")
+                        }
+                        if (value1.move !== undefined) {
+                            str += (value1.move === 0 ? "L" : "R")
+                        }
+                    }
 
-                str = str + "\n" + spc
-            }
+                    str = str + "\n" + spc
+                }
+            })
+
         })
-
-    })
+    }
     return str
 }
 
@@ -53,28 +69,43 @@ export const getTransitionsTitles = (transitions: Set<TransitionParams[]>): stri
     let str = ""
     transitions.forEach(value => {
         value.forEach(value1 => {
-            if (value1.title !== undefined && value1.title.length > 0) {
-                str += value1.title === EPS ? "eps" : value1.title
-                if (value1.stackDown !== undefined && value1.stackDown.length > 0) {
-                    str += ", " + (value1.stackDown === EPS ? "eps" : value1.stackDown)
-                }
-                if (value1.stackPush !== undefined && value1.stackPush.length > 0 && value1.stackDown !== '') {
-                    str += " | " + value1.stackPush.map(value2 => value2 === EPS ? "eps" : value2).join(":")
-                }
-                if (value1.move !== undefined) {
-                    str += ">" + (value1.move === 0 ? "L" : "R")
-                }
-                str += ";\n"
 
+            if (value1.title !== undefined && value1.title.length > 0) {
+                if (value1.move !== undefined) {
+                    if (value1.stackDown !== undefined && value1.stackDown.length > 0) {
+                        str += value1.stackDown === EPS ? "eps" : value1.stackDown
+                    }
+                    if (value1.stackPush !== undefined && value1.stackPush.length > 0 && value1.stackDown !== '') {
+                        str += " | " + value1.stackPush.map(value2 => value2 === EPS ? "eps" : value2).join(":")
+                    }
+                    str += ">" + (value1.move === 0 ? "L" : "R")
+
+                } else {
+                    str += value1.title === EPS ? "eps" : value1.title
+                    if (value1.stackDown !== undefined && value1.stackDown.length > 0) {
+                        str += ", " + (value1.stackDown === EPS ? "eps" : value1.stackDown)
+                    }
+                    if (value1.stackPush !== undefined && value1.stackPush.length > 0 && value1.stackDown !== '') {
+                        str += " | " + value1.stackPush.map(value2 => value2 === EPS ? "eps" : value2).join(":")
+                    }
+                }
+
+                str += ";\n"
             }
         })
     })
     return str
 }
 
+export const decorateGraph = (elements: Elements) => {
+    elements.edges.forEach((edge) => {
+        elements.edges.update({
+            id: edge.id!,
+            label: transitionsToLabel(edge.transitions)
+        })
+    })
 
-export const decorateGraph = (graph: graph): graph => {
-    graph.nodes.forEach(node => {
+    elements.nodes.forEach((node) => {
         const border = node.isInitial ? "#0041d0" : node.isAdmit ? "#ff0072" : "#000000"
         const background = node.isCurrent ? "#ffff55" : "#ffffff";
         const borderWidth = {
@@ -83,23 +114,34 @@ export const decorateGraph = (graph: graph): graph => {
             highlight: 4
         };
 
-        node.color = {
-            background: background,
-            border: border,
-            highlight: {
+        elements.nodes.update({
+            id: node.id,
+            color: {
+                background: background,
                 border: border,
-                background: background
-            }
-        };
-        node.borderWidth = node.isInitial || node.isAdmit ? borderWidth.primary : borderWidth.default;
-        node.borderWidthSelected = borderWidth.highlight;
+                highlight: {
+                    border: border,
+                    background: background
+                }
+            },
+            borderWidth: node.isInitial || node.isAdmit ? borderWidth.primary : borderWidth.default,
+            borderWidthSelected: borderWidth.highlight
+        })
     })
 
-    graph.edges.forEach(edge => {
-        edge.label = transitionsToLabel(edge.transitions)
+}
+
+export const elementsToGraph = (elements: Elements): graph => {
+    let acc: graph = {nodes: [], edges: []}
+
+    elements.nodes.forEach((node) => {
+        acc.nodes.push(node)
+    })
+    elements.edges.forEach((edge) => {
+        acc.edges.push(edge)
     })
 
-    return graph;
+    return acc
 }
 
 export const getNodeNamePrefix = (graph: graph): string => {

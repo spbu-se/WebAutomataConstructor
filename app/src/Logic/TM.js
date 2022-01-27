@@ -145,6 +145,9 @@ var TM = /** @class */ (function (_super) {
             var ret = _this.__step(_this.counterSteps, 0, _this.historiStep);
             _this.counterSteps = ret.counter;
             _this.historiStep = ret.history;
+            if (ret.history[ret.history.length - 1].by === "") {
+                ret.nodes = [];
+            }
             return __assign(__assign({}, ret), { memory: _this.mem.getStorage() });
         };
         _this.checkMemFormat(graph);

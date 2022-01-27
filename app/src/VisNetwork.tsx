@@ -9,18 +9,6 @@ import {
 import { Move, NodeCore } from "./Logic/IGraphTypes";
 import {edge, graph, node } from "./react-graph-vis-types";
 
-
-export interface Iedge {
-    id: number, from: number, to: number, label: string
-}
-
-export interface NodeCore0  {
-    id: number
-    isAdmit: boolean
-    stack?: string[]
-    move?: Move
-}
-
 export interface node0 extends NodeCore{
     label: string,
     isInitial: boolean,
@@ -30,12 +18,24 @@ export interface node0 extends NodeCore{
     color?: { border: string, background: string },
 }
 
-export const VisNetwork = (props: { txt: string, nodes: DataSet<node>, edges: DataSet<Iedge>, data: {nodes: DataSet<node, "id">, edges: DataSet<Iedge, "id">}, onDoubleClick: (params?: any) => void, onKeyDown: (params?: any) => void }) => {
+interface PropsVisNet {
+    nodes: DataSet<node>,
+    edges: DataSet<edge>,
+    data: {nodes: DataSet<node, "id">, edges: DataSet<edge, "id">},
+    onDoubleClick: (params?: any) => void,
+    onClick1: (params?: any) => void,
+    onClick2: (params?: any) => void,
+    onClick3: (params?: any) => void,
+    onClick4: (params?: any) => void,
+    network: any
+}
+
+export const VisNetwork = (props: PropsVisNet) => {
     // A reference to the div rendered by this component
     const [domNode, setdomNode] = useState(useRef<HTMLDivElement>(null));
 
     // A reference to the vis network instance
-    const [network, setNetwork] = useState(useRef<Network | null>(null));
+    // const [network, setNetwork] = useState(useRef<Network | null>(null));
 
     const [options, setOptions] = useState<Options>({
         edges: {
@@ -61,12 +61,24 @@ export const VisNetwork = (props: { txt: string, nodes: DataSet<node>, edges: Da
             },
             length: 200
         },
+        layout: {improvedLayout:false},
         nodes: {
+            shapeProperties: {
+                interpolation: false
+            },
             shape: "circle",
             font: "18px Roboto black",
             labelHighlightBold: false,
             size: 40,
             borderWidth : 2,
+            color: {
+                background: "#ffffff",
+                border: "#000000",
+                highlight: {
+                    border: "#000000",
+                    background: "#ffffff"
+                }
+            },
             // color: "#ffffff",
         },
         physics: {
@@ -91,42 +103,45 @@ export const VisNetwork = (props: { txt: string, nodes: DataSet<node>, edges: Da
     useLayoutEffect(() => {
 
         if (domNode.current) {
-            network.current = new Network(domNode.current, props.data, options);
+            props.network.current = new Network(domNode.current, props.data, options);
         }
 
-        document.addEventListener("keydown", (event: KeyboardEvent) => {
-            if (network.current) {
-                if (event.key === "Delete") {
-                    network.current.deleteSelected();
-                }
-            }
-        })
+        // document.addEventListener("keydown", (event: KeyboardEvent) => {
+        //     if (props.network.current) {
+        //         if (event.key === "Delete") {
+        //             props.network.current.deleteSelected();
+        //         }
+        //     }
+        // })
 
         document.addEventListener("keydown", (event) => {
-            if (network.current) {
+            if (props.network.current) {
                 if (event.ctrlKey) {
-                    network.current.addEdgeMode();
+                    props.network.current.addEdgeMode();
                 }
             }
         })
 
         document.addEventListener("keyup", (event) => {
-            if (network.current) {
-                network.current.disableEditMode();
+            if (props.network.current) {
+                props.network.current.disableEditMode();
             }
         })
 
-        if (network.current) {
-            network.current.on('doubleClick', props.onDoubleClick)
-            network.current.on('click', props.onKeyDown);
+        if (props.network.current) {
+            props.network.current.on('doubleClick', props.onDoubleClick)
+            props.network.current.on('click', props.onClick1);
+            props.network.current.on('click', props.onClick2);
+            props.network.current.on('click', props.onClick3);
+            props.network.current.on('click', props.onClick4);
         }
 
-    }, [domNode, network, props.data, options]);
+    }, [domNode, props.network, props.data, options]);
 
     return (
         <div
             style={{
-                height: "50%",
+                height: "100%",
                 width: "100%",
             }}
             ref={domNode}

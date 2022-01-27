@@ -170,6 +170,9 @@ export class TM extends PDA {
         )
         this.counterSteps = ret.counter
         this.historiStep = ret.history
+        if (ret.history[ret.history.length - 1].by === "") {
+            ret.nodes = []
+        }
         return {
             ...ret,
             memory: this.mem.getStorage()
