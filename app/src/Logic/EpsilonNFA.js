@@ -14,88 +14,6 @@ var __extends = (this && this.__extends) || (function () {
 })();
 exports.__esModule = true;
 var PDA_1 = require("./PDA");
-var lodash_1 = require("lodash");
-var Queue = /** @class */ (function () {
-    function Queue(capacity) {
-        if (capacity === void 0) { capacity = Infinity; }
-        this.capacity = capacity;
-        this.storage = [];
-    }
-    Queue.prototype.enqueue = function (item) {
-        if (this.size() === this.capacity) {
-            throw Error("Queue has reached max capacity, you cannot add more items");
-        }
-        this.storage.push(item);
-    };
-    Queue.prototype.dequeue = function () {
-        return this.storage.shift();
-    };
-    Queue.prototype.size = function () {
-        return this.storage.length;
-    };
-    return Queue;
-}());
-var ImSet = /** @class */ (function () {
-    function ImSet() {
-        this.table = new Map();
-        this.set = [];
-    }
-    ImSet.prototype.normalize = function (v) {
-        var _v = lodash_1.cloneDeep(v);
-        _v = _v.sort();
-        return _v;
-    };
-    ImSet.prototype.getItter = function (value) {
-        if (!this.has(value)) {
-            throw Error;
-        }
-        var it = 0;
-        var _v = this.normalize(value);
-        this.set.forEach(function (value1, index) {
-            if (JSON.stringify(_v) === JSON.stringify(value1)) {
-                it = index;
-            }
-        });
-        return it;
-    };
-    ImSet.prototype.has = function (value) {
-        var _v = this.normalize(value);
-        var k = JSON.stringify(_v);
-        return this.table.has(k);
-    };
-    ImSet.prototype.myForEach = function (callback) {
-        this.set.forEach(function (value1, index) {
-            callback(value1, index);
-        });
-    };
-    ImSet.prototype.add = function (value) {
-        var _v = this.normalize(value);
-        var k = JSON.stringify(_v);
-        if (!this.table.has(k)) {
-            this.table.set(k, _v);
-            this.set.push(_v);
-        }
-    };
-    ImSet.prototype.size = function () {
-        return this.set.length;
-    };
-    ImSet.prototype.getNth = function (i) {
-        return this.set[i];
-    };
-    ImSet.prototype.getIter = function (value) {
-        var _v = this.normalize(value);
-        var k = JSON.stringify(_v);
-        var iter = 0;
-        this.set.forEach(function (v, index) {
-            if (JSON.stringify(v) === k) {
-                iter = index;
-            }
-        });
-        return iter;
-    };
-    return ImSet;
-}());
-exports.ImSet = ImSet;
 var EpsilonNFA = /** @class */ (function (_super) {
     __extends(EpsilonNFA, _super);
     function EpsilonNFA(graph, startStatement, input) {
@@ -127,6 +45,22 @@ var EpsilonNFA = /** @class */ (function (_super) {
     return EpsilonNFA;
 }(PDA_1.PDA));
 exports.EpsilonNFA = EpsilonNFA;
+// let nfa = new EpsilonNFA (
+//     {
+//         nodes: [
+//             {id: 0, isAdmit: false},
+//             {id: 1, isAdmit: false},
+//             {id: 2, isAdmit: false},
+//
+//         ],
+//         edges: [
+//             {from: 0, to: 0, transitions: new Set([ [{title: 'a'}, {title: 'b'}] ])},
+//             {from: 0, to: 1, transitions: new Set([ [{title: 'a'}] ])},
+//             {from: 1, to: 2, transitions: new Set([ [{title: 'b'}] ])},
+//         ]
+//     }, [{id: 0, isAdmit: false}], [],
+// )
+// nfa.nfaToDfa()
 //
 // let nfa = new EpsilonNFA(
 //     {

@@ -22,6 +22,8 @@ export abstract class Computer {
     public abstract step: () => Step
     public abstract setInput: (input: string[]) => void
     public abstract byEmptyStackAdmt: (isAdmt: boolean) => void
+    public abstract nfaToDfa: () => GraphCore
+
 
     protected getAlphabetFromEdges(): void {
         let alphabetSet: Set<string> = new Set()

@@ -10,6 +10,7 @@ type statementCell = {
     readonly move?: Move
 } & statement
 
+
 type statementCells = Array<statementCell>
 
 type element = {
@@ -594,65 +595,130 @@ export class PDA extends Computer {
 
 // move to Nfa
     nfaToDfa = (): GraphCore => {
-        this.restart()
-        let start: position[] = this.curPosition
-        let dfaStmts: ImSet<position[]> = new ImSet<position[]>()
-        let tmp: position[][] = []
-        let i = 0
-        let dfaMatrix: position[][][] = []
-
-        dfaStmts.add(this.curPosition)
-        while (i < dfaStmts.size()) {
-            this.curPosition = dfaStmts.getNth(i)
-            this.alphabet.forEach((value) => {
-                this._step(0, value, [])
-                if (this.curPosition.length > 0) {
-                    dfaStmts.add(this.curPosition)
-                }
-                tmp.push(this.curPosition)
-                this.curPosition = dfaStmts.getNth(i)
-            })
-            dfaMatrix.push(tmp)
-            tmp = []
-            i++
+        const nextStepPosition = (position: position, by: number): position[] => {
+            return this.cellMatrix(position.stmt.idLogic, by).map(v => ({stmt: v}))
         }
 
-        let nodes: NodeCore[] = []
-        let edges: EdgeCore[] = []
-        let mp: Map<string, number> = new Map<string, number>()
+        const _nextStepPositions = (positions: position[], by: number): position[] => {
+            let acc: position[] = []
+            positions.map((v) =>
+                nextStepPosition(v, by)).forEach((ps) =>
+                    ps.forEach((p) => acc.push(p)))
+            return acc
+        }
 
-        dfaStmts.myForEach((value, index) => {
-            mp.set(JSON.stringify(value), index)
-            let isAdmt = this.haveAdmitting(value)
-            nodes.push({id: index, isAdmit: isAdmt})
-        })
+        const nextStepPositions = (positions: position[], by: number): position[] => {
 
-        dfaStmts.myForEach((value, index) => {
-            this.alphabet.forEach((value1, key) => {
-                let from = mp.get(JSON.stringify(value))!
-                let to = mp.get(JSON.stringify(dfaMatrix[from][value1]))
-                if (to !== undefined) {
-                    edges.push({from: from, to: to, transitions: new Set<TransitionParams[]>([[{title: key}]])})
+            const afterEps = (positions: position[]): position[] => {
+                if (this.epsId === undefined) {
+                    return positions
                 }
-            })
-        })
+                const acc: position[][] = []
+                const EPStack = new Stack<string>()
+                EPStack.push(EPS)
+                positions.forEach((position) => {
+                    const tmp = this.epsilonStep(position.stmt.idLogic, EPS, EPStack)
+                    if (tmp !== undefined) {
+                        acc.push(tmp)
+                    }
+                })
 
-        let _edges: EdgeCore[] = []
-        nodes.forEach(value => nodes.forEach(value1 => {
-            let acc: TransitionParams[] = []
-            edges.forEach(value2 => {
-                if (value.id === value2.from && value1.id === value2.to) {
-                    acc.push(Array.from(value2.transitions)[0][0])
-                    // console.log("->>", acc)
-                }
-            })
-            if (acc.length > 0) {
-                _edges.push({from: value.id, to: value1.id, transitions: new Set<TransitionParams[]>([acc])})
-                // console.log("->>", value.id, value1.id, acc)
+                const flatted: position[] = []
+                acc.forEach((ps) => ps.forEach((p) => flatted.push(p)))
+
+                return flatted
             }
-        }))
 
-        return {nodes: nodes, edges: _edges}
+            return afterEps(_nextStepPositions(afterEps(positions), by))
+        }
+
+        const stack: position[][] = []
+
+        const pop = () => stack.shift()
+
+        const push = (v: position[]): void => {
+            stack.push(v)
+        }
+
+        const table: position[][][] = []
+
+        const set: ImSet<position[]> = new ImSet<position[]>()
+
+        const startPos = this.curPosition
+
+
+        this.restart()
+        push(startPos)
+
+        while(stack.length > 0) {
+            let head = pop()
+            let acc: position[][] = []
+
+            if (head === undefined) {
+                break;
+            }
+            set.add(head.map((v) => (
+                {
+                    stmt: {
+                        id: v.stmt.id,
+                        idLogic: v.stmt.idLogic,
+                        isAdmit: v.stmt.isAdmit
+                    },
+                    stack: undefined
+                }))
+            )
+
+            this.alphabet.forEach((value) => {
+                if (value !== this.epsId) {
+                    let to: position[] = nextStepPositions(head!, value)
+                    let _to: position[] = to.map((v) => (
+                        {
+                            stmt: {
+                                id: v.stmt.id,
+                                idLogic: v.stmt.idLogic,
+                                isAdmit: v.stmt.isAdmit
+                            },
+                            stack: undefined
+                        })
+                    )
+                    acc.push(_to)
+                    if (to.length > 0 && !set.has(to) && !set.has(_to)) {
+                        push(_to)
+                    }
+                }
+            })
+            table.push(acc)
+        }
+
+        const _edges: EdgeCore[] = []
+        table.forEach((ps, from) => {
+            this.alphabet.forEach((tr, letter) => {
+                _edges.push({
+                    from: from,
+                    to: set.getIter(ps[tr]),
+                    transitions: new Set<TransitionParams[]>([ [{title: letter}] ])
+                })
+            })
+        })
+
+        const nodes: NodeCore[] = set.getStorage().map((v) => ({id: set.getIter(v), isAdmit: this.haveAdmitting(v)}))
+        const edges: EdgeCore[] = []
+
+        _edges.forEach((ei, it) => {
+            const acc: TransitionParams[] = [Array.from(ei.transitions)[0][0]]
+            _edges.forEach((ej, _it) => {
+                if (it !== _it && ei.from === ej.from && ei.to === ej.to) {
+                    acc.push(Array.from(ej.transitions)[0][0])
+                }
+            })
+            edges.push({
+                from: ei.from,
+                to: ei.to,
+                transitions: new Set<TransitionParams[]>([acc])
+            })
+        })
+
+        return {nodes: nodes, edges: edges}
     }
 
 
@@ -803,13 +869,13 @@ export class ImSet<T extends Record<any, any>> {
     private table: Map<string, T> = new Map<string, T>()
     public set: T[] = []
 
-    private normalize (v: T): T {
+    private normalize(v: T): T {
         let _v = cloneDeep(v)
         _v = _v.sort()
         return _v
     }
 
-    getItter (value: T): number {
+    getItter(value: T): number {
         if (!this.has(value)) {
             throw Error
         }
@@ -823,19 +889,19 @@ export class ImSet<T extends Record<any, any>> {
         return it
     }
 
-    has (value: T): boolean {
+    has(value: T): boolean {
         let _v = this.normalize(value)
         let k = JSON.stringify(_v)
         return this.table.has(k)
     }
 
-    myForEach (callback: (value: T, index: number) => void) {
+    myForEach(callback: (value: T, index: number) => void) {
         this.set.forEach((value1, index) => {
             callback(value1, index)
         })
     }
 
-    add (value: T) {
+    add(value: T) {
         let _v = this.normalize(value)
         let k = JSON.stringify(_v)
         if (!this.table.has(k)) {
@@ -844,15 +910,15 @@ export class ImSet<T extends Record<any, any>> {
         }
     }
 
-    size (): number {
+    size(): number {
         return this.set.length
     }
 
-    getNth (i: number): T {
+    getNth(i: number): T {
         return this.set[i]
     }
 
-    getIter (value: T): number {
+    getIter(value: T): number {
         let _v = this.normalize(value)
         let k = JSON.stringify(_v)
         let iter = 0
@@ -862,6 +928,10 @@ export class ImSet<T extends Record<any, any>> {
             }
         })
         return iter
+    }
+
+    getStorage(): T[] {
+        return this.set
     }
 }
 

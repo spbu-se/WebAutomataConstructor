@@ -2,6 +2,7 @@ import {position, Step} from "./Types";
 import {EdgeCore, GraphCore, NodeCore, TransitionParams} from "./IGraphTypes";
 import {PDA} from "./PDA";
 import {cloneDeep} from "lodash";
+import { EPS } from "./Computer";
 
 
 export class EpsilonNFA extends PDA {
@@ -52,10 +53,27 @@ export class EpsilonNFA extends PDA {
 
         return ret
     }
-
-
-
 }
+
+
+
+// let nfa = new EpsilonNFA (
+//     {
+//         nodes: [
+//             {id: 0, isAdmit: false},
+//             {id: 1, isAdmit: false},
+//             {id: 2, isAdmit: false},
+//
+//         ],
+//         edges: [
+//             {from: 0, to: 0, transitions: new Set([ [{title: 'a'}, {title: 'b'}] ])},
+//             {from: 0, to: 1, transitions: new Set([ [{title: 'a'}] ])},
+//             {from: 1, to: 2, transitions: new Set([ [{title: 'b'}] ])},
+//         ]
+//     }, [{id: 0, isAdmit: false}], [],
+// )
+// nfa.nfaToDfa()
+
 //
 // let nfa = new EpsilonNFA(
 //     {

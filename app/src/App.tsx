@@ -13,7 +13,8 @@ import {
 import {cloneDeep} from "lodash";
 import NodeControl from "./Components/NodeControl/NodeControl";
 import EdgeControl from "./Components/EdgeControl/EdgeControl";
-import {computersInfo, decorateGraph, elementsToGraph, getNodeNamePrefix, getTransitionsTitles} from "./utils";
+import {computersInfo, decorateGraph, elementsToGraph, getNodeNamePrefix, getTransitionsTitles,
+    graphToElements, transitionsToLabel} from "./utils";
 import RunControl from "./Components/RunControl/RunControl";
 import WelcomePopout from "./Components/WelcomePopout/WelcomePopout";
 import Paper from "@mui/material/Paper";
@@ -66,7 +67,8 @@ class App extends React.Component<appProps, appState> {
 
     memRef = React.createRef<HTMLDivElement>();
     network = React.createRef<Network | null>();
-    initializeComputer: any = () => console.log("A");
+    init = (() => {});
+
 
     constructor(props: appProps) {
         super(props);
@@ -167,7 +169,7 @@ class App extends React.Component<appProps, appState> {
 
 
     updateGraph = (): void => {
-        decorateGraph(this.state.elements)
+        decorateGraph(this.state.elements, this.state.computerType)
     }
 
     changeNodeLabel = (id: number, label: string): void => {
@@ -295,7 +297,7 @@ class App extends React.Component<appProps, appState> {
     changeEdgeTransition = (id: string, transitions: Set<TransitionParams[]>): void => {
         this.state.elements.edges.update({
             id: id,
-            label: getTransitionsTitles(transitions),
+            label: transitionsToLabel(transitions, this.state.computerType),
             transitions: transitions
         })
         // this.updateGraph()
@@ -317,18 +319,18 @@ class App extends React.Component<appProps, appState> {
         // }
     }
 
-    graphToElements = (graph: graph): Elements => {
-        let acc: Elements = {nodes: new DataSet<node, "id">(), edges: new DataSet<edge, "id">()}
-
-        graph.nodes.forEach((node) => {
-            acc.nodes.add(node)
-        })
-        graph.edges.forEach((edge) => {
-            acc.edges.add(edge)
-        })
-
-        return acc
-    }
+    // graphToElements = (graph: graph): Elements => {
+    //     let acc: Elements = {nodes: new DataSet<node, "id">(), edges: new DataSet<edge, "id">()}
+    //
+    //     graph.nodes.forEach((node) => {
+    //         acc.nodes.add(node)
+    //     })
+    //     graph.edges.forEach((edge) => {
+    //         acc.edges.add(edge)
+    //     })
+    //
+    //     return acc
+    // }
 
     render() {
         return (
@@ -363,7 +365,7 @@ class App extends React.Component<appProps, appState> {
                                         this.lastNodeId = defaultGraph.nodes.length;
                                         this.setState({
                                             computerType: computerType,
-                                            elements: this.graphToElements(defaultGraph)
+                                            elements: graphToElements(defaultGraph)
                                         }
                                         , () => this.updateGraph()
                                         );
@@ -447,12 +449,16 @@ class App extends React.Component<appProps, appState> {
                                         edge={this.state.selectedEdge}
                                         changeEdgeTransitions={this.changeEdgeTransition}
                                         deleteEdge={this.deleteEdge}
+                                        computerType={this.state.computerType}
+                                        reinitComputer={this.init}
                                     />
                                     <RunControl
-                                        updMem = {this.updMem}
+                                        updMem={this.updMem}
                                         elements={this.state.elements}
                                         changeStateIsCurrent={this.changeStateIsCurrent}
                                         network={this.network}
+                                        getInit={(f: () => void) => this.init = f}
+                                        updateElements={(elements: Elements) => this.setState({elements: elements})}
                                     />
                                 </div>
 
