@@ -45,7 +45,6 @@ interface runControlState {
     wasRuned: boolean,
     memory: string[] | undefined,
     gElements: graph,
-    // counter: number
 }
 
 
@@ -68,11 +67,8 @@ class RunControl extends React.Component<runControlProps, runControlState> {
             wasRuned: false,
             memory: undefined,
             gElements: elementsToGraph(this.props.elements),
-            // counter: 0
         };
-        console.log("XUN")
         this.initializeComputer()
-        console.log("XUN")
     }
 
     componentDidMount() {
