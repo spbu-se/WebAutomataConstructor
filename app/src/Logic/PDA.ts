@@ -632,20 +632,16 @@ export class PDA extends Computer {
             return afterEps(_nextStepPositions(afterEps(positions), by))
         }
 
-        const stack: position[][] = []
-
         const pop = () => stack.shift()
 
         const push = (v: position[]): void => {
             stack.push(v)
         }
 
+        const stack: position[][] = []
         const table: position[][][] = []
-
         const set: ImSet<position[]> = new ImSet<position[]>()
-
         const startPos = this.curPosition
-
 
         this.restart()
         push(startPos)
@@ -701,7 +697,11 @@ export class PDA extends Computer {
             })
         })
 
-        const nodes: NodeCore[] = set.getStorage().map((v) => ({id: set.getIter(v), isAdmit: this.haveAdmitting(v)}))
+        const nodes: NodeCore[] = set.getStorage().map((v) => ({
+            id: set.getIter(v),
+            isAdmit: this.haveAdmitting(v),
+
+        }))
         const edges: EdgeCore[] = []
 
         _edges.forEach((ei, it) => {
@@ -718,7 +718,7 @@ export class PDA extends Computer {
             })
         })
 
-        return {nodes: nodes, edges: edges}
+        return { nodes: nodes, edges: edges }
     }
 
 

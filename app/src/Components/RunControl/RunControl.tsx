@@ -19,7 +19,7 @@ import {EpsilonNFA} from "../../Logic/EpsilonNFA";
 import {PDA} from "../../Logic/PDA";
 import { TM } from "../../Logic/TM";
 import { Elements } from "../../App";
-import { elementsToGraph, graphToElements } from "../../utils";
+import {decorateGraph, elementsToGraph, graphToElements } from "../../utils";
 import { Step } from "../../Logic/Types";
 
 
@@ -30,6 +30,7 @@ interface runControlProps {
     updMem: ((mem: string[] | undefined, ptr: number | undefined) => void)
     network: any
     getInit: ((f: () => void) => void)
+    getNfaToDfa: ((f: () => void) => void)
     updateElements: (elements: Elements) => void
 }
 
@@ -69,13 +70,25 @@ class RunControl extends React.Component<runControlProps, runControlState> {
             gElements: elementsToGraph(this.props.elements),
             // counter: 0
         };
+        console.log("XUN")
+        this.initializeComputer()
+        console.log("XUN")
     }
 
     componentDidMount() {
         this.props.getInit(this.initializeComputer)
+        this.props.getNfaToDfa(this.nfaToDfa)
+        this.initializeComputer()
     }
 
-    getComputer = (computerType: ComputerType, graph: graph, initialNode: node, input: string[]): Computer | undefined => {
+    componentDidUpdate(prevProps: any, prevState: any) {
+        //Не более чем для проверки - был ли создан default-graph для <computer-type>.
+        if (this.props.elements.nodes.length > prevProps.elements.nodes.length) {
+            this.setState({gElements: elementsToGraph(this.props.elements)}, () => this.initializeComputer())
+        }
+    }
+
+        getComputer = (computerType: ComputerType, graph: graph, initialNode: node, input: string[]): Computer | undefined => {
         switch (computerType) {
             case "dfa":
                 try {
@@ -101,8 +114,10 @@ class RunControl extends React.Component<runControlProps, runControlState> {
 
         this.setState({gElements: elementsToGraph(this.props.elements)})
 
-        const initialNode = this.state.gElements.nodes.find(node => node.isInitial);
+        const initialNode = elementsToGraph(this.props.elements).nodes.find(node => node.isInitial);
         const input = this.state.input.split("");
+
+
 
         if (initialNode === undefined) {
             console.warn("There is no initial node. Computer will not be initialized");
@@ -115,6 +130,24 @@ class RunControl extends React.Component<runControlProps, runControlState> {
         });
     }
 
+    initializeComputerK = () => (k: (() => void) | undefined) =>  {
+        console.warn("Reinitializing computer");
+
+        this.setState({gElements: elementsToGraph(this.props.elements)})
+
+        const initialNode = this.state.gElements.nodes.find(node => node.isInitial);
+        const input = this.state.input.split("");
+
+        if (initialNode === undefined) {
+            console.warn("There is no initial node. Computer will not be initialized");
+            return;
+        }
+
+        this.setState({
+            computer: this.getComputer(this.props.computerType, this.state.gElements, initialNode, input),
+            result: undefined
+        }, k);
+    }
 
     onInputChanged = (event: ChangeEvent<HTMLInputElement>): void => {
         const input = event.target.value;
@@ -209,41 +242,30 @@ class RunControl extends React.Component<runControlProps, runControlState> {
     }
 
     nfaToDfa = (): void => {
-        if (this.state.computer === undefined) {
-            console.error("Computer is not initialized yet");
-            return;
-        }
 
-        console.log("***********************")
-        this.state.computer.nfaToDfa().nodes.forEach((node) => console.log(node))
-        this.state.computer.nfaToDfa().edges.forEach((edge) => console.log(edge))
-        console.log("***********************")
 
         const input = this.state.input.split("");
-        const aaa = this.state.computer.nfaToDfa().nodes.map((v, it) => ({
+        const nfaToDfa = this.state.computer!.nfaToDfa()
+        const nodes = nfaToDfa.nodes.map((v, it) => ({
             id: v.id,
             isAdmit: v.isAdmit,
             label: v.id.toString(),
-            isInitial: false,
+            isInitial: it === 0,
             isCurrent: false
         }))
+        const gElements = {
+            nodes: nodes,
+            edges: nfaToDfa.edges
+        }
 
         this.setState({
-            gElements: {
-                nodes: aaa,
-                edges: this.state.computer.nfaToDfa().edges
-            }
+            gElements: gElements
         }, () => {
-            this.initializeComputer()
-            // this.props.elements.nodes.clear()
-            // this.props.elements.edges.clear()
-            this.props.updateElements(graphToElements(this.state.gElements))
+            this.props.updateElements(graphToElements(gElements))
         })
 
-        // this.setState({
-        //     computer: this.getComputer(this.props.computerType, this.state.gElements, initialNode, input),
-        //     result: undefined
-        // });
+
+
     }
 
     render() {

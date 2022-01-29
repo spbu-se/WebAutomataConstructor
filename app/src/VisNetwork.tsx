@@ -8,15 +8,7 @@ import {
 } from "vis-network/standalone/esm/vis-network";
 import { Move, NodeCore } from "./Logic/IGraphTypes";
 import {edge, graph, node } from "./react-graph-vis-types";
-
-export interface node0 extends NodeCore{
-    label: string,
-    isInitial: boolean,
-    isCurrent: boolean,
-    x?: number,
-    y?: number,
-    color?: { border: string, background: string },
-}
+import {Menu, MenuItem, MenuList, Paper, Typography } from "@mui/material";
 
 interface PropsVisNet {
     nodes: DataSet<node>,
@@ -27,15 +19,15 @@ interface PropsVisNet {
     onClick2: (params?: any) => void,
     onClick3: (params?: any) => void,
     onClick4: (params?: any) => void,
-    network: any
+    network: any,
+    contextMenu?: any
 }
+
+
 
 export const VisNetwork = (props: PropsVisNet) => {
     // A reference to the div rendered by this component
     const [domNode, setdomNode] = useState(useRef<HTMLDivElement>(null));
-
-    // A reference to the vis network instance
-    // const [network, setNetwork] = useState(useRef<Network | null>(null));
 
     const [options, setOptions] = useState<Options>({
         edges: {
@@ -88,17 +80,28 @@ export const VisNetwork = (props: PropsVisNet) => {
 
     const [input, setInput] = useState("")
 
-    const[elements, setElements] = useState<graph>({ edges: [], nodes: [] })
+    const [elements, setElements] = useState<graph>({ edges: [], nodes: [] })
 
-    useEffect ( () => {
+    const [contextMenu, setContextMenu] = React.useState<{mouseX: any, mouseY: any} | null>(null);
 
-        elements.edges.forEach(edge => {
-            console.log(edge.from, edge.to, edge.label)
-        })
-        console.log()
+    const handleContextMenu = (event: { preventDefault: () => void; clientX: number; clientY: number; }) => {
+        event.preventDefault();
+        setContextMenu(
+            contextMenu === null
+                ? {
+                    mouseX: event.clientX - 2,
+                    mouseY: event.clientY - 4,
+                }
+                : // repeated contextmenu when it is already open closes it with Chrome 84 on Ubuntu
+                  // Other native context menus might behave different.
+                  // With this behavior we prevent contextmenu from the backdrop to re-locale existing context menus.
+                null,
+        );
+    };
 
-
-    }, [elements])
+    const handleClose = () => {
+        setContextMenu(null);
+    };
 
     useLayoutEffect(() => {
 
@@ -106,13 +109,7 @@ export const VisNetwork = (props: PropsVisNet) => {
             props.network.current = new Network(domNode.current, props.data, options);
         }
 
-        // document.addEventListener("keydown", (event: KeyboardEvent) => {
-        //     if (props.network.current) {
-        //         if (event.key === "Delete") {
-        //             props.network.current.deleteSelected();
-        //         }
-        //     }
-        // })
+        window.addEventListener("contextmenu", e => e.preventDefault());
 
         document.addEventListener("keydown", (event) => {
             if (props.network.current) {
@@ -134,18 +131,49 @@ export const VisNetwork = (props: PropsVisNet) => {
             props.network.current.on('click', props.onClick2);
             props.network.current.on('click', props.onClick3);
             props.network.current.on('click', props.onClick4);
+            // props.network.current.on('click', () => {
+            //     setShowMenu(false)
+            // });
+            // props.network.current.on('contextmenu', handleContextMenu);
         }
 
     }, [domNode, props.network, props.data, options]);
 
-    return (
-        <div
-            style={{
-                height: "100%",
-                width: "100%",
-            }}
-            ref={domNode}
-        />
+    const refContainer = () => {
+        return (
+            <div
+                style={{
+                    height: "100%",
+                    width: "100%",
+                }}
+                ref={domNode}
+            />
+        )
+    }
 
+    return (
+        props.contextMenu === undefined
+            ?
+                refContainer()
+            :
+                <div onContextMenu={handleContextMenu}
+                     style={{
+                         height: "100%",
+                         width: "100%",
+                }}>
+                    {refContainer()}
+                    <Menu
+                        open={contextMenu !== null}
+                        onClose={handleClose}
+                        anchorReference="anchorPosition"
+                        anchorPosition={
+                            contextMenu !== null
+                                ? { top: contextMenu.mouseY, left: contextMenu.mouseX }
+                                : undefined
+                        }
+                    >
+                        {props.contextMenu(handleClose, handleContextMenu)}
+                    </Menu>
+                </div>
     );
 };

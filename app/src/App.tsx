@@ -26,7 +26,7 @@ import FailedLoginPage from "./Components/Pages/FailedLoginPage/FailedLoginPage"
 import AppHeader from "./Components/AppHeader/AppHeader";
 import {TransitionParams} from "./Logic/IGraphTypes";
 import SuccessLoginPage from "./Components/Pages/SuccessLoginPage/SuccessLoginPage";
-import { Box } from '@mui/material';
+import { Box, MenuItem, MenuList } from '@mui/material';
 import Vis from 'vis'
 import { VisNetwork } from './VisNetwork';
 import { DFA } from './Logic/DFA';
@@ -36,6 +36,7 @@ import {
     Options,
     Data,
 } from "vis-network/standalone/esm/vis-network";
+import {ContextMenu, MenuItem as CotextMenuItem, ContextMenuTrigger} from "react-contextmenu";
 
 interface appProps {
 }
@@ -68,6 +69,7 @@ class App extends React.Component<appProps, appState> {
     memRef = React.createRef<HTMLDivElement>();
     network = React.createRef<Network | null>();
     init = (() => {});
+    nfaToDfa = (() => {});
 
 
     constructor(props: appProps) {
@@ -290,7 +292,6 @@ class App extends React.Component<appProps, appState> {
         if (edgesIDs.length === 0) {
             this.setState({selectedEdge: null});
         }
-        console.log(this.state.selectedEdge)
     }
 
 
@@ -332,6 +333,29 @@ class App extends React.Component<appProps, appState> {
     //     return acc
     // }
 
+    handleClick = (e: any, data: { item: any; }) => {
+        alert(`Clicked on menu ${data.item}`);
+    };
+
+
+
+
+    ContextMenu = (handleContextMenu: any, handleClose: any) => {
+
+        return (
+            <div onContextMenu={handleContextMenu} style={{ cursor: 'context-menu' }}>
+                <MenuItem onClick={handleClose}>
+                    <button onClick={this.nfaToDfa}>
+                        nfaToDfa
+                    </button>
+                </MenuItem>
+                <MenuItem onClick={handleClose}>Print</MenuItem>
+                <MenuItem onClick={handleClose}>Highlight</MenuItem>
+                <MenuItem onClick={handleClose}>Email</MenuItem>
+            </div>
+        );
+    }
+
     render() {
         return (
             <HashRouter>
@@ -361,6 +385,8 @@ class App extends React.Component<appProps, appState> {
 
                                         console.log(defaultGraph);
                                         console.log(defaultGraph["nodes"]);
+                                        console.log("defaultGraph");
+                                        graphToElements(defaultGraph).nodes.forEach((v) => console.log(v))
 
                                         this.lastNodeId = defaultGraph.nodes.length;
                                         this.setState({
@@ -403,10 +429,9 @@ class App extends React.Component<appProps, appState> {
                                                         className="app__mem_cell"
                                                         style={{border: `${index === this.state.ptr ? "#0041d0" : "#000000" } 2px solid`}}
                                                     >
-
                                                         {Math.abs (Math.abs(index) - Math.abs(this.state.ptr!)) <= 5  ? <div ref={this.memRef}/> : <div/>}
                                                         {value}
-                                                        {this.memRef?.current?.scrollIntoView({behavior: 'smooth'})                                                                }
+                                                        {this.memRef?.current?.scrollIntoView({behavior: 'smooth'})}
                                                     </div>
                                                 )
                                             }
@@ -422,6 +447,7 @@ class App extends React.Component<appProps, appState> {
                                     isLogin={this.state.isLogin}
                                 />
 
+
                                 <div className="field__container">
                                     <VisNetwork
                                         nodes={this.state.elements.nodes}
@@ -433,9 +459,18 @@ class App extends React.Component<appProps, appState> {
                                         onClick3={this.deselectNode}
                                         onClick4={this.deselectEdge}
                                         network={this.network}
-
+                                        contextMenu={this.ContextMenu}
                                     />
                                 </div>
+
+
+
+
+
+                                {/*<div className="hight">Right Click for Open Menu</div>*/}
+
+
+
 
                                 <div className="app__right-menu">
                                     <NodeControl
@@ -458,7 +493,8 @@ class App extends React.Component<appProps, appState> {
                                         changeStateIsCurrent={this.changeStateIsCurrent}
                                         network={this.network}
                                         getInit={(f: () => void) => this.init = f}
-                                        updateElements={(elements: Elements) => this.setState({elements: elements})}
+                                        getNfaToDfa={(f: () => void) => this.nfaToDfa = f}
+                                        updateElements={(elements: Elements) => this.setState({elements: elements}, () => this.updateGraph())}
                                     />
                                 </div>
 
