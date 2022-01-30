@@ -45,22 +45,17 @@ var EpsilonNFA = /** @class */ (function (_super) {
     return EpsilonNFA;
 }(PDA_1.PDA));
 exports.EpsilonNFA = EpsilonNFA;
-// let nfa = new EpsilonNFA (
-//     {
-//         nodes: [
-//             {id: 0, isAdmit: false},
-//             {id: 1, isAdmit: false},
-//             {id: 2, isAdmit: false},
-//
-//         ],
-//         edges: [
-//             {from: 0, to: 0, transitions: new Set([ [{title: 'a'}, {title: 'b'}] ])},
-//             {from: 0, to: 1, transitions: new Set([ [{title: 'a'}] ])},
-//             {from: 1, to: 2, transitions: new Set([ [{title: 'b'}] ])},
-//         ]
-//     }, [{id: 0, isAdmit: false}], [],
-// )
-// nfa.nfaToDfa()
+var nfa = new EpsilonNFA({
+    nodes: [
+        { id: 0, isAdmit: false },
+        { id: 1, isAdmit: false },
+    ],
+    edges: [
+        // {from: 0, to: 0, transitions: new Set([ [{title: 'a'}, {title: 'b'}] ])},
+        { from: 0, to: 1, transitions: new Set([[{ title: 'a' }]]) },
+    ]
+}, [{ id: 0, isAdmit: false }], []);
+nfa.nfaToDfa();
 //
 // let nfa = new EpsilonNFA(
 //     {

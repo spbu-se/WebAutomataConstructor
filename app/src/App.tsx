@@ -26,7 +26,7 @@ import FailedLoginPage from "./Components/Pages/FailedLoginPage/FailedLoginPage"
 import AppHeader from "./Components/AppHeader/AppHeader";
 import {TransitionParams} from "./Logic/IGraphTypes";
 import SuccessLoginPage from "./Components/Pages/SuccessLoginPage/SuccessLoginPage";
-import { Box, MenuItem, MenuList } from '@mui/material';
+import { Box, Button, MenuItem, MenuList, TextField, Typography } from '@mui/material';
 import Vis from 'vis'
 import { VisNetwork } from './VisNetwork';
 import { DFA } from './Logic/DFA';
@@ -338,23 +338,52 @@ class App extends React.Component<appProps, appState> {
     };
 
 
-
-
     ContextMenu = (handleContextMenu: any, handleClose: any) => {
-
         return (
-            <div onContextMenu={handleContextMenu} style={{ cursor: 'context-menu' }}>
-                <MenuItem onClick={handleClose}>
-                    <button onClick={this.nfaToDfa}>
-                        nfaToDfa
+            <div onContextMenu={handleContextMenu}>
+                <div onClick={handleClose}>
+                    <button
+                        className={"button-context-menu"}
+                        onClick={this.nfaToDfa}
+                    >
+                        {"НКА->ДКА"}
                     </button>
-                </MenuItem>
-                <MenuItem onClick={handleClose}>Print</MenuItem>
-                <MenuItem onClick={handleClose}>Highlight</MenuItem>
-                <MenuItem onClick={handleClose}>Email</MenuItem>
+                </div>
+                <div onClick={handleClose}>
+                    <button
+                        className={"button-context-menu"}
+                        // onClick={this.nfaToDfa}
+                    >
+                        {"Копка"}
+                    </button>
+                </div>
+                <div onClick={handleClose}>
+                    <button
+                        className={"button-context-menu"}
+                        // onClick={this.nfaToDfa}
+                    >
+                        {"Копка с очень длинным текстооооооооооооооооооооооооооооом"}
+                    </button>
+                </div>
             </div>
-        );
+        )
     }
+
+    AnotherContextMenu = (handleContextMenu: any, handleClose: any) => {
+        return (
+            <div onContextMenu={handleContextMenu}>
+                <div onClick={handleClose}>
+                    <button
+                        className={"button-context-menu"}
+                    >
+                        {"Just button"}
+                    </button>
+                </div>
+            </div>
+        )
+    }
+
+
 
     render() {
         return (
@@ -449,18 +478,36 @@ class App extends React.Component<appProps, appState> {
 
 
                                 <div className="field__container">
-                                    <VisNetwork
-                                        nodes={this.state.elements.nodes}
-                                        edges={this.state.elements.edges}
-                                        data={this.state.elements}
-                                        onDoubleClick={this.createNode}
-                                        onClick1={this.selectEdge}
-                                        onClick2={this.selectNode}
-                                        onClick3={this.deselectNode}
-                                        onClick4={this.deselectEdge}
-                                        network={this.network}
-                                        contextMenu={this.ContextMenu}
-                                    />
+                                    {
+                                        this.state.computerType === "nfa"|| this.state.computerType === "nfa-eps"
+                                            ?
+                                            <VisNetwork
+                                                nodes={this.state.elements.nodes}
+                                                edges={this.state.elements.edges}
+                                                data={this.state.elements}
+                                                onDoubleClick={this.createNode}
+                                                onClick1={this.selectEdge}
+                                                onClick2={this.selectNode}
+                                                onClick3={this.deselectNode}
+                                                onClick4={this.deselectEdge}
+                                                network={this.network}
+                                                contextMenu={this.ContextMenu}
+                                            />
+                                            :
+                                            <VisNetwork
+                                                nodes={this.state.elements.nodes}
+                                                edges={this.state.elements.edges}
+                                                data={this.state.elements}
+                                                onDoubleClick={this.createNode}
+                                                onClick1={this.selectEdge}
+                                                onClick2={this.selectNode}
+                                                onClick3={this.deselectNode}
+                                                onClick4={this.deselectEdge}
+                                                network={this.network}
+                                                contextMenu={this.AnotherContextMenu}
+
+                                            />
+                                    }
                                 </div>
 
 

@@ -644,14 +644,24 @@ export class PDA extends Computer {
         const startPos = this.curPosition
 
         this.restart()
+
+        ////
+        // const a = nextStepPositions(startPos, 0)
+        // console.log(a)
+        // console.log(nextStepPositions(a, 0))
+        ////
+
         push(startPos)
 
         while(stack.length > 0) {
             let head = pop()
             let acc: position[][] = []
 
-            if (head === undefined) {
+            if (head === undefined || head.length === 0) {
                 break;
+            }
+            if (set.has(head)) {
+                continue
             }
             set.add(head.map((v) => (
                 {
@@ -686,37 +696,76 @@ export class PDA extends Computer {
             table.push(acc)
         }
 
+        console.log("ps[tr]")
         const _edges: EdgeCore[] = []
         table.forEach((ps, from) => {
             this.alphabet.forEach((tr, letter) => {
-                _edges.push({
-                    from: from,
-                    to: set.getIter(ps[tr]),
-                    transitions: new Set<TransitionParams[]>([ [{title: letter}] ])
-                })
+                if (tr !== this.epsId && ps[tr].length !== 0) {
+                    console.log(ps[tr])
+                    console.log(from, set.getIter(ps[tr]))
+                    _edges.push({
+                        from: from,
+                        to: set.getIter(ps[tr]),
+                        transitions: new Set<TransitionParams[]>([[{title: letter}]])
+                    })
+                }
             })
         })
 
         const nodes: NodeCore[] = set.getStorage().map((v) => ({
             id: set.getIter(v),
             isAdmit: this.haveAdmitting(v),
-
         }))
+
+        console.log("TABLE")
+        table.forEach((ps) => {
+            ps.forEach(p => console.log(p))
+            console.log()
+        })
+        console.log("STMTS")
+        nodes.forEach(v => console.log(v))
+        console.log("EDGES")
+        _edges.forEach(v => console.log(v))
+
+
         const edges: EdgeCore[] = []
 
-        _edges.forEach((ei, it) => {
-            const acc: TransitionParams[] = [Array.from(ei.transitions)[0][0]]
-            _edges.forEach((ej, _it) => {
-                if (it !== _it && ei.from === ej.from && ei.to === ej.to) {
-                    acc.push(Array.from(ej.transitions)[0][0])
+        ///
+        _edges.sort((a, b) => a.from - b.from || a.to - b.to)
+        for (let i = 0; i < _edges.length; i++) {
+            const acc: TransitionParams[] = []
+            let delta = 0
+            for (let j = i; j < _edges.length; j++) {
+                if (_edges[i].from === _edges[j].from && _edges[i].to === _edges[j].to) {
+                    acc.push(Array.from(_edges[j].transitions)[0][0])
+                    delta++
                 }
-            })
+            }
             edges.push({
-                from: ei.from,
-                to: ei.to,
+                from: _edges[i].from,
+                to: _edges[i].to,
                 transitions: new Set<TransitionParams[]>([acc])
             })
-        })
+            i += delta - 1
+        }
+        edges.forEach(v => console.log(v))
+
+
+        ///
+
+        // _edges.forEach((ei, it) => {
+        //     const acc: TransitionParams[] = [Array.from(ei.transitions)[0][0]]
+        //     _edges.forEach((ej, _it) => {
+        //         if (it !== _it && ei.from === ej.from && ei.to === ej.to) {
+        //             acc.push(Array.from(ej.transitions)[0][0])
+        //         }
+        //     })
+        //     edges.push({
+        //         from: ei.from,
+        //         to: ei.to,
+        //         transitions: new Set<TransitionParams[]>([acc])
+        //     })
+        // })
 
         return { nodes: nodes, edges: edges }
     }

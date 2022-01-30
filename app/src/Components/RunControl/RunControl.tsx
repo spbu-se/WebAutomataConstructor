@@ -67,8 +67,9 @@ class RunControl extends React.Component<runControlProps, runControlState> {
             wasRuned: false,
             memory: undefined,
             gElements: elementsToGraph(this.props.elements),
+        // {nodes: [], edges: []}
         };
-        this.initializeComputer()
+        // this.initializeComputer()
     }
 
     componentDidMount() {
@@ -77,11 +78,62 @@ class RunControl extends React.Component<runControlProps, runControlState> {
         this.initializeComputer()
     }
 
-    componentDidUpdate(prevProps: any, prevState: any) {
-        //Не более чем для проверки - был ли создан default-graph для <computer-type>.
-        if (this.props.elements.nodes.length > prevProps.elements.nodes.length) {
-            this.setState({gElements: elementsToGraph(this.props.elements)}, () => this.initializeComputer())
+    // componentDidUpdate(prevProps: any, prevState: any) {
+    //     //Не более чем для проверки - был ли создан default-graph для <computer-type>.
+    //     if (this.props.elements.nodes.length > prevProps.elements.nodes.length) {
+    //         this.setState({gElements: elementsToGraph(this.props.elements)}, () => this.initializeComputer())
+    //     }
+    // }
+
+    componentDidUpdate(prevProps: Readonly<runControlProps>, prevState: Readonly<runControlState>, snapshot?: any) {
+        // if (this.props.computerType !== "nfa-eps") {
+        // if (this.ComputerShouldBeUpdated(prevState.gElements, this.state.gElements)) {
+        //     this.initializeComputer();
+        // }
+        // }
+        if (this.ComputerShouldBeUpdated(elementsToGraph(prevProps.elements), elementsToGraph(this.props.elements))) {
+            this.initializeComputer();
         }
+
+    }
+
+    ComputerShouldBeUpdated = (prev: graph, current: graph): boolean => {
+        const compareNodes = (): boolean => {
+            if (prev.nodes.length !== current.nodes.length) {
+                return true;
+            }
+
+            return prev.nodes.some((prev, index) => {
+                const curr = current.nodes[index];
+                return prev.id !== curr.id ||
+                    prev.isAdmit !== curr.isAdmit ||
+                    prev.isInitial !== curr.isInitial;
+            })
+        }
+
+        const compareEdges = (): boolean => {
+            if (prev.edges.length !== current.edges.length) {
+                return true;
+            }
+
+            const a =  (prev.edges.some((prev, index) => {
+                const curr = current.edges[index];
+                return prev.id !== curr.id ||
+                    prev.from !== curr.from ||
+                    prev.to !== curr.to ||
+                    !isEqual(curr.transitions, prev.transitions)
+            }));
+
+            return prev.edges.some((prev, index) => {
+                const curr = current.edges[index];
+                return prev.id !== curr.id ||
+                        prev.from !== curr.from ||
+                        prev.to !== curr.to ||
+                        !isEqual(curr.transitions, prev.transitions)
+            });
+        }
+
+        return compareEdges() || compareNodes()
     }
 
         getComputer = (computerType: ComputerType, graph: graph, initialNode: node, input: string[]): Computer | undefined => {
@@ -108,41 +160,24 @@ class RunControl extends React.Component<runControlProps, runControlState> {
     initializeComputer = () => {
         console.warn("Reinitializing computer");
 
-        this.setState({gElements: elementsToGraph(this.props.elements)})
-
-        const initialNode = elementsToGraph(this.props.elements).nodes.find(node => node.isInitial);
-        const input = this.state.input.split("");
-
+        this.setState({gElements: elementsToGraph(this.props.elements)}, () => {
+            const initialNode = elementsToGraph(this.props.elements).nodes.find(node => node.isInitial);
+            const input = this.state.input.split("");
 
 
-        if (initialNode === undefined) {
-            console.warn("There is no initial node. Computer will not be initialized");
-            return;
-        }
 
-        this.setState({
-            computer: this.getComputer(this.props.computerType, this.state.gElements, initialNode, input),
-            result: undefined
-        });
-    }
+            if (initialNode === undefined) {
+                console.warn("There is no initial node. Computer will not be initialized");
+                return;
+            }
 
-    initializeComputerK = () => (k: (() => void) | undefined) =>  {
-        console.warn("Reinitializing computer");
+            this.setState({
+                computer: this.getComputer(this.props.computerType, this.state.gElements, initialNode, input),
+                result: undefined
+            });
+        })
 
-        this.setState({gElements: elementsToGraph(this.props.elements)})
 
-        const initialNode = this.state.gElements.nodes.find(node => node.isInitial);
-        const input = this.state.input.split("");
-
-        if (initialNode === undefined) {
-            console.warn("There is no initial node. Computer will not be initialized");
-            return;
-        }
-
-        this.setState({
-            computer: this.getComputer(this.props.computerType, this.state.gElements, initialNode, input),
-            result: undefined
-        }, k);
     }
 
     onInputChanged = (event: ChangeEvent<HTMLInputElement>): void => {
@@ -151,7 +186,9 @@ class RunControl extends React.Component<runControlProps, runControlState> {
         this.reset();
         this.state.computer?.setInput(input.split(""));
 
-        this.setState({input: input}, () => this.initializeComputer());
+        this.setState({input: input},
+            // () => this.initializeComputer()
+        );
 
 
     }
@@ -218,9 +255,11 @@ class RunControl extends React.Component<runControlProps, runControlState> {
                 currentInputIndex: -1,
                 history: [],
                 // counter: 0
-            }, () => this.initializeComputer());
+            },
+            // () => this.initializeComputer()
+        );
         this.state.computer?.setInput(this.state.input.split(""))
-        this.initializeComputer()
+        // this.initializeComputer()
     }
 
     run = (): void => {
@@ -253,6 +292,11 @@ class RunControl extends React.Component<runControlProps, runControlState> {
             nodes: nodes,
             edges: nfaToDfa.edges
         }
+
+        console.log("vvvvvvvvvvvvvvvvvvvvvvvvvvvvv")
+        gElements.nodes.forEach(v => console.log(v))
+        console.log("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^")
+        gElements.edges.forEach(v => console.log(v))
 
         this.setState({
             gElements: gElements
@@ -323,16 +367,17 @@ class RunControl extends React.Component<runControlProps, runControlState> {
                         </div>
 
                         {
-                            this.props.computerType !== "tm" ?
-                                <div className="run-control__button">
-                                    <Button
-                                        variant="outlined"
-                                        onClick={this.run}
-                                    >
-                                        Запуск
-                                    </Button>
-                                </div>
-                            : <></>
+                            this.props.computerType !== "tm"
+                                ?
+                                    <div className="run-control__button">
+                                        <Button
+                                            variant="outlined"
+                                            onClick={this.run}
+                                        >
+                                            Запуск
+                                        </Button>
+                                    </div>
+                                : <></>
                         }
 
                         <div className="run-control__button">
@@ -361,23 +406,25 @@ class RunControl extends React.Component<runControlProps, runControlState> {
                     </div>
 
                     {
-                        this.props.computerType === "pda" ?
-                            <div className="run-control__button">
-                                <Button
-                                    variant="outlined"
-                                    color="secondary"
-                                    // onClick={this.run}
+                        this.props.computerType === "pda"
+                            ?
+                                <div className="run-control__button">
+                                    <Button
+                                        variant="outlined"
+                                        color="secondary"
+                                        // onClick={this.run}
 
-                                    onClick={() => {
-                                        const curStbyEmp = this.state.byEmptyStack;
-                                        this.setState({ byEmptyStack: !curStbyEmp});
-                                        this.state.computer!.byEmptyStackAdmt(!curStbyEmp)
-                                        this.reset();
-                                    }}
-                                >
-                                    {this.state.byEmptyStack ?  "По стеку" : "По состоянию"}
-                                </Button>
-                            </div> : <div/>
+                                        onClick={() => {
+                                            const curStbyEmp = this.state.byEmptyStack;
+                                            this.setState({ byEmptyStack: !curStbyEmp});
+                                            this.state.computer!.byEmptyStackAdmt(!curStbyEmp)
+                                            this.reset();
+                                        }}
+                                    >
+                                        {this.state.byEmptyStack ?  "По стеку" : "По состоянию"}
+                                    </Button>
+                                </div>
+                            : <div/>
                     }
 
                     <div className="run-control__item run-control__history">

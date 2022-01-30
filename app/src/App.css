@@ -83,3 +83,18 @@
 }
 
 
+.button-context-menu {
+    display: block;
+    width: 100%;
+    border: none;
+    background-color: #ffffff;
+    padding: 14px 28px;
+    font-size: 16px;
+    cursor: pointer;
+    text-align: center;
+}
+
+.button-context-menu:hover{
+    background-color: rgba(0, 0, 0, 0.03);
+
+}

@@ -188,21 +188,29 @@ var PDA = /** @class */ (function (_super) {
                 };
                 return afterEps(_nextStepPositions(afterEps(positions), by));
             };
-            var stack = [];
             var pop = function () { return stack.shift(); };
             var push = function (v) {
                 stack.push(v);
             };
+            var stack = [];
             var table = [];
             var set = new ImSet();
             var startPos = _this.curPosition;
             _this.restart();
+            ////
+            // const a = nextStepPositions(startPos, 0)
+            // console.log(a)
+            // console.log(nextStepPositions(a, 0))
+            ////
             push(startPos);
             var _loop_1 = function () {
                 var head = pop();
                 var acc = [];
-                if (head === undefined) {
+                if (head === undefined || head.length === 0) {
                     return "break";
+                }
+                if (set.has(head)) {
+                    return "continue";
                 }
                 set.add(head.map(function (v) { return ({
                     stmt: {
@@ -236,37 +244,69 @@ var PDA = /** @class */ (function (_super) {
                 if (state_1 === "break")
                     break;
             }
+            console.log("ps[tr]");
             var _edges = [];
             table.forEach(function (ps, from) {
                 _this.alphabet.forEach(function (tr, letter) {
-                    _edges.push({
-                        from: from,
-                        to: set.getIter(ps[tr]),
-                        transitions: new Set([[{ title: letter }]])
-                    });
-                });
-            });
-            var nodes = set.getStorage().map(function (v) { return ({ id: set.getIter(v), isAdmit: _this.haveAdmitting(v) }); });
-            var edges = [];
-            _edges.forEach(function (ei, it) {
-                var acc = [Array.from(ei.transitions)[0][0]];
-                _edges.forEach(function (ej, _it) {
-                    if (it !== _it && ei.from === ej.from && ei.to === ej.to) {
-                        acc.push(Array.from(ej.transitions)[0][0]);
+                    if (tr !== _this.epsId && ps[tr].length !== 0) {
+                        console.log(ps[tr]);
+                        console.log(from, set.getIter(ps[tr]));
+                        _edges.push({
+                            from: from,
+                            to: set.getIter(ps[tr]),
+                            transitions: new Set([[{ title: letter }]])
+                        });
                     }
                 });
+            });
+            var nodes = set.getStorage().map(function (v) { return ({
+                id: set.getIter(v),
+                isAdmit: _this.haveAdmitting(v)
+            }); });
+            console.log("TABLE");
+            table.forEach(function (ps) {
+                ps.forEach(function (p) { return console.log(p); });
+                console.log();
+            });
+            console.log("STMTS");
+            nodes.forEach(function (v) { return console.log(v); });
+            console.log("EDGES");
+            _edges.forEach(function (v) { return console.log(v); });
+            var edges = [];
+            ///
+            _edges.sort(function (a, b) { return a.from - b.from || a.to - b.to; });
+            for (var i = 0; i < _edges.length; i++) {
+                var acc = [];
+                var delta = 0;
+                for (var j = i; j < _edges.length; j++) {
+                    if (_edges[i].from === _edges[j].from && _edges[i].to === _edges[j].to) {
+                        acc.push(Array.from(_edges[j].transitions)[0][0]);
+                        delta++;
+                    }
+                }
                 edges.push({
-                    from: ei.from,
-                    to: ei.to,
+                    from: _edges[i].from,
+                    to: _edges[i].to,
                     transitions: new Set([acc])
                 });
-            });
-            return { nodes: nodes, edges: edges };
-            // console.log("***************************************")
-            // console.log(nodes)
-            // edges.forEach((v) => {
-            //     console.log(v.from, v.to, v.transitions)
+                i += delta - 1;
+            }
+            edges.forEach(function (v) { return console.log(v); });
+            ///
+            // _edges.forEach((ei, it) => {
+            //     const acc: TransitionParams[] = [Array.from(ei.transitions)[0][0]]
+            //     _edges.forEach((ej, _it) => {
+            //         if (it !== _it && ei.from === ej.from && ei.to === ej.to) {
+            //             acc.push(Array.from(ej.transitions)[0][0])
+            //         }
+            //     })
+            //     edges.push({
+            //         from: ei.from,
+            //         to: ei.to,
+            //         transitions: new Set<TransitionParams[]>([acc])
+            //     })
             // })
+            return { nodes: nodes, edges: edges };
         };
         //https://www.usna.edu/Users/cs/wcbrown/courses/F17SI340/lec/l22/lec.html
         // move to Dfa

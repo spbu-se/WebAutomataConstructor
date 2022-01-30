@@ -41,8 +41,8 @@ export const transitionsToLabel = (transitions: Set<TransitionParams[]>, frmt: n
 
 
     let str = "" + spc
-    if (frmt === 'tm') {
-        if (transitions !== undefined) {
+    if (transitions !== undefined) {
+        if (frmt === 'tm') {
             transitions.forEach(value => {
                 value.forEach((v) => {
                     if (v.stackDown !== undefined && v.stackPush !== undefined && v.move !== undefined) {
@@ -50,9 +50,7 @@ export const transitionsToLabel = (transitions: Set<TransitionParams[]>, frmt: n
                     }
                 })
             })
-        }
-    } else if (frmt === 'pda') {
-        if (transitions !== undefined) {
+        } else if (frmt === 'pda') {
             transitions.forEach(value => {
                 value.forEach((v) => {
                     if (v.title !== undefined && v.title.length > 0 && v.stackDown !== undefined && v.stackDown.length > 0 && v.stackPush !== undefined && v.stackPush.length > 0) {
@@ -60,9 +58,7 @@ export const transitionsToLabel = (transitions: Set<TransitionParams[]>, frmt: n
                     }
                 })
             })
-        }
-    } else if (frmt === "dfa" || frmt === "nfa" || frmt === "nfa-eps") {
-        if (transitions !== undefined) {
+        } else if (frmt === "dfa" || frmt === "nfa" || frmt === "nfa-eps") {
             transitions.forEach(value => {
                 value.forEach((v) => {
                     if (v.title !== undefined && v.title.length > 0) {
@@ -72,7 +68,6 @@ export const transitionsToLabel = (transitions: Set<TransitionParams[]>, frmt: n
             })
         }
     }
-
     return str
 }
 
@@ -82,8 +77,8 @@ export const getTransitionsTitles = (transitions: Set<TransitionParams[]>, frmt:
     const epsSubsts = epsSubstStrs("eps")
 
     let str = ""
-    if (frmt === 'tm') {
-        if (transitions !== undefined) {
+    if (transitions !== undefined) {
+        if (frmt === 'tm') {
             transitions.forEach(value => {
                 value.forEach((v) => {
                     if (v.stackDown !== undefined && v.stackPush !== undefined && v.move !== undefined) {
@@ -91,9 +86,7 @@ export const getTransitionsTitles = (transitions: Set<TransitionParams[]>, frmt:
                     }
                 })
             })
-        }
-    } else if (frmt === "pda") {
-        if (transitions !== undefined) {
+        } else if (frmt === "pda") {
             transitions.forEach(value => {
                 value.forEach((v) => {
                     if (v.title !== undefined && v.title.length > 0 && v.stackDown !== undefined && v.stackDown.length > 0 && v.stackPush !== undefined && v.stackPush.length > 0) {
@@ -101,9 +94,7 @@ export const getTransitionsTitles = (transitions: Set<TransitionParams[]>, frmt:
                     }
                 })
             })
-        }
-    } else if (frmt === "dfa" || frmt === "nfa" || frmt === "nfa-eps") {
-        if (transitions !== undefined) {
+        } else if (frmt === "dfa" || frmt === "nfa" || frmt === "nfa-eps") {
             transitions.forEach(value => {
                 value.forEach((v) => {
                     if (v.title !== undefined && v.title.length > 0) {
@@ -113,6 +104,7 @@ export const getTransitionsTitles = (transitions: Set<TransitionParams[]>, frmt:
             })
         }
     }
+
     return str
 }
 
@@ -253,25 +245,23 @@ export const computersInfo: Record<ComputerType, ComputerInfo> = {
                 {id: 7, x: 200, y: 200, label: "B2", isAdmit: false, isInitial: false, isCurrent: false},
                 {id: 8, x: 300, y: 200, label: "B3", isAdmit: false, isInitial: false, isCurrent: false},
                 {id: 9, x: 400, y: 200, label: "B4", isAdmit: true, isInitial: false, isCurrent: false},
+
             ],
             edges: [
                 {from: 1, to: 1, transitions: new Set([[{title: '0'}, {title: '1'}]])},
-                // {from: 1, to: 1, transitions: new Set([[{title: '1'}]])},
 
                 {from: 1, to: 2, transitions: new Set([[{title: EPS}]])},
                 {from: 1, to: 3, transitions: new Set([[{title: EPS}]])},
                 {from: 2, to: 4, transitions: new Set([[{title: '0'}]])},
                 {from: 4, to: 5, transitions: new Set([[{title: '1'}]])},
                 {from: 5, to: 6, transitions: new Set([[{title: '1'}]])},
-                {from: 3, to: 7, transitions: new Set([[{title: '1'}]])},
+                {from: 3, to: 7, transitions: new Set([[{title: '0'}]])},
                 {from: 7, to: 8, transitions: new Set([[{title: '0'}]])},
                 {from: 8, to: 9, transitions: new Set([[{title: '1'}]])},
 
                 {from: 9, to: 9, transitions: new Set([[{title: '0'}, {title: '1'}]])},
-                // {from: 9, to: 9, transitions: new Set([[{title: '1'}]])},
 
                 {from: 6, to: 6, transitions: new Set([[{title: '0'}, {title: '1'}]])},
-                // {from: 6, to: 6, transitions: new Set([[{title: '1'}]])},
 
             ]
         }
@@ -336,10 +326,10 @@ export const computersInfo: Record<ComputerType, ComputerInfo> = {
         preview: "_.png",
         defaultGraph: {
             nodes: [
-                {id: 1, x: 0, y: 20, label: "S0", isAdmit: false, isInitial: true, isCurrent: false},
+                {id: 1, x: 0, y: 0, label: "S0", isAdmit: false, isInitial: true, isCurrent: false},
                 {id: 2, x: 200, y: 0, label: "S1", isAdmit: false, isInitial: false, isCurrent: false},
-                {id: 3, x: 0, y: 180, label: "S2", isAdmit: true, isInitial: false, isCurrent: false},
-                {id: 4, x: 180, y: 200, label: "S3", isAdmit: true, isInitial: false, isCurrent: false},
+                {id: 3, x: 0, y: 200, label: "S2", isAdmit: true, isInitial: false, isCurrent: false},
+                {id: 4, x: 200, y: 200, label: "S3", isAdmit: true, isInitial: false, isCurrent: false},
             ],
             edges: [
                 { from: 1, to: 1, transitions: new Set([[{title: EPS, stackDown: '0', stackPush: ['0'], move: Move.R}, {title: EPS, stackDown: '1', stackPush: ['1'], move: Move.R} ]]) },

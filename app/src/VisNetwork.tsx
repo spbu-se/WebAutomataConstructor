@@ -148,7 +148,7 @@ export const VisNetwork = (props: PropsVisNet) => {
                 }}
                 ref={domNode}
             />
-        )
+        );
     }
 
     return (
