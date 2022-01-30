@@ -349,22 +349,6 @@ class App extends React.Component<appProps, appState> {
                         {"НКА->ДКА"}
                     </button>
                 </div>
-                <div onClick={handleClose}>
-                    <button
-                        className={"button-context-menu"}
-                        // onClick={this.nfaToDfa}
-                    >
-                        {"Копка"}
-                    </button>
-                </div>
-                <div onClick={handleClose}>
-                    <button
-                        className={"button-context-menu"}
-                        // onClick={this.nfaToDfa}
-                    >
-                        {"Копка с очень длинным текстооооооооооооооооооооооооооооом"}
-                    </button>
-                </div>
             </div>
         )
     }
