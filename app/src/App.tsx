@@ -542,6 +542,7 @@ class App extends React.Component<appProps, appState> {
                                         getInit={(f: () => void) => this.init = f}
                                         getNfaToDfa={(f: () => void) => this.nfaToDfa = f}
                                         updateElements={(elements: Elements) => this.setState({elements: elements}, () => this.updateGraph())}
+                                        setComputerType={(type: null | ComputerType) => this.setState({computerType: type})}
                                     />
                                 </div>
 

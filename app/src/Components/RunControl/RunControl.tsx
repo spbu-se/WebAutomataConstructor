@@ -32,6 +32,7 @@ interface runControlProps {
     getInit: ((f: () => void) => void)
     getNfaToDfa: ((f: () => void) => void)
     updateElements: (elements: Elements) => void
+    setComputerType: (type: null | ComputerType) => void
 }
 
 interface runControlState {
@@ -277,8 +278,6 @@ class RunControl extends React.Component<runControlProps, runControlState> {
     }
 
     nfaToDfa = (): void => {
-
-
         const input = this.state.input.split("");
         const nfaToDfa = this.state.computer!.nfaToDfa()
         const nodes = nfaToDfa.nodes.map((v, it) => ({
@@ -293,19 +292,12 @@ class RunControl extends React.Component<runControlProps, runControlState> {
             edges: nfaToDfa.edges
         }
 
-        console.log("vvvvvvvvvvvvvvvvvvvvvvvvvvvvv")
-        gElements.nodes.forEach(v => console.log(v))
-        console.log("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^")
-        gElements.edges.forEach(v => console.log(v))
-
         this.setState({
             gElements: gElements
         }, () => {
             this.props.updateElements(graphToElements(gElements))
+            this.props.setComputerType("dfa")
         })
-
-
-
     }
 
     render() {
