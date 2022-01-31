@@ -232,7 +232,8 @@ class RunControl extends React.Component<runControlProps, runControlState> {
             .filter((node): node is node => node !== undefined);
 
         const _nodes = nodes.map((e, i) => {
-            return { a: e, b: stepResult.nodes[i].stack }
+            const stack = stepResult.nodes[i].stack
+            return { a: e, b: stack === undefined ? undefined : stack.reverse() }
         })
 
         this.setState({
@@ -433,7 +434,7 @@ class RunControl extends React.Component<runControlProps, runControlState> {
                                                 {
                                                     nodes.map((node, index) => (
                                                         <Tooltip
-                                                            title={ <Typography className="display-linebreak">{node.b !== undefined ? node.b.reverse().join('\n') : ''}</Typography> }>
+                                                            title={ <Typography className="display-linebreak">{node.b !== undefined ? node.b.join('\n') : ''}</Typography> }>
                                                             <div
                                                                 className="run-control__history__node"
                                                                 style={{border: `${node.a.isInitial ? "var(--accent)" : node.a.isAdmit ? "var(--second-accent)" : "#000000"} 2px solid`}}
