@@ -542,6 +542,7 @@ class App extends React.Component<appProps, appState> {
                                         changeStateIsAdmit={this.changeStateIsAdmit}
                                         changeStateIsInitial={this.changeStateIsInitial}
                                         deleteNode={this.deleteNode}
+                                        reinitComputer={this.init}
                                     />
                                     <EdgeControl
                                         edge={this.state.selectedEdge}

@@ -15,6 +15,7 @@ interface nodeControlProps {
     changeStateIsAdmit: (id: number, isAdmit: boolean) => void,
     changeStateIsInitial: (id: number, isInitial: boolean) => void,
     deleteNode: (id: number) => void,
+    reinitComputer: (() => void)
 }
 
 interface nodeControlState {
@@ -57,14 +58,14 @@ class NodeControl extends React.Component<nodeControlProps, nodeControlState> {
     onIsAdmitChanged = (event: ChangeEvent<HTMLInputElement>): void => {
         if (this.props.node !== null) {
             this.props.changeStateIsAdmit(this.props.node.id, event.target.checked);
-            this.setState({isAdmit: event.target.checked});
+            this.setState({isAdmit: event.target.checked}, () => this.props.reinitComputer());
         }
     }
 
     onIsInitialChanged = (event: ChangeEvent<HTMLInputElement>): void => {
         if (this.props.node !== null && !this.props.node.isAdmit) {
             this.props.changeStateIsInitial(this.props.node.id, event.target.checked);
-            this.setState({isInitial: event.target.checked});
+            this.setState({isInitial: event.target.checked}, () => this.props.reinitComputer());
         }
     }
 

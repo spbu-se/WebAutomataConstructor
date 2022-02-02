@@ -83,12 +83,12 @@ class RunControl extends React.Component<runControlProps, runControlState> {
     }
 
     componentDidUpdate(prevProps: Readonly<runControlProps>, prevState: Readonly<runControlState>, snapshot?: any) {
-        if (this.ComputerShouldBeUpdated(elementsToGraph(prevProps.elements), elementsToGraph(this.props.elements))) {
+        if (this.computerShouldBeUpdated(elementsToGraph(prevProps.elements), elementsToGraph(this.props.elements))) {
             this.initializeComputer();
         }
     }
 
-    ComputerShouldBeUpdated = (prev: graph, current: graph): boolean => {
+    computerShouldBeUpdated = (prev: graph, current: graph): boolean => {
         const compareNodes = (): boolean => {
             if (prev.nodes.length !== current.nodes.length) {
                 return true;
@@ -97,8 +97,8 @@ class RunControl extends React.Component<runControlProps, runControlState> {
             return prev.nodes.some((prev, index) => {
                 const curr = current.nodes[index];
                 return prev.id !== curr.id ||
-                    prev.isAdmit !== curr.isAdmit ||
-                    prev.isInitial !== curr.isInitial;
+                       prev.isAdmit !== curr.isAdmit ||
+                       prev.isInitial !== curr.isInitial;
             })
         }
 
@@ -170,8 +170,7 @@ class RunControl extends React.Component<runControlProps, runControlState> {
         this.reset();
         this.state.computer?.setInput(input.split(""));
 
-        this.setState({input: input},
-        );
+        this.setState({input: input});
 
 
     }
