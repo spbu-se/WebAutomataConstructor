@@ -60,6 +60,7 @@ interface appState {
     isLogin: boolean,
     mem: string[] | undefined,
     ptr: number | undefined,
+    wasComputerResetted: boolean
 }
 
 export const ComputerTypeContext = React.createContext<null | ComputerType>(null);
@@ -111,6 +112,7 @@ class App extends React.Component<appProps, appState> {
             isLogin: true,
             mem: undefined,
             ptr: undefined,
+            wasComputerResetted: false
         };
     }
 
@@ -451,7 +453,8 @@ class App extends React.Component<appProps, appState> {
 
 
                                 {
-                                    this.state.computerType === "tm" ?
+                                    this.state.computerType === "tm" && this.state.wasComputerResetted
+                                        ?
                                         <div className="app__mem_ribbon">
                                             {
                                                 this.state.mem?.map((value, index) =>
@@ -459,7 +462,10 @@ class App extends React.Component<appProps, appState> {
                                                         className="app__mem_cell"
                                                         style={{border: `${index === this.state.ptr ? "#0041d0" : "#000000" } 2px solid`}}
                                                     >
-                                                        {Math.abs (Math.abs(index) - Math.abs(this.state.ptr!)) <= 5  ? <div ref={this.memRef}/> : <div/>}
+                                                        {Math.abs (Math.abs(index) - Math.abs(this.state.ptr!)) <= 5
+                                                            ? <div ref={this.memRef}/>
+                                                            : <div/>
+                                                        }
                                                         {value}
                                                         {this.memRef?.current?.scrollIntoView({behavior: 'smooth'})}
                                                     </div>
@@ -526,15 +532,6 @@ class App extends React.Component<appProps, appState> {
                                     }
                                 </div>
 
-
-
-
-
-                                {/*<div className="hight">Right Click for Open Menu</div>*/}
-
-
-
-
                                 <div className="app__right-menu">
                                     <NodeControl
                                         node={this.state.selectedNode}
@@ -560,7 +557,8 @@ class App extends React.Component<appProps, appState> {
                                         setNfaToDfa={(f: () => void) => this.nfaToDfa = f}
                                         setMinimizeDfa={(f: () => void) => this.minimizeDfa = f}
                                         updateElements={(elements: Elements) => this.setState({elements: elements}, () => this.updateGraph())}
-                                        setComputerType={(type: null | ComputerType) => this.setState({computerType: type})}
+                                        setComputerType={(type: null | ComputerType) => this.setState({ computerType: type })}
+                                        setResettedStatus={(status: boolean) => this.setState({ wasComputerResetted: status })}
                                     />
                                 </div>
 

@@ -35,6 +35,7 @@ interface runControlProps {
     setMinimizeDfa: ((f: () => void) => void)
     updateElements: (elements: Elements) => void
     setComputerType: (type: null | ComputerType) => void
+    setResettedStatus: (status: boolean) => void
 }
 
 interface runControlState {
@@ -181,6 +182,9 @@ class RunControl extends React.Component<runControlProps, runControlState> {
             return;
         }
 
+        this.props.setResettedStatus(true)
+
+
         if (this.state.wasRuned) {
             this.setState({ wasRuned: false});
             this.reset();
@@ -235,6 +239,8 @@ class RunControl extends React.Component<runControlProps, runControlState> {
             // () => this.initializeComputer()
         );
         this.state.computer?.setInput(this.state.input.split(""))
+        this.props.setResettedStatus(false)
+
         // this.initializeComputer()
     }
 
