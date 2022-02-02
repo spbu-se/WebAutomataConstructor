@@ -70,6 +70,7 @@ class App extends React.Component<appProps, appState> {
     network = React.createRef<Network | null>();
     init = (() => {});
     nfaToDfa = (() => {});
+    minimizeDfa = (() => {});
 
 
     constructor(props: appProps) {
@@ -201,12 +202,12 @@ class App extends React.Component<appProps, appState> {
 
     changeStateIsInitial = (id: number, isInitial: boolean): void => {
         this.state.elements.nodes.forEach((node) => {
-            if (node.isInitial) {
-                this.state.elements.nodes.update({
-                    id: node.id,
-                    isInitial: false
-                })
-            }
+            // if (node.isInitial) {
+            //     this.state.elements.nodes.update({
+            //         id: node.id,
+            //         isInitial: false
+            //     })
+            // }
             if (node.id === id) {
                 this.state.elements.nodes.update({
                     id: node.id,
@@ -353,6 +354,22 @@ class App extends React.Component<appProps, appState> {
         )
     }
 
+
+    DFAContextMenu = (handleContextMenu: any, handleClose: any) => {
+        return (
+            <div onContextMenu={handleContextMenu}>
+                <div onClick={handleClose}>
+                    <button
+                        className={"button-context-menu"}
+                        onClick={this.minimizeDfa}
+                    >
+                        {"Минимизровать"}
+                    </button>
+                </div>
+            </div>
+        )
+    }
+
     AnotherContextMenu = (handleContextMenu: any, handleClose: any) => {
         return (
             <div onContextMenu={handleContextMenu}>
@@ -360,7 +377,7 @@ class App extends React.Component<appProps, appState> {
                     <button
                         className={"button-context-menu"}
                     >
-                        {"Just button"}
+                        {"Just-button"}
                     </button>
                 </div>
             </div>
@@ -478,6 +495,21 @@ class App extends React.Component<appProps, appState> {
                                                 contextMenu={this.ContextMenu}
                                             />
                                             :
+                                            this.state.computerType === "dfa"
+                                                ?
+                                                <VisNetwork
+                                                    nodes={this.state.elements.nodes}
+                                                    edges={this.state.elements.edges}
+                                                    data={this.state.elements}
+                                                    onDoubleClick={this.createNode}
+                                                    onClick1={this.selectEdge}
+                                                    onClick2={this.selectNode}
+                                                    onClick3={this.deselectNode}
+                                                    onClick4={this.deselectEdge}
+                                                    network={this.network}
+                                                    contextMenu={this.DFAContextMenu}
+                                                />
+                                                :
                                             <VisNetwork
                                                 nodes={this.state.elements.nodes}
                                                 edges={this.state.elements.edges}
@@ -523,8 +555,9 @@ class App extends React.Component<appProps, appState> {
                                         elements={this.state.elements}
                                         changeStateIsCurrent={this.changeStateIsCurrent}
                                         network={this.network}
-                                        getInit={(f: () => void) => this.init = f}
-                                        getNfaToDfa={(f: () => void) => this.nfaToDfa = f}
+                                        setInit={(f: () => void) => this.init = f}
+                                        setNfaToDfa={(f: () => void) => this.nfaToDfa = f}
+                                        setMinimizeDfa={(f: () => void) => this.minimizeDfa = f}
                                         updateElements={(elements: Elements) => this.setState({elements: elements}, () => this.updateGraph())}
                                         setComputerType={(type: null | ComputerType) => this.setState({computerType: type})}
                                     />

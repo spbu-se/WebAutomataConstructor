@@ -9,12 +9,10 @@ export class EpsilonNFA extends PDA {
 
     constructor(graph: GraphCore, startStatement: NodeCore[], input: string[]) {
         super(graph, startStatement, input)
-
     }
 
     step = (): Step => {
-        let ret = this._step
-        (
+        let ret = this._step(
             this.counterSteps,
             this.alphabet.get(this.input[this.counterSteps]?.value),
             this.historiStep
@@ -57,22 +55,30 @@ export class EpsilonNFA extends PDA {
 
 
 
-let nfa = new EpsilonNFA (
-    {
-        nodes: [
-            {id: 0, isAdmit: false},
-            {id: 1, isAdmit: false},
-            // {id: 2, isAdmit: false},
-
-        ],
-        edges: [
-            // {from: 0, to: 0, transitions: new Set([ [{title: 'a'}, {title: 'b'}] ])},
-            {from: 0, to: 1, transitions: new Set([ [{title: 'a'}] ])},
-            // {from: 1, to: 2, transitions: new Set([ [{title: EPS}] ])},
-        ]
-    }, [{id: 0, isAdmit: false}], [],
-)
-nfa.nfaToDfa()
+// let nfa = new EpsilonNFA (
+//     {
+//         nodes: [
+//             {id: 0, isAdmit: false},
+//             {id: 1, isAdmit: false},
+//             {id: 2, isAdmit: false},
+//             {id: 3, isAdmit: false},
+//             {id: 4, isAdmit: false},
+//             // {id: 2, isAdmit: false},
+//
+//         ],
+//         edges: [
+//             // {from: 0, to: 0, transitions: new Set([ [{title: 'a'}, {title: 'b'}] ])},
+//             {from: 0, to: 1, transitions: new Set([ [{title: EPS}] ])},
+//             {from: 1, to: 2, transitions: new Set([ [{title: "a"}] ])},
+//             {from: 2, to: 3, transitions: new Set([ [{title: "a"}] ])},
+//             {from: 3, to: 4, transitions: new Set([ [{title: "a"}] ])},
+//             // {from: 1, to: 2, transitions: new Set([ [{title: EPS}] ])},
+//         ]
+//     }, [{id: 0, isAdmit: false}, {id: 3, isAdmit: false}], ['a', 'a'],
+// )
+// console.log(nfa.step())
+// console.log(nfa.step())
+// nfa.nfaToDfa()
 
 //
 // let nfa = new EpsilonNFA(

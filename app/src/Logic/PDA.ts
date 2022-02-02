@@ -1,5 +1,5 @@
 import {History, statement, Step} from "./Types";
-import {EdgeCore, GraphCore, Move, NodeCore, TransitionParams} from "./IGraphTypes";
+import {EdgeCore, GraphCore, GraphEval, Move, NodeCore, TransitionParams} from "./IGraphTypes";
 import {BOTTOM, Computer, EPS} from "./Computer";
 import {Stack} from "./Stack";
 import {cloneDeep} from "lodash";
@@ -406,7 +406,7 @@ export class PDA extends Computer {
             this.curPosition.forEach(value => {
                 this.cycleEps(value.stmt.idLogic, value.stack!)
             })
-            // this.cycleEps(this.curPosition[0].stmt.idLogic, this.curPosition[0].stack!)
+            ////// this.cycleEps(this.curPosition[0].stmt.idLogic, this.curPosition[0].stack!)
         }//
         console.log('-------------------------')
         console.log(this.isDeterministic())
@@ -533,7 +533,6 @@ export class PDA extends Computer {
         if (this.epsId !== undefined) {
             epsStep()
             updCurPos()
-
         }
         if (counter < this.input.length) {
             letterSter()
@@ -644,13 +643,6 @@ export class PDA extends Computer {
         const startPos = this.curPosition
 
         this.restart()
-
-        ////
-        // const a = nextStepPositions(startPos, 0)
-        // console.log(a)
-        // console.log(nextStepPositions(a, 0))
-        ////
-
         push(startPos)
 
         while(stack.length > 0) {
@@ -696,7 +688,6 @@ export class PDA extends Computer {
             table.push(acc)
         }
 
-        console.log("ps[tr]")
         const _edges: EdgeCore[] = []
         table.forEach((ps, from) => {
             this.alphabet.forEach((tr, letter) => {
@@ -717,20 +708,8 @@ export class PDA extends Computer {
             isAdmit: this.haveAdmitting(v),
         }))
 
-        console.log("TABLE")
-        table.forEach((ps) => {
-            ps.forEach(p => console.log(p))
-            console.log()
-        })
-        console.log("STMTS")
-        nodes.forEach(v => console.log(v))
-        console.log("EDGES")
-        _edges.forEach(v => console.log(v))
-
-
         const edges: EdgeCore[] = []
 
-        ///
         _edges.sort((a, b) => a.from - b.from || a.to - b.to)
         for (let i = 0; i < _edges.length; i++) {
             const acc: TransitionParams[] = []
@@ -748,141 +727,148 @@ export class PDA extends Computer {
             })
             i += delta - 1
         }
-        edges.forEach(v => console.log(v))
-
-
-        ///
-
-        // _edges.forEach((ei, it) => {
-        //     const acc: TransitionParams[] = [Array.from(ei.transitions)[0][0]]
-        //     _edges.forEach((ej, _it) => {
-        //         if (it !== _it && ei.from === ej.from && ei.to === ej.to) {
-        //             acc.push(Array.from(ej.transitions)[0][0])
-        //         }
-        //     })
-        //     edges.push({
-        //         from: ei.from,
-        //         to: ei.to,
-        //         transitions: new Set<TransitionParams[]>([acc])
-        //     })
-        // })
 
         return { nodes: nodes, edges: edges }
     }
 
 
 //https://www.usna.edu/Users/cs/wcbrown/courses/F17SI340/lec/l22/lec.html
-// move to Dfa
-    minimizeDfa = (): GraphCore => {
+    minimizeDfa = (): GraphEval => {
         this.restart()
-        let groups: ImSet<[number]>[] = []
-        groups.push(new ImSet<[number]>())
-        groups.push(new ImSet<[number]>())
+        const startId = this.curPosition[0].stmt.idLogic
 
-        let gTable: { group: number, value: statementCell}[][] =
-            this.matrix.map(value => value.map(value1 => ({ group: - 1, value: value1[0]})))
+        type groupElement = {
+            number: number
+            node: statement,
+        }
 
-        this.statements.forEach(value => {
-            if (value.isAdmit) {
-                groups[0].add([value.idLogic])
+        const cutBy = (by: number): statementCell[] => {
+            const acc: statementCell[] = []
+            this.matrix.forEach((_, it) => acc.push(this.cellMatrix(it, by)[0]))
+            return acc
+        }
+
+        const _lookUp = (group: groupElement[]) => (id: number): groupElement => {
+            return group[id]
+        }
+
+        const _getJump = (table: groupElement[][]) => (by: number) => (id: number): groupElement => {
+            return table[by][id]
+        }
+
+        const createTableT = (zero: groupElement[]): groupElement[][] => {
+            const lookUp = _lookUp(zero)
+            const table: groupElement[][] = []
+            this.alphabet.forEach((tr) => {
+                const acc: groupElement[] = []
+                const cutted = cutBy(tr)
+                cutted.forEach((cell) => {
+                    acc.push(lookUp(cell.idLogic))
+                })
+                table.push(acc)
+            })
+            return table
+        }
+
+        const _updateGroups = (zero: groupElement[]) => (groups: groupElement[][]) => (getJump: (id: number) => groupElement) => (group: groupElement[]): {fst: groupElement[], snd: groupElement[]} => {
+            const jmpGrp = getJump(group[0].node.idLogic).number
+            const newGrp: groupElement[] = []
+            const newNumber = groups.length + 1
+            const toRm: number[] = []
+
+            group.forEach((value, index) => {
+                if (getJump(value.node.idLogic).number !== jmpGrp) {
+                    value.number = newNumber
+                    toRm.push(value.node.idLogic)
+                    newGrp.push(value)
+                }
+            })
+
+            for (let i = 0; i < group.length; i++) {
+                if (toRm.includes(group[i].node.idLogic)) {
+                    group.splice(i, 1)
+                    i--
+                }
+            }
+
+            if (newGrp.length > 0) {
+                groups.push(newGrp)
+                return {fst: group, snd: newGrp}
+            }
+            return { fst: [], snd: [] }
+        }
+
+        const stack: groupElement[][] = []
+
+        const pop = (): groupElement[] | undefined => stack.shift()
+
+        const push = (v: groupElement[]) => stack.push(v)
+
+        const zero: groupElement[] = []
+        const first: groupElement[] = []
+        const second: groupElement[] = []
+        this.statements.forEach((statement) => {
+            let element: groupElement = { number: -1, node: {idLogic: -1, id: -1, isAdmit: false} }
+            if (statement.isAdmit) {
+                element = { number: 1, node: statement }
+                first.push(element)
             } else {
-                groups[1].add([value.idLogic])
+                element = { number: 2, node: statement }
+                second.push(element)
+            }
+            zero.push(element)
+        })
+
+        const groups: groupElement[][] = []
+        groups.push(first)
+        groups.push(second)
+
+        const table = createTableT(zero)
+
+        this.alphabet.forEach((tr) => {
+            groups.forEach((stmt) => push(stmt))
+            const getJump = _getJump(table)(tr)
+            const updateGroups = _updateGroups(zero)(groups)(getJump)
+            while (stack.length > 0) {
+                const head = pop()
+                if (head === undefined) {
+                    break
+                }
+                const newGrp = updateGroups(head)
+                if (newGrp.fst.length > 0) {
+                    push(newGrp.fst)
+                    push(newGrp.snd)
+                }
             }
         })
 
-        gTable.forEach(value => value.forEach(value1 => {
-            if (value1.value.isAdmit) {
-                value1.group = 0
-                groups[0].add([value1.value.idLogic])
-            } else {
-                value1.group = 1
-                groups[1].add([value1.value.idLogic])
-            }
-        }))
+        const toPositions = (group: groupElement[]): position[] => group.map((g) => ({ stmt: g.node }))
 
-        const mkGrp = (i: number, gTable: { group: number, value: statementCell}[][]): ImSet<[number]> => {
-            let h: number = groups[i].getNth(0)[0]
-            let rs = JSON.stringify(gTable[h].map(value => value.group))
-            let newGrp: ImSet<[number]> = new ImSet<[number]>()
-            gTable.forEach((value, index) => {
-                if (rs === JSON.stringify(value.map(value1 => value1.group)) && groups[i].has([index])) {
-                    newGrp.add([index])
-                }
-            })
-            return newGrp
-        }
+        const grpAfterJmp = (group: groupElement[], by: number): number => _getJump(table)(by)(group[0].node.idLogic).number
 
-        const filter = (arr: ImSet<[number]>, el: [number]): ImSet<[number]> => {
-            let upd: ImSet<[number]> = new ImSet<[number]>()
-            arr.myForEach(value => {
-                if (value[0] !== el[0]) {
-                    upd.add(value)
-                }
-            })
-            return upd
-        }
-
-        let q: Queue<number> = new Queue<number>()
-        groups.forEach((value, index) => q.enqueue(index))
-        while (q.size() > 0) {
-            let id = q.dequeue()
-            if (id !== undefined) {
-                let grp = mkGrp(id, gTable)
-
-                if (groups[id].size() > grp.size()) {
-                    q.enqueue(groups.length)
-                    q.enqueue(id)
-                    groups.push(grp)
-
-                    groups[groups.length - 1].myForEach((value, index) => {
-                        if (id !== undefined) {
-                            groups[id] = filter(groups[id], groups[groups.length - 1].getNth(index))
-                        }
-                    })
-                    groups = groups.filter(value => value.size() > 0)
-
-                    gTable.forEach((gtvalue, index) => gtvalue.forEach(gtvalue1 => {
-                        if (groups[groups.length - 1].has([gtvalue1.value.idLogic])) {
-                            gtvalue1.group = groups.length - 1
-                        }
-                    }))
-                }
-            }
-        }
-
-        let gt =
-            groups.map(value => gTable[value.getNth(0)[0]].map(value1 => ({g: value1.group, admt: value1.value.isAdmit})))
-        let nodes: NodeCore[] =
-            groups.map((value, index) => ({id: index, isAdmit: index === 0}))
-
-        let edges: EdgeCore[] = []
-
-        gt.forEach((value, index) => {
-            this.alphabet.forEach((n, lt) => {
-                edges.push({
-                    from: index,
-                    to: value[n].g,
-                    transitions: new Set<TransitionParams[]>([[{title: lt}]])
+        const nodes: NodeCore[] = groups.map((group) => ({ id: group[0].number, isAdmit: this.haveAdmitting(toPositions(group)) }))
+        const edges: EdgeCore[] = groups.reduce((acc: EdgeCore[], g) => {
+            this.alphabet.forEach((tr, letter) => {
+                acc.push({
+                    from: g[0].number,
+                    to: grpAfterJmp(g, tr),
+                    transitions: new Set<TransitionParams[]>([[{title: letter}]])
                 })
             })
+            return acc
+        }, [])
+
+        console.log(nodes)
+
+        const startGrp = groups.filter((g) => {
+            const gIds = g.map(v => v.node.idLogic)
+            return gIds.includes(startId)
         })
 
-        let _edges: EdgeCore[] = []
-        nodes.forEach(value => nodes.forEach(value1 => {
-            let acc: TransitionParams[] = []
-            edges.forEach(value2 => {
-                if (value.id === value2.from && value1.id === value2.to) {
-                    acc.push(Array.from(value2.transitions)[0][0])
-                    // console.log("->>", acc)
-                }
-            })
-            if (acc.length > 0) {
-                _edges.push({from: value.id, to: value1.id, transitions: new Set<TransitionParams[]>([acc])})
-                // console.log("->>", value.id, value1.id, acc)
-            }
-        }))
 
-        return {nodes: nodes, edges: _edges}
+        const start = nodes[startGrp[0][0].number - 1]
+
+        return { graphcore: {nodes: nodes, edges: edges}, start }
     }
 
 }

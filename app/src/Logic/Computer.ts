@@ -1,5 +1,5 @@
 import {Edge, elementOfAlphabet, statement, Step} from "./Types";
-import {GraphCore, NodeCore, TransitionParams} from "./IGraphTypes";
+import {GraphCore, GraphEval, NodeCore, TransitionParams} from "./IGraphTypes";
 
 export const eof: statement = {isAdmit: false, idLogic: -1, id: -1}
 export const EPS: string = 'Epsilon'
@@ -23,19 +23,24 @@ export abstract class Computer {
     public abstract setInput: (input: string[]) => void
     public abstract byEmptyStackAdmt: (isAdmt: boolean) => void
     public abstract nfaToDfa: () => GraphCore
+    public abstract minimizeDfa: () => GraphEval
 
 
     protected getAlphabetFromEdges(): void {
         let alphabetSet: Set<string> = new Set()
         for (let i = 0; i < this.edges.length; i++) {
             this.edges[i].localValue.forEach(value => {
-                alphabetSet.add(value.title)
+                if (value.title !== "") {
+                    alphabetSet.add(value.title)
+                }
             })
         }
         let i = 0
         alphabetSet.forEach(value => {
-            this.alphabet.set(value, i)
-            i++
+            if (value !== "") {
+                this.alphabet.set(value, i)
+                i++
+            }
         })
     }
 
@@ -45,23 +50,23 @@ export abstract class Computer {
         }
     }
 
-    private setStartStatements(graph: GraphCore, startStatements: NodeCore[]) {
-        if (startStatements.length > 1 && this.alphabet.get(EPS) === undefined) {
-            this.alphabet.set(EPS, this.alphabet.size)
-            startStatements.forEach(value => startStatements.forEach(value1 => {
-                graph.edges.push({from: value.id, to: value1.id, transitions: new Set<TransitionParams[]>([[{title: EPS}]])})
-                // graph.edges.push({from: value.id, to: value1.id, transitions: new Set<string>([EPS])})
-            }))
-        }
-    }
+    // private setStartStatements(graph: GraphCore, startStatements: NodeCore[]) {
+    //     if (startStatements.length > 1 && this.alphabet.get(EPS) === undefined) {
+    //         this.alphabet.set(EPS, this.alphabet.size)
+    //         startStatements.forEach(value => startStatements.forEach(value1 => {
+    //             graph.edges.push({from: value.id, to: value1.id, transitions: new Set<TransitionParams[]>([[{title: EPS}]])})
+    //             // graph.edges.push({from: value.id, to: value1.id, transitions: new Set<string>([EPS])})
+    //         }))
+    //     }
+    // }
 
     protected constructor(graph: GraphCore, startStatements: NodeCore[]) {
-        this.setStartStatements(graph, startStatements)
+        // this.setStartStatements(graph, startStatements)
 
         graph.edges
             .sort((a, b) => a.from - b.from)
             .forEach(value => this.edges.push({
-                    transitions: value.transitions,
+                    transitions: value.transitions === undefined ? new Set<TransitionParams[]>([[{title: ""}]]) : value.transitions,
                     from: value.from,
                     to: value.to,
                     localValue: [],

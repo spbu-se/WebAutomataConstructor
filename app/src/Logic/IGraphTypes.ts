@@ -32,3 +32,8 @@ export interface GraphCore  {
     nodes: NodeCore[]
     edges: EdgeCore[]
 }
+
+export interface GraphEval {
+    graphcore: GraphCore,
+    start: NodeCore
+}

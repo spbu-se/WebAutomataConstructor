@@ -21,6 +21,7 @@ import { TM } from "../../Logic/TM";
 import { Elements } from "../../App";
 import {decorateGraph, elementsToGraph, graphToElements } from "../../utils";
 import { Step } from "../../Logic/Types";
+import { GraphEval } from "../../Logic/IGraphTypes";
 
 
 interface runControlProps {
@@ -29,8 +30,9 @@ interface runControlProps {
     changeStateIsCurrent: (ids: number[], isCurrent: boolean) => void
     updMem: ((mem: string[] | undefined, ptr: number | undefined) => void)
     network: any
-    getInit: ((f: () => void) => void)
-    getNfaToDfa: ((f: () => void) => void)
+    setInit: ((f: () => void) => void)
+    setNfaToDfa: ((f: () => void) => void)
+    setMinimizeDfa: ((f: () => void) => void)
     updateElements: (elements: Elements) => void
     setComputerType: (type: null | ComputerType) => void
 }
@@ -74,28 +76,16 @@ class RunControl extends React.Component<runControlProps, runControlState> {
     }
 
     componentDidMount() {
-        this.props.getInit(this.initializeComputer)
-        this.props.getNfaToDfa(this.nfaToDfa)
+        this.props.setInit(this.initializeComputer)
+        this.props.setNfaToDfa(this.nfaToDfa)
+        this.props.setMinimizeDfa(this.minimizeDfa)
         this.initializeComputer()
     }
 
-    // componentDidUpdate(prevProps: any, prevState: any) {
-    //     //Не более чем для проверки - был ли создан default-graph для <computer-type>.
-    //     if (this.props.elements.nodes.length > prevProps.elements.nodes.length) {
-    //         this.setState({gElements: elementsToGraph(this.props.elements)}, () => this.initializeComputer())
-    //     }
-    // }
-
     componentDidUpdate(prevProps: Readonly<runControlProps>, prevState: Readonly<runControlState>, snapshot?: any) {
-        // if (this.props.computerType !== "nfa-eps") {
-        // if (this.ComputerShouldBeUpdated(prevState.gElements, this.state.gElements)) {
-        //     this.initializeComputer();
-        // }
-        // }
         if (this.ComputerShouldBeUpdated(elementsToGraph(prevProps.elements), elementsToGraph(this.props.elements))) {
             this.initializeComputer();
         }
-
     }
 
     ComputerShouldBeUpdated = (prev: graph, current: graph): boolean => {
@@ -117,42 +107,34 @@ class RunControl extends React.Component<runControlProps, runControlState> {
                 return true;
             }
 
-            const a =  (prev.edges.some((prev, index) => {
-                const curr = current.edges[index];
-                return prev.id !== curr.id ||
-                    prev.from !== curr.from ||
-                    prev.to !== curr.to ||
-                    !isEqual(curr.transitions, prev.transitions)
-            }));
-
             return prev.edges.some((prev, index) => {
                 const curr = current.edges[index];
                 return prev.id !== curr.id ||
-                        prev.from !== curr.from ||
-                        prev.to !== curr.to ||
-                        !isEqual(curr.transitions, prev.transitions)
+                       prev.from !== curr.from ||
+                       prev.to !== curr.to ||
+                       !isEqual(curr.transitions, prev.transitions)
             });
         }
 
         return compareEdges() || compareNodes()
     }
 
-        getComputer = (computerType: ComputerType, graph: graph, initialNode: node, input: string[]): Computer | undefined => {
+        getComputer = (computerType: ComputerType, graph: graph, initialNode: node[], input: string[]): Computer | undefined => {
         switch (computerType) {
             case "dfa":
                 try {
-                    return new DFA(graph, [initialNode], input);
+                    return new DFA(graph, initialNode, input);
                 } catch (e) {
                     return undefined;
                 }
             case "nfa":
-                return new NFA(graph, [initialNode], input);
+                return new NFA(graph, initialNode, input);
             case "nfa-eps":
-                return new EpsilonNFA(graph, [initialNode], input);
+                return new EpsilonNFA(graph, initialNode, input);
             case "pda":
-                return new PDA(graph, [initialNode], input, this.state.byEmptyStack);
+                return new PDA(graph, initialNode, input, this.state.byEmptyStack);
             case "tm":
-                return new TM(graph, [initialNode], input);
+                return new TM(graph, initialNode, input);
 
         }
 
@@ -162,7 +144,7 @@ class RunControl extends React.Component<runControlProps, runControlState> {
         console.warn("Reinitializing computer");
 
         this.setState({gElements: elementsToGraph(this.props.elements)}, () => {
-            const initialNode = elementsToGraph(this.props.elements).nodes.find(node => node.isInitial);
+            const initialNode: node[] = elementsToGraph(this.props.elements).nodes.filter(node => node.isInitial);
             const input = this.state.input.split("");
 
 
@@ -176,6 +158,7 @@ class RunControl extends React.Component<runControlProps, runControlState> {
                 computer: this.getComputer(this.props.computerType, this.state.gElements, initialNode, input),
                 result: undefined
             });
+
         })
 
 
@@ -188,17 +171,12 @@ class RunControl extends React.Component<runControlProps, runControlState> {
         this.state.computer?.setInput(input.split(""));
 
         this.setState({input: input},
-            // () => this.initializeComputer()
         );
 
 
     }
 
     step = (): void => {
-        // if (this.state.counter === 0) {
-        //     this.initializeComputer()
-        // }
-
         if (this.state.computer === undefined) {
             console.error("Computer is not initialized yet");
             return;
@@ -222,7 +200,6 @@ class RunControl extends React.Component<runControlProps, runControlState> {
         let result = undefined;
         if (stepResult.counter === this.state.input.length) {
             result = stepResult.isAdmit
-            // result = stepResult.nodes.some(node => node.isAdmit);
         } else if (this.state.currentInputIndex + 2 !== stepResult.counter) {
             result = false;
         }
@@ -246,8 +223,6 @@ class RunControl extends React.Component<runControlProps, runControlState> {
 
 
     }
-
-
 
     reset = (): void => {
         this.state.computer?.restart();
@@ -279,7 +254,6 @@ class RunControl extends React.Component<runControlProps, runControlState> {
     }
 
     nfaToDfa = (): void => {
-        const input = this.state.input.split("");
         const nfaToDfa = this.state.computer!.nfaToDfa()
         const nodes = nfaToDfa.nodes.map((v, it) => ({
             id: v.id,
@@ -288,9 +262,10 @@ class RunControl extends React.Component<runControlProps, runControlState> {
             isInitial: it === 0,
             isCurrent: false
         }))
+        const edges = nfaToDfa.edges
         const gElements = {
             nodes: nodes,
-            edges: nfaToDfa.edges
+            edges: edges
         }
 
         this.setState({
@@ -301,6 +276,31 @@ class RunControl extends React.Component<runControlProps, runControlState> {
         })
     }
 
+    minimizeDfa = (): void => {
+        this.initializeComputer();
+        this.reset();
+
+        const miniDFA: GraphEval = this.state.computer!.minimizeDfa()
+        const nodes = miniDFA.graphcore.nodes.map((v) => ({
+            id: v.id,
+            isAdmit: v.isAdmit,
+            label: 'G' + v.id.toString(),
+            isInitial: v.id === miniDFA.start.id,
+            isCurrent: false
+        }))
+        const edges = miniDFA.graphcore.edges
+        const gElements = {
+            nodes: nodes,
+            edges: edges
+        }
+
+        this.setState({
+            gElements: gElements
+        }, () => {
+            this.props.updateElements(graphToElements(gElements))
+        })
+    }
+
     render() {
         return (
             <ControlWrapper title={"Запуск"}>
@@ -308,7 +308,8 @@ class RunControl extends React.Component<runControlProps, runControlState> {
 
                     <div className="run-control__item run-control__input__row">
                         {
-                            this.state.editMode ?
+                            this.state.editMode
+                                ?
                                 <TextField
                                     label="Входная строка"
                                     size="small"
@@ -382,18 +383,18 @@ class RunControl extends React.Component<runControlProps, runControlState> {
                             </Button>
                         </div>
 
-                        {
-                            this.props.computerType === "nfa" || this.props.computerType === "nfa-eps" ?
-                                <div className="run-control__button">
-                                    <Button
-                                        variant="outlined"
-                                        onClick={this.nfaToDfa}
-                                    >
-                                        nfaToDfa
-                                    </Button>
-                                </div>
-                                : <></>
-                        }
+                        {/*{*/}
+                        {/*    this.props.computerType === "dfa" ?*/}
+                        {/*        <div className="run-control__button">*/}
+                        {/*            <Button*/}
+                        {/*                variant="outlined"*/}
+                        {/*                onClick={this.minimizeDfa}*/}
+                        {/*            >*/}
+                        {/*                minimize*/}
+                        {/*            </Button>*/}
+                        {/*        </div>*/}
+                        {/*        : <></>*/}
+                        {/*}*/}
 
 
                     </div>
