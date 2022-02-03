@@ -65,14 +65,49 @@ interface appState {
 
 export const ComputerTypeContext = React.createContext<null | ComputerType>(null);
 
+export const computerActions = {
+    init: (() => {}),
+    nfaToDfa: (() => {}),
+    minimizeDfa: (() => {})
+}
+
+interface RibbonProps {
+    computerType: null | ComputerType,
+    wasComputerResetted: boolean,
+    mem: string[] | undefined,
+    ptr: number | undefined
+}
+
+export const Ribbon = (props: RibbonProps) => {
+    const memRef = React.createRef<HTMLDivElement>()
+    return (
+        props.computerType === "tm" && props.wasComputerResetted
+            ?
+            <div className="app__mem_ribbon">
+                {
+                    props.mem?.map((value, index) =>
+                        <div
+                            className="app__mem_cell"
+                            style={{border: `${index === props.ptr ? "#0041d0" : "#000000" } 2px solid`}}
+                        >
+                            {Math.abs (Math.abs(index) - Math.abs(props.ptr!)) <= 5
+                                ? <div ref={memRef}/>
+                                : <div/>
+                            }
+                            {value}
+                            {memRef?.current?.scrollIntoView({behavior: 'smooth'})}
+                        </div>
+                    )
+                }
+            </div>
+            : <div/>
+    )
+}
+
 class App extends React.Component<appProps, appState> {
 
     memRef = React.createRef<HTMLDivElement>();
     network = React.createRef<Network | null>();
-    init = (() => {});
-    nfaToDfa = (() => {});
-    minimizeDfa = (() => {});
-
 
     constructor(props: appProps) {
         super(props);
@@ -122,7 +157,6 @@ class App extends React.Component<appProps, appState> {
         this.openWelcomePopout();
     }
 
-    // network: any;
     lastNodeId = 0;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -204,12 +238,6 @@ class App extends React.Component<appProps, appState> {
 
     changeStateIsInitial = (id: number, isInitial: boolean): void => {
         this.state.elements.nodes.forEach((node) => {
-            // if (node.isInitial) {
-            //     this.state.elements.nodes.update({
-            //         id: node.id,
-            //         isInitial: false
-            //     })
-            // }
             if (node.id === id) {
                 this.state.elements.nodes.update({
                     id: node.id,
@@ -251,10 +279,8 @@ class App extends React.Component<appProps, appState> {
             isAdmit: false,
             isInitial: false,
             isCurrent: false,
-            // color: id === 1 ? { border: '#6984ff', background: '#ffffff' } : { border: '#000000', background: '#ffffff' }
         }
         this.state.elements.nodes.add(node);
-        // this.updateGraph()
     }
 
     selectNode = (e: { nodes: number[]; }): void => {
@@ -281,7 +307,6 @@ class App extends React.Component<appProps, appState> {
             }
         })
         this.state.elements.edges.remove(rmEdges)
-        // this.updateGraph()
     }
 
     selectEdge = (e: { edges: any; }): void => {
@@ -304,10 +329,7 @@ class App extends React.Component<appProps, appState> {
             label: transitionsToLabel(transitions, this.state.computerType),
             transitions: transitions
         })
-        // this.updateGraph()
     }
-
-
 
     deleteEdge = (id: string): void => {
         this.state.elements.edges.remove(id)
@@ -317,37 +339,13 @@ class App extends React.Component<appProps, appState> {
         this.setState({ mem: mem, ptr: ptr });
     }
 
-    memPos = (index: number | undefined): void => {
-        // if (index !== undefined && index > 5) {
-        this.memRef?.current?.scrollIntoView({behavior: 'smooth'})
-        // }
-    }
-
-    // graphToElements = (graph: graph): Elements => {
-    //     let acc: Elements = {nodes: new DataSet<node, "id">(), edges: new DataSet<edge, "id">()}
-    //
-    //     graph.nodes.forEach((node) => {
-    //         acc.nodes.add(node)
-    //     })
-    //     graph.edges.forEach((edge) => {
-    //         acc.edges.add(edge)
-    //     })
-    //
-    //     return acc
-    // }
-
-    handleClick = (e: any, data: { item: any; }) => {
-        alert(`Clicked on menu ${data.item}`);
-    };
-
-
-    ContextMenu = (handleContextMenu: any, handleClose: any) => {
+    NFAContextMenu = (handleContextMenu: any, handleClose: any) => {
         return (
             <div onContextMenu={handleContextMenu}>
                 <div onClick={handleClose}>
                     <button
                         className={"button-context-menu"}
-                        onClick={this.nfaToDfa}
+                        onClick={computerActions.nfaToDfa}
                     >
                         {"НКА->ДКА"}
                     </button>
@@ -363,7 +361,7 @@ class App extends React.Component<appProps, appState> {
                 <div onClick={handleClose}>
                     <button
                         className={"button-context-menu"}
-                        onClick={this.minimizeDfa}
+                        onClick={computerActions.minimizeDfa}
                     >
                         {"Минимизровать"}
                     </button>
@@ -386,7 +384,19 @@ class App extends React.Component<appProps, appState> {
         )
     }
 
-
+    ContextMenu = (computerType: null | ComputerType) => {
+        switch (computerType) {
+            case "nfa" || "nfa-eps": {
+                return this.NFAContextMenu
+            }
+            case "dfa": {
+                return this.DFAContextMenu
+            }
+            default: {
+                return this.AnotherContextMenu
+            }
+        }
+    }
 
     render() {
         return (
@@ -417,7 +427,6 @@ class App extends React.Component<appProps, appState> {
 
                                         console.log(defaultGraph);
                                         console.log(defaultGraph["nodes"]);
-                                        console.log("defaultGraph");
                                         graphToElements(defaultGraph).nodes.forEach((v) => console.log(v))
 
                                         this.lastNodeId = defaultGraph.nodes.length;
@@ -451,30 +460,12 @@ class App extends React.Component<appProps, appState> {
                                     </Paper>
                                 </div>
 
-
-                                {
-                                    this.state.computerType === "tm" && this.state.wasComputerResetted
-                                        ?
-                                        <div className="app__mem_ribbon">
-                                            {
-                                                this.state.mem?.map((value, index) =>
-                                                    <div
-                                                        className="app__mem_cell"
-                                                        style={{border: `${index === this.state.ptr ? "#0041d0" : "#000000" } 2px solid`}}
-                                                    >
-                                                        {Math.abs (Math.abs(index) - Math.abs(this.state.ptr!)) <= 5
-                                                            ? <div ref={this.memRef}/>
-                                                            : <div/>
-                                                        }
-                                                        {value}
-                                                        {this.memRef?.current?.scrollIntoView({behavior: 'smooth'})}
-                                                    </div>
-                                                )
-                                            }
-                                        </div>
-                                        : <div/>
-                                }
-
+                                <Ribbon
+                                    computerType={this.state.computerType}
+                                    wasComputerResetted={this.state.wasComputerResetted}
+                                    mem={this.state.mem}
+                                    ptr={this.state.ptr}
+                                />
 
                                 <AppHeader
                                     onMenuButtonClicked={this.openWelcomePopout}
@@ -485,51 +476,18 @@ class App extends React.Component<appProps, appState> {
 
 
                                 <div className="field__container">
-                                    {
-                                        this.state.computerType === "nfa"|| this.state.computerType === "nfa-eps"
-                                            ?
-                                            <VisNetwork
-                                                nodes={this.state.elements.nodes}
-                                                edges={this.state.elements.edges}
-                                                data={this.state.elements}
-                                                onDoubleClick={this.createNode}
-                                                onClick1={this.selectEdge}
-                                                onClick2={this.selectNode}
-                                                onClick3={this.deselectNode}
-                                                onClick4={this.deselectEdge}
-                                                network={this.network}
-                                                contextMenu={this.ContextMenu}
-                                            />
-                                            :
-                                            this.state.computerType === "dfa"
-                                                ?
-                                                <VisNetwork
-                                                    nodes={this.state.elements.nodes}
-                                                    edges={this.state.elements.edges}
-                                                    data={this.state.elements}
-                                                    onDoubleClick={this.createNode}
-                                                    onClick1={this.selectEdge}
-                                                    onClick2={this.selectNode}
-                                                    onClick3={this.deselectNode}
-                                                    onClick4={this.deselectEdge}
-                                                    network={this.network}
-                                                    contextMenu={this.DFAContextMenu}
-                                                />
-                                                :
-                                            <VisNetwork
-                                                nodes={this.state.elements.nodes}
-                                                edges={this.state.elements.edges}
-                                                data={this.state.elements}
-                                                onDoubleClick={this.createNode}
-                                                onClick1={this.selectEdge}
-                                                onClick2={this.selectNode}
-                                                onClick3={this.deselectNode}
-                                                onClick4={this.deselectEdge}
-                                                network={this.network}
-                                                contextMenu={this.AnotherContextMenu}
-
-                                            />
-                                    }
+                                    <VisNetwork
+                                        nodes={this.state.elements.nodes}
+                                        edges={this.state.elements.edges}
+                                        data={this.state.elements}
+                                        onDoubleClick={this.createNode}
+                                        onClick1={this.selectEdge}
+                                        onClick2={this.selectNode}
+                                        onClick3={this.deselectNode}
+                                        onClick4={this.deselectEdge}
+                                        network={this.network}
+                                        contextMenu={this.ContextMenu(this.state.computerType)}
+                                    />
                                 </div>
 
                                 <div className="app__right-menu">
@@ -539,23 +497,23 @@ class App extends React.Component<appProps, appState> {
                                         changeStateIsAdmit={this.changeStateIsAdmit}
                                         changeStateIsInitial={this.changeStateIsInitial}
                                         deleteNode={this.deleteNode}
-                                        reinitComputer={this.init}
+                                        reinitComputer={computerActions.init}
                                     />
                                     <EdgeControl
                                         edge={this.state.selectedEdge}
                                         changeEdgeTransitions={this.changeEdgeTransition}
                                         deleteEdge={this.deleteEdge}
                                         computerType={this.state.computerType}
-                                        reinitComputer={this.init}
+                                        reinitComputer={computerActions.init}
                                     />
                                     <RunControl
                                         updMem={this.updMem}
                                         elements={this.state.elements}
                                         changeStateIsCurrent={this.changeStateIsCurrent}
                                         network={this.network}
-                                        setInit={(f: () => void) => this.init = f}
-                                        setNfaToDfa={(f: () => void) => this.nfaToDfa = f}
-                                        setMinimizeDfa={(f: () => void) => this.minimizeDfa = f}
+                                        setInit={(f: () => void) => computerActions.init = f}
+                                        setNfaToDfa={(f: () => void) => computerActions.nfaToDfa = f}
+                                        setMinimizeDfa={(f: () => void) => computerActions.minimizeDfa = f}
                                         updateElements={(elements: Elements) => this.setState({elements: elements}, () => this.updateGraph())}
                                         setComputerType={(type: null | ComputerType) => this.setState({ computerType: type })}
                                         setResettedStatus={(status: boolean) => this.setState({ wasComputerResetted: status })}
