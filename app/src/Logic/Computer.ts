@@ -1,5 +1,14 @@
-import {Edge, elementOfAlphabet, statement, Step} from "./Types";
-import {GraphCore, GraphEval, NodeCore, TransitionParams} from "./IGraphTypes";
+import {History, Edge, elementOfAlphabet, statement, Step, Output} from "./Types";
+import {GraphCore, GraphEval, Move, NodeCore, TransitionParams} from "./IGraphTypes";
+import { statementCells } from "./PDA";
+import { Stack } from "./Stack";
+
+export type statementCell = {
+    readonly stackDown?: string
+    readonly stackPush?: string[]
+    readonly move?: Move
+    readonly output?: Output
+} & statement
 
 export const eof: statement = {isAdmit: false, idLogic: -1, id: -1}
 export const EPS: string = 'Epsilon'
@@ -16,14 +25,26 @@ export abstract class Computer {
     protected currentNode: NodeCore
     protected counterSteps: number = 0
     protected counterStepsForResult: number = 0
+    protected historiStep: History[] = []
+    protected historiRun: History[] = []
+    protected matrix: statementCells[][] = []
 
     public abstract restart: () => void
     public abstract run: () => Step
     public abstract step: () => Step
     public abstract setInput: (input: string[]) => void
-    public abstract byEmptyStackAdmt: (isAdmt: boolean) => void
-    public abstract nfaToDfa: () => GraphCore
-    public abstract minimizeDfa: () => GraphEval
+    
+    public byEmptyStackAdmt = (isAdmt: boolean): void => {
+        throw new Error("PDA attribute")
+    }
+    
+    public nfaToDfa = (): GraphCore => {
+        throw new Error("DFA conversion")
+    } 
+
+    public minimizeDfa = (): GraphEval => {
+        throw new Error("DFA conversion")
+    } 
 
 
     protected getAlphabetFromEdges(): void {
@@ -50,15 +71,51 @@ export abstract class Computer {
         }
     }
 
-    // private setStartStatements(graph: GraphCore, startStatements: NodeCore[]) {
-    //     if (startStatements.length > 1 && this.alphabet.get(EPS) === undefined) {
-    //         this.alphabet.set(EPS, this.alphabet.size)
-    //         startStatements.forEach(value => startStatements.forEach(value1 => {
-    //             graph.edges.push({from: value.id, to: value1.id, transitions: new Set<TransitionParams[]>([[{title: EPS}]])})
-    //             // graph.edges.push({from: value.id, to: value1.id, transitions: new Set<string>([EPS])})
-    //         }))
-    //     }
-    // }
+    private createMatrix(): void {
+        for (let i = 0; i < this.statements.size; i++) {
+            this.matrix[i] = []
+            for (let j = 0; j < this.alphabet.size; j++) {
+                this.matrix[i][j] = []
+                //{idLogic: -1, id: -1, isAdmit: false, stackDown: "empty", stackPush: []}
+            }
+        }
+        for (let i = 0; i < this.edges.length; i++) {
+            let statementFrom: statement = this.statements.get(this.edges[i].from)
+            let statementTo: statement = this.statements.get(this.edges[i].to)
+            for (let j = 0; j < this.edges[i].localValue.length; j++) {
+                let letterId = this.alphabet.get(this.edges[i].localValue[j].title)
+                // console.log(letterId)
+                let stDwn = this.edges[i].localValue[j].stackDown
+                let stPsh = this.edges[i].localValue[j].stackPush
+                let mv = this.edges[i].localValue[j].move
+                let output = this.edges[i].localValue[j].output
+                if (stDwn === undefined || stPsh === undefined || stDwn === "" || stPsh.length === 0) {
+                    stDwn = EPS
+                    stPsh = [EPS]
+                }
+                // console.log(statementTo.move)
+                this.matrix[statementFrom.idLogic][letterId].push({
+                    ...statementTo,
+                    stackDown: stDwn,
+                    stackPush: stPsh,
+                    move: mv,
+                    output: output
+                })
+            }
+        }
+        this.alphabet.forEach((value, key) => console.log(value, ' ' ,key))
+        this.statements.forEach(value => console.log(value))
+        this.matrix.forEach(value => {
+            console.log()
+            value.forEach(value1 => console.log(value1))
+        })
+    }
+    
+    protected cellMatrix (i: number, j: number) : statementCell[] {
+        return this.matrix[i][j]
+    }
+
+    
 
     protected constructor(graph: GraphCore, startStatements: NodeCore[]) {
         // this.setStartStatements(graph, startStatements)
@@ -85,8 +142,8 @@ export abstract class Computer {
         this.startStatements = startStatements
         this.currentNode = startStatements[0]
         this.nodes = graph.nodes
+        this.createMatrix()
     }
 
-
-
+    
 }

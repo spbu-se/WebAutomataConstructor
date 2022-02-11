@@ -6,6 +6,8 @@ export type elementOfAlphabet = {
     idLogic: number
 }
 
+export type Output = string
+
 export type Edge = {
     localValue: TransitionParams[]
         // string[]
@@ -27,6 +29,7 @@ export type Step = {
     history: History[]
     memory?: string[]
     pointer?: number
+    output?: Output[]
 }
 
 

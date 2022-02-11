@@ -26,17 +26,14 @@ import FailedLoginPage from "./Components/Pages/FailedLoginPage/FailedLoginPage"
 import AppHeader from "./Components/AppHeader/AppHeader";
 import {TransitionParams} from "./Logic/IGraphTypes";
 import SuccessLoginPage from "./Components/Pages/SuccessLoginPage/SuccessLoginPage";
-import { Box, Button, MenuItem, MenuList, TextField, Typography } from '@mui/material';
-import Vis from 'vis'
 import { VisNetwork } from './VisNetwork';
-import { DFA } from './Logic/DFA';
 import {
     DataSet,
     Network,
     Options,
     Data,
 } from "vis-network/standalone/esm/vis-network";
-import {ContextMenu, MenuItem as CotextMenuItem, ContextMenuTrigger} from "react-contextmenu";
+// import {ContextMenu, MenuItem as CotextMenuItem, ContextMenuTrigger} from "react-contextmenu";
 
 interface appProps {
 }

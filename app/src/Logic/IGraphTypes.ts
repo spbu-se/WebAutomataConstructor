@@ -1,3 +1,5 @@
+import { Output } from "./Types";
+
 export interface NodeCore  {
     id: number
     isAdmit: boolean
@@ -15,6 +17,7 @@ export interface TransitionParams {
     stackDown?: string
     stackPush?: string[]
     move?: Move
+    output?: Output
 }
 
 

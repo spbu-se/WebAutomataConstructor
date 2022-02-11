@@ -1,79 +1,27 @@
-import {History, statement, Step} from "./Types";
+import {History, position, statement, Step} from "./Types";
 import {EdgeCore, GraphCore, GraphEval, Move, NodeCore, TransitionParams} from "./IGraphTypes";
-import {BOTTOM, Computer, EPS} from "./Computer";
+import {BOTTOM, Computer, EPS, statementCell} from "./Computer";
 import {Stack} from "./Stack";
 import {cloneDeep} from "lodash";
 
-type statementCell = {
-    readonly stackDown?: string
-    readonly stackPush?: string[]
-    readonly move?: Move
-} & statement
-
-
-type statementCells = Array<statementCell>
+export type statementCells = Array<statementCell>
 
 type element = {
     idLogic: number
     top: Stack<string>
 }
 
-type position = {
-    stmt: statement,
-    stack?: Stack<string>
-}
 
 export class PDA extends Computer {
 
     private epsId: any
-    protected matrix: statementCells[][] = []
+    // protected matrix: statementCells[][] = []
     private stack: Stack<string> = new Stack<string>()
     protected curPosition: position[]
-    protected historiStep: History[] = []
-    protected historiRun: History[] = []
+    // protected historiStep: History[] = []
+    // protected historiRun: History[] = []
     private admitByEmptyStack: boolean | undefined
 
-
-    private createMatrix(): void {
-        for (let i = 0; i < this.statements.size; i++) {
-            this.matrix[i] = []
-            for (let j = 0; j < this.alphabet.size; j++) {
-                this.matrix[i][j] = []//{idLogic: -1, id: -1, isAdmit: false, stackDown: "empty", stackPush: []}
-            }
-        }
-        for (let i = 0; i < this.edges.length; i++) {
-            let statementFrom: statement = this.statements.get(this.edges[i].from)
-            let statementTo: statement = this.statements.get(this.edges[i].to)
-            for (let j = 0; j < this.edges[i].localValue.length; j++) {
-                let letterId = this.alphabet.get(this.edges[i].localValue[j].title)
-                // console.log(letterId)
-                let stDwn = this.edges[i].localValue[j].stackDown
-                let stPsh = this.edges[i].localValue[j].stackPush
-                let mv = this.edges[i].localValue[j].move
-                if (stDwn === undefined || stPsh === undefined || stDwn === "" || stPsh.length === 0) {
-                    stDwn = EPS
-                    stPsh = [EPS]
-                }
-                // console.log(statementTo.move)
-                this.matrix[statementFrom.idLogic][letterId].push({
-                    ...statementTo,
-                    stackDown: stDwn,
-                    stackPush: stPsh,
-                    move: mv
-                })
-            }
-        }
-        this.alphabet.forEach((value, key) => console.log(value, ' ' ,key))
-        this.statements.forEach(value => console.log(value))
-        this.matrix.forEach(value => {
-            console.log()
-            value.forEach(value1 => console.log(value1))
-        })
-    }
-
-    protected cellMatrix (i: number, j: number) : statementCell[] {
-        return this.matrix[i][j]
-    }
 
     private copyPushList (value: statementCell): string[] {
         let cpy: string[] = []
@@ -190,8 +138,6 @@ export class PDA extends Computer {
         let permutes = this.cellMatrix(curLId, this.epsId)[0] !== undefined ? PDA.permute0 (this.cellMatrix(curLId, this.epsId)) : [(this.cellMatrix(curLId, this.epsId))]
         // permutes.push(this.cellMatrix(curLId, this.epsId))
         // let permutes: statementCell[][] = PDA.permute(this.cellMatrix(curLId, this.epsId))
-
-
 
         const cycle = (cell: statementCell[], idx: number, idLogic: number, stack: Stack<string>): void => {
             visited[idx] = true
@@ -376,7 +322,7 @@ export class PDA extends Computer {
 
         this.admitByEmptyStack = byEmpty
         this.epsId = this.alphabet.get(EPS)
-        this.createMatrix()
+        // this.createMatrix()
 
         // this.matrix.forEach(value => {
         //     value.forEach(value1 => value1.forEach(value2 => {
