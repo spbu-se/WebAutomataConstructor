@@ -3,12 +3,10 @@ var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
         extendStatics = Object.setPrototypeOf ||
             ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-            function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
+            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
         return extendStatics(d, b);
     };
     return function (d, b) {
-        if (typeof b !== "function" && b !== null)
-            throw new TypeError("Class extends value " + String(b) + " is not a constructor or null");
         extendStatics(d, b);
         function __() { this.constructor = d; }
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
@@ -26,7 +24,6 @@ var __assign = (this && this.__assign) || function () {
     return __assign.apply(this, arguments);
 };
 exports.__esModule = true;
-exports.ImSet = exports.PDA = void 0;
 var Computer_1 = require("./Computer");
 var Stack_1 = require("./Stack");
 var lodash_1 = require("lodash");
@@ -449,7 +446,7 @@ var PDA = /** @class */ (function (_super) {
         this.pushReverse(pushVals, newStack);
     };
     PDA.permute0 = function (permutation) {
-        var r = (0, lodash_1.cloneDeep)(permutation);
+        var r = lodash_1.cloneDeep(permutation);
         function cmp(a, b) {
             if (a.stackDown && b.stackDown) {
                 if (a.stackDown < b.stackDown) {
@@ -482,7 +479,7 @@ var PDA = /** @class */ (function (_super) {
         var _detour = function (lvl, cur, acc) {
             if (lvl < tmp.length) {
                 for (var i = 0; i < tmp[lvl].length; i++) {
-                    var a = (0, lodash_1.cloneDeep)(acc);
+                    var a = lodash_1.cloneDeep(acc);
                     a.push(tmp[lvl][i]);
                     _detour(lvl + 1, i, a);
                 }
@@ -740,7 +737,7 @@ var ImSet = /** @class */ (function () {
         this.set = [];
     }
     ImSet.prototype.normalize = function (v) {
-        var _v = (0, lodash_1.cloneDeep)(v);
+        var _v = lodash_1.cloneDeep(v);
         _v = _v.sort();
         return _v;
     };

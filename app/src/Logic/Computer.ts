@@ -1,5 +1,5 @@
 import {History, Edge, elementOfAlphabet, statement, Step, Output} from "./Types";
-import {GraphCore, GraphEval, Move, NodeCore, TransitionParams} from "./IGraphTypes";
+import {GraphCore, GraphEval, GraphEvalMultiStart, Move, NodeCore, TransitionParams} from "./IGraphTypes";
 import { statementCells } from "./PDA";
 import { Stack } from "./Stack";
 
@@ -46,6 +46,9 @@ export abstract class Computer {
         throw new Error("DFA conversion")
     } 
 
+    public moorToMealy = (): GraphEvalMultiStart => {
+        throw new Error("Moor conversion")
+    } 
 
     protected getAlphabetFromEdges(): void {
         let alphabetSet: Set<string> = new Set()
@@ -67,7 +70,14 @@ export abstract class Computer {
 
     protected getStatementsFromNodes(nodes: NodeCore[]): void {
         for (let i = 0; i < nodes.length; i++) {
-            this.statements.set(nodes[i].id, {id: nodes[i].id, isAdmit: nodes[i].isAdmit, idLogic: i})
+            this.statements.set(
+                nodes[i].id, 
+                {
+                    id: nodes[i].id, 
+                    isAdmit: nodes[i].isAdmit, 
+                    idLogic: i,
+                    output: nodes[i].output
+                })
         }
     }
 
@@ -88,7 +98,7 @@ export abstract class Computer {
                 let stDwn = this.edges[i].localValue[j].stackDown
                 let stPsh = this.edges[i].localValue[j].stackPush
                 let mv = this.edges[i].localValue[j].move
-                let output = this.edges[i].localValue[j].output
+                let output = this.edges[i].localValue[j].output === undefined ? statementTo.output : this.edges[i].localValue[j].output  
                 if (stDwn === undefined || stPsh === undefined || stDwn === "" || stPsh.length === 0) {
                     stDwn = EPS
                     stPsh = [EPS]

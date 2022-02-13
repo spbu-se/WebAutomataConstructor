@@ -11,7 +11,6 @@ var __assign = (this && this.__assign) || function () {
     return __assign.apply(this, arguments);
 };
 exports.__esModule = true;
-exports.Computer = exports.BOTTOM = exports.EPS = exports.eof = void 0;
 exports.eof = { isAdmit: false, idLogic: -1, id: -1 };
 exports.EPS = 'Epsilon';
 exports.BOTTOM = "Z0";
@@ -37,6 +36,9 @@ var Computer = /** @class */ (function () {
         };
         this.minimizeDfa = function () {
             throw new Error("DFA conversion");
+        };
+        this.moorToMealy = function () {
+            throw new Error("Moor conversion");
         };
         graph.edges
             .sort(function (a, b) { return a.from - b.from; })
@@ -85,7 +87,12 @@ var Computer = /** @class */ (function () {
     };
     Computer.prototype.getStatementsFromNodes = function (nodes) {
         for (var i = 0; i < nodes.length; i++) {
-            this.statements.set(nodes[i].id, { id: nodes[i].id, isAdmit: nodes[i].isAdmit, idLogic: i });
+            this.statements.set(nodes[i].id, {
+                id: nodes[i].id,
+                isAdmit: nodes[i].isAdmit,
+                idLogic: i,
+                output: nodes[i].output
+            });
         }
     };
     Computer.prototype.createMatrix = function () {
@@ -105,7 +112,7 @@ var Computer = /** @class */ (function () {
                 var stDwn = this.edges[i].localValue[j].stackDown;
                 var stPsh = this.edges[i].localValue[j].stackPush;
                 var mv = this.edges[i].localValue[j].move;
-                var output = this.edges[i].localValue[j].output;
+                var output = this.edges[i].localValue[j].output === undefined ? statementTo.output : this.edges[i].localValue[j].output;
                 if (stDwn === undefined || stPsh === undefined || stDwn === "" || stPsh.length === 0) {
                     stDwn = exports.EPS;
                     stPsh = [exports.EPS];

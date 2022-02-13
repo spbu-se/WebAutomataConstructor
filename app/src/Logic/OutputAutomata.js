@@ -3,12 +3,10 @@ var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
         extendStatics = Object.setPrototypeOf ||
             ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-            function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
+            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
         return extendStatics(d, b);
     };
     return function (d, b) {
-        if (typeof b !== "function" && b !== null)
-            throw new TypeError("Class extends value " + String(b) + " is not a constructor or null");
         extendStatics(d, b);
         function __() { this.constructor = d; }
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
@@ -26,11 +24,10 @@ var __assign = (this && this.__assign) || function () {
     return __assign.apply(this, arguments);
 };
 exports.__esModule = true;
-exports.Mealy = void 0;
 var Computer_1 = require("./Computer");
-var Mealy = /** @class */ (function (_super) {
-    __extends(Mealy, _super);
-    function Mealy(graph, startStatements, input) {
+var OutputAutomata = /** @class */ (function (_super) {
+    __extends(OutputAutomata, _super);
+    function OutputAutomata(graph, startStatements, input) {
         var _this = _super.call(this, graph, startStatements) || this;
         _this.restart = function () {
             _this.counterSteps = 0;
@@ -140,7 +137,7 @@ var Mealy = /** @class */ (function (_super) {
         console.log(_this.curPosition);
         return _this;
     }
-    Mealy.prototype.toNodes = function (positions) {
+    OutputAutomata.prototype.toNodes = function (positions) {
         var _this = this;
         var retNodes = [];
         positions.forEach(function (value) {
@@ -149,30 +146,27 @@ var Mealy = /** @class */ (function (_super) {
         });
         return retNodes;
     };
-    Mealy.prototype.haveAdmitting = function (positions) {
+    OutputAutomata.prototype.haveAdmitting = function (positions) {
         return positions.reduce(function (acc, p) { return acc && p.stmt.isAdmit; }, true);
     };
-    return Mealy;
+    return OutputAutomata;
 }(Computer_1.Computer));
-exports.Mealy = Mealy;
-// let nfa = new Mealy(
+exports.OutputAutomata = OutputAutomata;
+// let nfa = new Moor(
 //     {
 //         nodes: [
-//             { id: 0, isAdmit: false },
-//             { id: 1, isAdmit: false },
-//             { id: 2, isAdmit: false },
-//             { id: 3, isAdmit: false },
+//             { id: 0, isAdmit: false, output: '0' },
+//             { id: 1, isAdmit: false, output: '1' },
+//             { id: 2, isAdmit: false, output: '2' },
+//             { id: 3, isAdmit: false, output: '3' },
 //         ],
 //         edges: [
-//             { from: 0, to: 1, transitions: new Set([[{ title: '5', output: 'n' }]]) },
-//             { from: 0, to: 3, transitions: new Set([[{ title: '10', output: 'n' }]]) },
-//             { from: 1, to: 2, transitions: new Set([[{ title: '10', output: 'n' }]]) },
-//             { from: 1, to: 3, transitions: new Set([[{ title: '5', output: 'n' }]]) },
-//             { from: 2, to: 0, transitions: new Set([[{ title: '5', output: '0' }, { title: '10', output: '5' }]]) },
-//             { from: 3, to: 2, transitions: new Set([[{ title: '5', output: 'n' }]]) },
-//             { from: 3, to: 0, transitions: new Set([[{ title: '10', output: '0' }]]) },
+//             { from: 0, to: 1, transitions: new Set([[{ title: '5' }]]) },
+//             { from: 1, to: 2, transitions: new Set([[{ title: '10'}]]) },
+//             { from: 2, to: 3, transitions: new Set([[{ title: '10'}]]) },
+//             { from: 3, to: 3, transitions: new Set([[{ title: '5' }]]) },
 //         ]
-//     }, [{ id: 0, isAdmit: false }], ["10", "10"])
+//     }, [{ id: 0, isAdmit: false }], ["5"])
 // console.log(nfa.run())
 // console.log(nfa.step())
 // console.log(nfa.step())

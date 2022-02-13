@@ -5,6 +5,7 @@ export interface NodeCore  {
     isAdmit: boolean
     stack?: string[]
     move?: Move
+    output?: Output
 }
 
 export enum Move {
@@ -39,4 +40,9 @@ export interface GraphCore  {
 export interface GraphEval {
     graphcore: GraphCore,
     start: NodeCore
+}
+
+export interface GraphEvalMultiStart {
+    graphcore: GraphCore,
+    start: NodeCore[]
 }

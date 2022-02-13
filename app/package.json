@@ -20,8 +20,8 @@
     "react-dom": "17.0.2",
     "react-graph-vis": "^1.0.5",
     "react-router-dom": "^5.3.0",
-    "react-scripts": "3.0.1",
-    "typescript": "^4.2.2",
+    "react-scripts": "^3.0.1",
+    "tsc": "^2.0.4",
     "vis": "^4.21.0-EOL",
     "vis-data": "^7.1.2",
     "vis-network": "^9.1.0"
@@ -53,6 +53,7 @@
     ]
   },
   "devDependencies": {
-    "gh-pages": "^3.1.0"
+    "gh-pages": "^3.1.0",
+    "typescript": "^4.5.5"
   }
 }
