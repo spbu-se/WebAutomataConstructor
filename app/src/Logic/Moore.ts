@@ -3,12 +3,12 @@ import { EdgeCore, GraphCore, GraphEval, GraphEvalMultiStart, NodeCore, Transiti
 import { OutputAutomata } from "./OutputAutomata";
 import { Edge } from "./Types";
 
-export class Moor extends OutputAutomata {
+export class Moore extends OutputAutomata {
     constructor(graph: GraphCore, startStatements: NodeCore[], input: string[]) {
         super(graph, startStatements, input)
     }
 
-    public moorToMealy = (): GraphEvalMultiStart => {
+    public mooreToMealy = (): GraphEvalMultiStart => {
         const mapNodes: Map<number, NodeCore> = new Map()
         this.nodes.forEach(node => mapNodes.set(node.id, { id: node.id, isAdmit: node.isAdmit, output: node.output }))
         const mealyEdges: EdgeCore[] = this.edges.map((edge: Edge) => {
@@ -29,32 +29,37 @@ export class Moor extends OutputAutomata {
 }
 
 
-let nfa = new Moor(
-    {
-        nodes: [
-            { id: 0, isAdmit: false, output: '0' },
-            { id: 1, isAdmit: false, output: '1' },
-            { id: 2, isAdmit: false, output: '2' },
-            { id: 3, isAdmit: false, output: '3' },
-        ],
-        edges: [
-            { from: 0, to: 1, transitions: new Set([[{ title: '5' }]]) },
-            { from: 1, to: 2, transitions: new Set([[{ title: '10' }]]) },
-            { from: 2, to: 3, transitions: new Set([[{ title: '10' }]]) },
-            { from: 3, to: 3, transitions: new Set([[{ title: '5' }]]) },
+// let nfa = new Moor(
+//     {
+//         nodes: [
+//             { id: 0, isAdmit: false, output: 'b' },
+//             { id: 1, isAdmit: false, output: 'b' },
+//             { id: 2, isAdmit: false, output: 'a' },
+//             // { id: 3, isAdmit: false, output: '3' },
+//         ],
+//         edges: [
+//             { from: 0, to: 0, transitions: new Set([[{ title: '1' }]]) },
+//             { from: 0, to: 1, transitions: new Set([[{ title: '0' }]]) },
+            
+//             { from: 1, to: 1, transitions: new Set([[{ title: '0' }]]) },
+//             { from: 1, to: 2, transitions: new Set([[{ title: '1' }]]) },
+            
+//             { from: 2, to: 1, transitions: new Set([[{ title: '0' }]]) },
+//             { from: 2, to: 0, transitions: new Set([[{ title: '1' }]]) },
+            
 
-        ]
-    }, [{ id: 0, isAdmit: false }], ["5"])
+//         ]
+//     }, [{ id: 0, isAdmit: false }], ["5"])
 
 // console.log(nfa.run())
 // console.log(nfa.step())
 // console.log(nfa.step())
-const conv = nfa.moorToMealy()
-conv.graphcore.edges.forEach(edge => {
-    console.log(edge.from)
-    console.log(edge.to)
-    console.log(edge.transitions)
-})
-conv.graphcore.nodes.forEach(node => {
-    console.log(node)
-})
+// const conv = nfa.moorToMealy()
+// conv.graphcore.edges.forEach(edge => {
+//     console.log(edge.from)
+//     console.log(edge.to)
+//     console.log(edge.transitions)
+// })
+// conv.graphcore.nodes.forEach(node => {
+//     console.log(node)
+// })

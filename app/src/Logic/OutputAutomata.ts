@@ -77,31 +77,31 @@ export abstract class OutputAutomata extends Computer {
         return positions.reduce((acc: boolean, p) => acc && p.stmt.isAdmit, true)
     }
 
+    protected nextStepPosition = (position: position, by: number): { position: position, output: Output | undefined }[] => {
+        return this.cellMatrix(position.stmt.idLogic, by).map(v => ({ position: { stmt: v }, output: v.output }))
+    }
+
+    protected nextStepPositions = (positions: position[], by: number): { positions: position[], outputs: Output[] } => {
+        const nextPOs = positions.map((v) => this.nextStepPosition(v, by))
+        const nextPs = nextPOs.reduce((acc: position[], pos) => {
+            pos.forEach(po => acc.push(po.position))
+            return acc
+        }, [])
+        const nextOs = nextPOs.reduce((acc: Output[], pos) => {
+            pos.forEach(po => {
+                if (po.output === undefined) {
+                    throw new Error("Output undefinded")
+                }
+                acc.push(po.output)
+            })
+            return acc
+        }, [])
+        return { positions: nextPs, outputs: nextOs }
+    }
+
     protected _step = (ref: { counterSteps: number, curPosition: position[], historiStep: History[] }) => {
-        const nextStepPosition = (position: position, by: number): { position: position, output: Output | undefined }[] => {
-            return this.cellMatrix(position.stmt.idLogic, by).map(v => ({ position: { stmt: v }, output: v.output }))
-        }
-
-        const nextStepPositions = (positions: position[], by: number): { positions: position[], outputs: Output[] } => {
-            const nextPOs = positions.map((v) => nextStepPosition(v, by))
-            const nextPs = nextPOs.reduce((acc: position[], pos) => {
-                pos.forEach(po => acc.push(po.position))
-                return acc
-            }, [])
-            const nextOs = nextPOs.reduce((acc: Output[], pos) => {
-                pos.forEach(po => {
-                    if (po.output === undefined) {
-                        throw new Error("Output undefinded")
-                    }
-                    acc.push(po.output)
-                })
-                return acc
-            }, [])
-            return { positions: nextPs, outputs: nextOs }
-        }
-
         const trNum = this.alphabet.get(this.input[ref.counterSteps]?.value)
-        const nextPositions = nextStepPositions(ref.curPosition, trNum)
+        const nextPositions = this.nextStepPositions(ref.curPosition, trNum)
 
         ref.curPosition = nextPositions.positions
         const nodesOfCurPos: NodeCore[] = this.toNodes(ref.curPosition)

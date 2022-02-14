@@ -63,30 +63,30 @@ var OutputAutomata = /** @class */ (function (_super) {
                 output: output
             };
         };
+        _this.nextStepPosition = function (position, by) {
+            return _this.cellMatrix(position.stmt.idLogic, by).map(function (v) { return ({ position: { stmt: v }, output: v.output }); });
+        };
+        _this.nextStepPositions = function (positions, by) {
+            var nextPOs = positions.map(function (v) { return _this.nextStepPosition(v, by); });
+            var nextPs = nextPOs.reduce(function (acc, pos) {
+                pos.forEach(function (po) { return acc.push(po.position); });
+                return acc;
+            }, []);
+            var nextOs = nextPOs.reduce(function (acc, pos) {
+                pos.forEach(function (po) {
+                    if (po.output === undefined) {
+                        throw new Error("Output undefinded");
+                    }
+                    acc.push(po.output);
+                });
+                return acc;
+            }, []);
+            return { positions: nextPs, outputs: nextOs };
+        };
         _this._step = function (ref) {
             var _a;
-            var nextStepPosition = function (position, by) {
-                return _this.cellMatrix(position.stmt.idLogic, by).map(function (v) { return ({ position: { stmt: v }, output: v.output }); });
-            };
-            var nextStepPositions = function (positions, by) {
-                var nextPOs = positions.map(function (v) { return nextStepPosition(v, by); });
-                var nextPs = nextPOs.reduce(function (acc, pos) {
-                    pos.forEach(function (po) { return acc.push(po.position); });
-                    return acc;
-                }, []);
-                var nextOs = nextPOs.reduce(function (acc, pos) {
-                    pos.forEach(function (po) {
-                        if (po.output === undefined) {
-                            throw new Error("Output undefinded");
-                        }
-                        acc.push(po.output);
-                    });
-                    return acc;
-                }, []);
-                return { positions: nextPs, outputs: nextOs };
-            };
             var trNum = _this.alphabet.get((_a = _this.input[ref.counterSteps]) === null || _a === void 0 ? void 0 : _a.value);
-            var nextPositions = nextStepPositions(ref.curPosition, trNum);
+            var nextPositions = _this.nextStepPositions(ref.curPosition, trNum);
             ref.curPosition = nextPositions.positions;
             var nodesOfCurPos = _this.toNodes(ref.curPosition);
             ref.historiStep.push({ nodes: nodesOfCurPos, by: trNum });

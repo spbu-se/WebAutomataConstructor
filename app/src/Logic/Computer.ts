@@ -46,7 +46,7 @@ export abstract class Computer {
         throw new Error("DFA conversion")
     } 
 
-    public moorToMealy = (): GraphEvalMultiStart => {
+    public mooreToMealy = (): GraphEvalMultiStart => {
         throw new Error("Moor conversion")
     } 
 

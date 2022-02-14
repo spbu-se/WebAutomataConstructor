@@ -37,7 +37,7 @@ var Computer = /** @class */ (function () {
         this.minimizeDfa = function () {
             throw new Error("DFA conversion");
         };
-        this.moorToMealy = function () {
+        this.mooreToMealy = function () {
             throw new Error("Moor conversion");
         };
         graph.edges
