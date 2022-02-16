@@ -120,7 +120,11 @@ export abstract class OutputAutomata extends Computer {
     }
 
     public step = (): Step => {
-        const ref = { counterSteps: this.counterSteps, curPosition: this.curPosition, historiStep: this.historiStep }
+        const ref = { 
+            counterSteps: this.counterSteps,
+            curPosition: this.curPosition, 
+            historiStep: this.historiStep 
+        }
         const after = this._step(ref)
         this.counterSteps = ref.counterSteps
         this.curPosition = ref.curPosition

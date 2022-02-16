@@ -1,10 +1,10 @@
-import React, {ChangeEvent} from "react";
-import {ComputerType, graph, node} from "../../react-graph-vis-types";
-import {DFA} from "../../Logic/DFA";
-import {isEqual} from "lodash";
-import {withComputerType} from "../../hoc";
-import {Computer} from "../../Logic/Computer";
-import {NFA} from "../../Logic/NFA";
+import React, { ChangeEvent } from "react";
+import { ComputerType, graph, node } from "../../react-graph-vis-types";
+import { DFA } from "../../Logic/DFA";
+import { isEqual } from "lodash";
+import { withComputerType } from "../../hoc";
+import { Computer } from "../../Logic/Computer";
+import { NFA } from "../../Logic/NFA";
 import ControlWrapper from "../ControlWrapper/ControlWrapper";
 import "./RunControl.css";
 import Button from "@mui/material/Button";
@@ -15,13 +15,15 @@ import Typography from "@mui/material/Typography";
 
 import Tooltip from '@mui/material/Tooltip';
 
-import {EpsilonNFA} from "../../Logic/EpsilonNFA";
-import {PDA} from "../../Logic/PDA";
+import { EpsilonNFA } from "../../Logic/EpsilonNFA";
+import { PDA } from "../../Logic/PDA";
 import { TM } from "../../Logic/TM";
 import { Elements } from "../../App";
-import {decorateGraph, elementsToGraph, graphToElements } from "../../utils";
+import { decorateGraph, elementsToGraph, graphToElements } from "../../utils";
 import { Step } from "../../Logic/Types";
 import { GraphEval } from "../../Logic/IGraphTypes";
+import { Mealy } from "../../Logic/Mealy";
+import { Moore } from "../../Logic/Moore";
 
 
 interface runControlProps {
@@ -71,7 +73,7 @@ class RunControl extends React.Component<runControlProps, runControlState> {
             wasRuned: false,
             memory: undefined,
             gElements: elementsToGraph(this.props.elements),
-        // {nodes: [], edges: []}
+            // {nodes: [], edges: []}
         };
         // this.initializeComputer()
     }
@@ -98,8 +100,8 @@ class RunControl extends React.Component<runControlProps, runControlState> {
             return prev.nodes.some((prev, index) => {
                 const curr = current.nodes[index];
                 return prev.id !== curr.id ||
-                       prev.isAdmit !== curr.isAdmit ||
-                       prev.isInitial !== curr.isInitial;
+                    prev.isAdmit !== curr.isAdmit ||
+                    prev.isInitial !== curr.isInitial;
             })
         }
 
@@ -111,16 +113,16 @@ class RunControl extends React.Component<runControlProps, runControlState> {
             return prev.edges.some((prev, index) => {
                 const curr = current.edges[index];
                 return prev.id !== curr.id ||
-                       prev.from !== curr.from ||
-                       prev.to !== curr.to ||
-                       !isEqual(curr.transitions, prev.transitions)
+                    prev.from !== curr.from ||
+                    prev.to !== curr.to ||
+                    !isEqual(curr.transitions, prev.transitions)
             });
         }
 
         return compareEdges() || compareNodes()
     }
 
-        getComputer = (computerType: ComputerType, graph: graph, initialNode: node[], input: string[]): Computer | undefined => {
+    getComputer = (computerType: ComputerType, graph: graph, initialNode: node[], input: string[]): Computer | undefined => {
         switch (computerType) {
             case "dfa":
                 try {
@@ -136,7 +138,10 @@ class RunControl extends React.Component<runControlProps, runControlState> {
                 return new PDA(graph, initialNode, input, this.state.byEmptyStack);
             case "tm":
                 return new TM(graph, initialNode, input);
-
+            case "mealy":
+                return new Mealy(graph, initialNode, input);
+            case "moore":
+                return new Moore(graph, initialNode, input);
         }
 
     }
@@ -144,7 +149,7 @@ class RunControl extends React.Component<runControlProps, runControlState> {
     initializeComputer = () => {
         console.warn("Reinitializing computer");
 
-        this.setState({gElements: elementsToGraph(this.props.elements)}, () => {
+        this.setState({ gElements: elementsToGraph(this.props.elements) }, () => {
             const initialNode: node[] = elementsToGraph(this.props.elements).nodes.filter(node => node.isInitial);
             const input = this.state.input.split("");
 
@@ -171,7 +176,7 @@ class RunControl extends React.Component<runControlProps, runControlState> {
         this.reset();
         this.state.computer?.setInput(input.split(""));
 
-        this.setState({input: input});
+        this.setState({ input: input });
 
 
     }
@@ -186,7 +191,7 @@ class RunControl extends React.Component<runControlProps, runControlState> {
 
 
         if (this.state.wasRuned) {
-            this.setState({ wasRuned: false});
+            this.setState({ wasRuned: false });
             this.reset();
         }
 
@@ -211,9 +216,19 @@ class RunControl extends React.Component<runControlProps, runControlState> {
             .map(nodeCore => this.state.gElements.nodes.find(node => node.id == nodeCore.id))
             .filter((node): node is node => node !== undefined);
 
+        console.log("stepResult.nodes[i].outputstepResult.nodes[i].outputstepResult.nodes[i].output")
+        console.log(stepResult)
+
         const _nodes = nodes.map((e, i) => {
             const stack = stepResult.nodes[i].stack
-            return { a: e, b: stack === undefined ? undefined : stack.reverse() }
+            return {
+                a: e,
+                b: stack !== undefined
+                    ? stack.reverse()
+                    : stepResult.output !== undefined
+                    ? stepResult.output!
+                    : undefined
+            }
         })
 
         this.setState({
@@ -222,7 +237,7 @@ class RunControl extends React.Component<runControlProps, runControlState> {
             history: [...this.state.history, _nodes],
             memory: stepResult.memory,
             // counter: stepResult.counter
-        }, () => this.historyEndRef?.current?.scrollIntoView({behavior: 'smooth'}));
+        }, () => this.historyEndRef?.current?.scrollIntoView({ behavior: 'smooth' }));
 
 
     }
@@ -231,11 +246,11 @@ class RunControl extends React.Component<runControlProps, runControlState> {
         this.state.computer?.restart();
         this.props.changeStateIsCurrent([], true); // resets all nodes
         this.setState({
-                result: undefined,
-                currentInputIndex: -1,
-                history: [],
-                // counter: 0
-            },
+            result: undefined,
+            currentInputIndex: -1,
+            history: [],
+            // counter: 0
+        },
             // () => this.initializeComputer()
         );
         this.state.computer?.setInput(this.state.input.split(""))
@@ -254,7 +269,7 @@ class RunControl extends React.Component<runControlProps, runControlState> {
 
         const result = this.state.computer.run();
 
-        this.setState({result: result.isAdmit, currentInputIndex: -1, history: []});
+        this.setState({ result: result.isAdmit, currentInputIndex: -1, history: [] });
         this.setState({ wasRuned: true })
     }
 
@@ -321,14 +336,14 @@ class RunControl extends React.Component<runControlProps, runControlState> {
                                     value={this.state.input}
                                     onChange={this.onInputChanged}
                                     onBlur={() => {
-                                        this.state.input.length && this.setState({editMode: false}, () => this.initializeComputer())
+                                        this.state.input.length && this.setState({ editMode: false }, () => this.initializeComputer())
                                     }}
                                 />
                                 :
                                 <div
                                     className="run-control__input-value"
                                     onClick={() => {
-                                        this.setState({editMode: true});
+                                        this.setState({ editMode: true });
                                     }}
                                 >
                                     {
@@ -348,8 +363,8 @@ class RunControl extends React.Component<runControlProps, runControlState> {
                             {
                                 this.state.result === undefined ? null :
                                     this.state.result
-                                        ? <DoneIcon style={{color: "var(--commerce)"}}/>
-                                        : <CloseIcon style={{color: "var(--destructive)"}}/>
+                                        ? <DoneIcon style={{ color: "var(--commerce)" }} />
+                                        : <CloseIcon style={{ color: "var(--destructive)" }} />
                             }
                         </div>
 
@@ -368,14 +383,14 @@ class RunControl extends React.Component<runControlProps, runControlState> {
                         {
                             this.props.computerType !== "tm"
                                 ?
-                                    <div className="run-control__button">
-                                        <Button
-                                            variant="outlined"
-                                            onClick={this.run}
-                                        >
-                                            Запуск
-                                        </Button>
-                                    </div>
+                                <div className="run-control__button">
+                                    <Button
+                                        variant="outlined"
+                                        onClick={this.run}
+                                    >
+                                        Запуск
+                                    </Button>
+                                </div>
                                 : <></>
                         }
 
@@ -407,23 +422,23 @@ class RunControl extends React.Component<runControlProps, runControlState> {
                     {
                         this.props.computerType === "pda"
                             ?
-                                <div className="run-control__button">
-                                    <Button
-                                        variant="outlined"
-                                        color="secondary"
-                                        // onClick={this.run}
+                            <div className="run-control__button">
+                                <Button
+                                    variant="outlined"
+                                    color="secondary"
+                                    // onClick={this.run}
 
-                                        onClick={() => {
-                                            const curStbyEmp = this.state.byEmptyStack;
-                                            this.setState({ byEmptyStack: !curStbyEmp});
-                                            this.state.computer!.byEmptyStackAdmt(!curStbyEmp)
-                                            this.reset();
-                                        }}
-                                    >
-                                        {this.state.byEmptyStack ?  "По стеку" : "По состоянию"}
-                                    </Button>
-                                </div>
-                            : <div/>
+                                    onClick={() => {
+                                        const curStbyEmp = this.state.byEmptyStack;
+                                        this.setState({ byEmptyStack: !curStbyEmp });
+                                        this.state.computer!.byEmptyStackAdmt(!curStbyEmp)
+                                        this.reset();
+                                    }}
+                                >
+                                    {this.state.byEmptyStack ? "По стеку" : "По состоянию"}
+                                </Button>
+                            </div>
+                            : <div />
                     }
 
                     <div className="run-control__item run-control__history">
@@ -440,10 +455,10 @@ class RunControl extends React.Component<runControlProps, runControlState> {
                                                 {
                                                     nodes.map((node, index) => (
                                                         <Tooltip
-                                                            title={ <Typography className="display-linebreak">{node.b !== undefined ? node.b.join('\n') : ''}</Typography> }>
+                                                            title={<Typography className="display-linebreak">{node.b !== undefined ? node.b.join('\n') : ''}</Typography>}>
                                                             <div
                                                                 className="run-control__history__node"
-                                                                style={{border: `${node.a.isInitial ? "var(--accent)" : node.a.isAdmit ? "var(--second-accent)" : "#000000"} 2px solid`}}
+                                                                style={{ border: `${node.a.isInitial ? "var(--accent)" : node.a.isAdmit ? "var(--second-accent)" : "#000000"} 2px solid` }}
                                                             >
                                                                 {node.a.label}
                                                             </div>
@@ -453,7 +468,7 @@ class RunControl extends React.Component<runControlProps, runControlState> {
                                             </div>
                                         ))
                                     }
-                                    <div ref={this.historyEndRef}/>
+                                    <div ref={this.historyEndRef} />
                                 </div>
                                 :
                                 <div className="run-control__history__placeholder">

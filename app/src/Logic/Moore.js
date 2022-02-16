@@ -18,6 +18,20 @@ var Moore = /** @class */ (function (_super) {
     __extends(Moore, _super);
     function Moore(graph, startStatements, input) {
         var _this = _super.call(this, graph, startStatements, input) || this;
+        _this.restart = function () {
+            _this.counterSteps = 0;
+            _this.historiStep = [];
+            _this.curPosition = [];
+            _this.startStatements.forEach(function (value) {
+                _this.curPosition.push({
+                    stmt: _this.statements.get(value.id)
+                });
+            });
+            _this.historiStep.push({
+                by: "XYN",
+                nodes: _this.toNodes(_this.curPosition)
+            });
+        };
         _this.mooreToMealy = function () {
             var mapNodes = new Map();
             _this.nodes.forEach(function (node) { return mapNodes.set(node.id, { id: node.id, isAdmit: node.isAdmit, output: node.output }); });
@@ -41,25 +55,24 @@ var Moore = /** @class */ (function (_super) {
     return Moore;
 }(OutputAutomata_1.OutputAutomata));
 exports.Moore = Moore;
-// let nfa = new Moor(
-//     {
-//         nodes: [
-//             { id: 0, isAdmit: false, output: 'b' },
-//             { id: 1, isAdmit: false, output: 'b' },
-//             { id: 2, isAdmit: false, output: 'a' },
-//             // { id: 3, isAdmit: false, output: '3' },
-//         ],
-//         edges: [
-//             { from: 0, to: 0, transitions: new Set([[{ title: '1' }]]) },
-//             { from: 0, to: 1, transitions: new Set([[{ title: '0' }]]) },
-//             { from: 1, to: 1, transitions: new Set([[{ title: '0' }]]) },
-//             { from: 1, to: 2, transitions: new Set([[{ title: '1' }]]) },
-//             { from: 2, to: 1, transitions: new Set([[{ title: '0' }]]) },
-//             { from: 2, to: 0, transitions: new Set([[{ title: '1' }]]) },
-//         ]
-//     }, [{ id: 0, isAdmit: false }], ["5"])
+var nfa = new Moore({
+    nodes: [
+        { id: 0, isAdmit: false, output: 'b' },
+        { id: 1, isAdmit: false, output: 'b' },
+        { id: 2, isAdmit: false, output: 'a' },
+    ],
+    edges: [
+        { from: 0, to: 0, transitions: new Set([[{ title: '1' }]]) },
+        { from: 0, to: 1, transitions: new Set([[{ title: '0' }]]) },
+        { from: 1, to: 1, transitions: new Set([[{ title: '0' }]]) },
+        { from: 1, to: 2, transitions: new Set([[{ title: '1' }]]) },
+        { from: 2, to: 1, transitions: new Set([[{ title: '0' }]]) },
+        { from: 2, to: 0, transitions: new Set([[{ title: '1' }]]) },
+    ]
+}, [{ id: 0, isAdmit: false }], ["0"]);
 // console.log(nfa.run())
-// console.log(nfa.step())
+nfa.restart();
+console.log(nfa.step());
 // console.log(nfa.step())
 // const conv = nfa.moorToMealy()
 // conv.graphcore.edges.forEach(edge => {

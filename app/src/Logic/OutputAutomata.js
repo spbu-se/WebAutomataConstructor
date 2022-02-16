@@ -102,7 +102,11 @@ var OutputAutomata = /** @class */ (function (_super) {
             };
         };
         _this.step = function () {
-            var ref = { counterSteps: _this.counterSteps, curPosition: _this.curPosition, historiStep: _this.historiStep };
+            var ref = {
+                counterSteps: _this.counterSteps,
+                curPosition: _this.curPosition,
+                historiStep: _this.historiStep
+            };
             var after = _this._step(ref);
             _this.counterSteps = ref.counterSteps;
             _this.curPosition = ref.curPosition;

@@ -18,7 +18,6 @@ var Mealy = /** @class */ (function (_super) {
     __extends(Mealy, _super);
     function Mealy(graph, startStatements, input) {
         var _this = _super.call(this, graph, startStatements, input) || this;
-        // GraphEvalMultiStart
         _this.mealyToMoore = function () {
             _this.restart();
             var startStmt = _this.curPosition;
@@ -54,12 +53,10 @@ var Mealy = /** @class */ (function (_super) {
                 return openedStmts;
             };
             var openedStmts = createOpenedStmts();
-            openedStmts.forEach(function (v) { return console.log(v); });
             var getOpened = function (id, output) {
                 var eof = { node: { id: -1, idLogic: -1, isAdmit: false }, newId: -1, output: "" };
                 var filtred = openedStmts.filter(function (v) { return v.node.idLogic === id && v.output === output; });
                 return filtred.length > 0 ? filtred[0] : eof;
-                // { newId: -1, node: {id: -1, idLogic: -1, isAdmit: false}, output: "" }   
             };
             var matrix = [];
             openedStmts.forEach(function (stmt) {
@@ -69,12 +66,6 @@ var Mealy = /** @class */ (function (_super) {
                     tmp.push(getOpened(lookedUp.idLogic, lookedUp.output));
                 });
                 matrix.push(tmp);
-            });
-            console.log();
-            console.log("::::::::::::::::::::::::::::::::::::::");
-            matrix.forEach(function (vs) {
-                vs.forEach(function (v) { return console.log(v); });
-                console.log();
             });
             var nodes = openedStmts.reduce(function (acc, stmt) {
                 acc.push({
@@ -92,16 +83,9 @@ var Mealy = /** @class */ (function (_super) {
                 acc.push(tmp);
                 return acc;
             }, []);
-            matrixNodes.forEach(function (vs) {
-                vs.forEach(function (v) { return console.log(v); });
-                console.log();
-            });
-            nodes.forEach(function (v) { return console.log(v); });
             var _edges = [];
             nodes.forEach(function (node) {
                 _this.alphabet.forEach(function (tr, letter) {
-                    console.log("LLLLLL");
-                    console.log(node.id, tr);
                     _edges.push({
                         from: node.id,
                         to: matrixNodes[node.id][tr].id,
@@ -142,43 +126,43 @@ var Mealy = /** @class */ (function (_super) {
     return Mealy;
 }(OutputAutomata_1.OutputAutomata));
 exports.Mealy = Mealy;
-var nfa = new Mealy({
-    nodes: [
-        { id: 1, isAdmit: false },
-        { id: 2, isAdmit: false },
-        { id: 3, isAdmit: false },
-        { id: 4, isAdmit: false },
-    ],
-    edges: [
-        { from: 1, to: 1, transitions: new Set([[{ title: 'a', output: '1' }]]) },
-        { from: 1, to: 2, transitions: new Set([[{ title: 'b', output: '0' }]]) },
-        { from: 2, to: 4, transitions: new Set([[{ title: 'a', output: '1' }, { title: 'b', output: '1' }]]) },
-        // { from: 2, to: 2, transitions: new Set([[{ title: 'b', output: '0' }]]) },
-        { from: 3, to: 3, transitions: new Set([[{ title: 'b', output: '1' }]]) },
-        { from: 3, to: 2, transitions: new Set([[{ title: 'a', output: '1' }]]) },
-        { from: 4, to: 1, transitions: new Set([[{ title: 'b', output: '1' }]]) },
-        { from: 4, to: 3, transitions: new Set([[{ title: 'a', output: '0' }]]) },
-    ]
-}, [{ id: 1, isAdmit: false }], []);
-// console.log(nfa.mealyToMoore().graphcore.edges)
 // let nfa = new Mealy(
 //     {
 //         nodes: [
-//             { id: 0, isAdmit: false },
 //             { id: 1, isAdmit: false },
 //             { id: 2, isAdmit: false },
 //             { id: 3, isAdmit: false },
+//             { id: 4, isAdmit: false },
 //         ],
 //         edges: [
-//             { from: 0, to: 1, transitions: new Set([[{ title: '5', output: 'n' }]]) },
-//             { from: 0, to: 3, transitions: new Set([[{ title: '10', output: 'n' }]]) },
-//             { from: 1, to: 2, transitions: new Set([[{ title: '10', output: 'n' }]]) },
-//             { from: 1, to: 3, transitions: new Set([[{ title: '5', output: 'n' }]]) },
-//             { from: 2, to: 0, transitions: new Set([[{ title: '5', output: '0' }, { title: '10', output: '5' }]]) },
-//             { from: 3, to: 2, transitions: new Set([[{ title: '5', output: 'n' }]]) },
-//             { from: 3, to: 0, transitions: new Set([[{ title: '10', output: '0' }]]) },
+//             { from: 1, to: 1, transitions: new Set([[{ title: 'a', output: '1' }]]) },
+//             { from: 1, to: 2, transitions: new Set([[{ title: 'b', output: '0' }]]) },
+//             { from: 2, to: 4, transitions: new Set([[{ title: 'a', output: '1' }, { title: 'b', output: '1' }]]) },
+//             // { from: 2, to: 2, transitions: new Set([[{ title: 'b', output: '0' }]]) },
+//             { from: 3, to: 3, transitions: new Set([[{ title: 'b', output: '1' }]]) },
+//             { from: 3, to: 2, transitions: new Set([[{ title: 'a', output: '1' }]]) },
+//             { from: 4, to: 1, transitions: new Set([[{ title: 'b', output: '1' }]]) },
+//             { from: 4, to:3, transitions: new Set([[{ title: 'a', output: '0' }]]) },
 //         ]
-//     }, [{ id: 0, isAdmit: false }], ["10", "10"])
+//     }, [{ id: 1, isAdmit: false }], [])
+// console.log(nfa.mealyToMoore().graphcore.edges)
+var nfa = new Mealy({
+    nodes: [
+        { id: 0, isAdmit: false },
+        { id: 1, isAdmit: false },
+        { id: 2, isAdmit: false },
+        { id: 3, isAdmit: false },
+    ],
+    edges: [
+        { from: 0, to: 1, transitions: new Set([[{ title: '5', output: 'n' }]]) },
+        { from: 0, to: 3, transitions: new Set([[{ title: '10', output: 'n' }]]) },
+        { from: 1, to: 2, transitions: new Set([[{ title: '10', output: 'n' }]]) },
+        { from: 1, to: 3, transitions: new Set([[{ title: '5', output: 'n' }]]) },
+        { from: 2, to: 0, transitions: new Set([[{ title: '5', output: '0' }, { title: '10', output: '5' }]]) },
+        { from: 3, to: 2, transitions: new Set([[{ title: '5', output: 'n' }]]) },
+        { from: 3, to: 0, transitions: new Set([[{ title: '10', output: '0' }]]) },
+    ]
+}, [{ id: 0, isAdmit: false }], ["10", "10"]);
 // console.log(nfa.run())
-// console.log(nfa.step())
-// console.log(nfa.step())
+console.log(nfa.step());
+console.log(nfa.step());

@@ -58,7 +58,7 @@ export const transitionsToLabel = (transitions: Set<TransitionParams[]>, frmt: n
                     }
                 })
             })
-        } else if (frmt === "dfa" || frmt === "nfa" || frmt === "nfa-eps") {
+        } else if (frmt === "dfa" || frmt === "nfa" || frmt === "nfa-eps" || frmt === "mealy" || frmt === "moore") {
             transitions.forEach(value => {
                 value.forEach((v) => {
                     if (v.title !== undefined && v.title.length > 0) {
@@ -94,7 +94,7 @@ export const getTransitionsTitles = (transitions: Set<TransitionParams[]>, frmt:
                     }
                 })
             })
-        } else if (frmt === "dfa" || frmt === "nfa" || frmt === "nfa-eps") {
+        } else if (frmt === "dfa" || frmt === "nfa" || frmt === "nfa-eps" || frmt === "mealy" || frmt === "moore") {
             transitions.forEach(value => {
                 value.forEach((v) => {
                     if (v.title !== undefined && v.title.length > 0) {
@@ -323,7 +323,7 @@ export const computersInfo: Record<ComputerType, ComputerInfo> = {
     tm: {
         name: "Машина Тьюринга",
         description: "_",
-        preview: "_.png",
+        preview: "tm.png",
         defaultGraph: {
             nodes: [
                 {id: 1, x: 0, y: 0, label: "S0", isAdmit: false, isInitial: true, isCurrent: false},
@@ -340,7 +340,69 @@ export const computersInfo: Record<ComputerType, ComputerInfo> = {
             ]
         }
     },
-
+    mealy: {
+        name: "Милли машина",
+        preview: "mealy.png",
+        description: "_",
+        defaultGraph: {
+            nodes: [
+                { id: 0, isAdmit: false, isCurrent: false, isInitial: true, label: "S0" },
+                { id: 1, isAdmit: false, isCurrent: false, isInitial: false, label: "S1" },
+                { id: 2, isAdmit: false, isCurrent: false, isInitial: false, label: "S2" },
+                { id: 3, isAdmit: false, isCurrent: false, isInitial: false, label: "S3" }
+            ],
+            edges: [
+                { from: 0, to: 1, transitions: new Set([[{ title: 'f', output: 'n' }]]) },
+                { from: 0, to: 3, transitions: new Set([[{ title: 't', output: 'n' }]]) },
+                { from: 1, to: 2, transitions: new Set([[{ title: 't', output: 'n' }]]) },
+                { from: 1, to: 3, transitions: new Set([[{ title: 'f', output: 'n' }]]) },
+                { from: 2, to: 0, transitions: new Set([[{ title: 'f', output: '0' }, { title: 't', output: '5' }]]) },
+                { from: 3, to: 2, transitions: new Set([[{ title: 'f', output: 'n' }]]) },
+                { from: 3, to: 0, transitions: new Set([[{ title: 't', output: '0' }]]) },
+            ]
+            //     {
+//         nodes: [
+//             { id: 0, isAdmit: false },
+//             { id: 1, isAdmit: false },
+//             { id: 2, isAdmit: false },
+//             { id: 3, isAdmit: false },
+//         ],
+//         edges: [
+//             { from: 0, to: 1, transitions: new Set([[{ title: '5', output: 'n' }]]) },
+//             { from: 0, to: 3, transitions: new Set([[{ title: '10', output: 'n' }]]) },
+//             { from: 1, to: 2, transitions: new Set([[{ title: '10', output: 'n' }]]) },
+//             { from: 1, to: 3, transitions: new Set([[{ title: '5', output: 'n' }]]) },
+//             { from: 2, to: 0, transitions: new Set([[{ title: '5', output: '0' }, { title: '10', output: '5' }]]) },
+//             { from: 3, to: 2, transitions: new Set([[{ title: '5', output: 'n' }]]) },
+//             { from: 3, to: 0, transitions: new Set([[{ title: '10', output: '0' }]]) },
+        
+//         ]
+//     }, [{ id: 0, isAdmit: false }], ["10", "10"])
+        }
+    },
+    moore: {
+        name: "Машина Мура",
+        description: "_",
+        preview: "moore.png",
+        defaultGraph: {
+            nodes: [
+                { id: 0, isAdmit: false, output: 'b', isCurrent: false, isInitial: true, label: "S0" },
+                { id: 1, isAdmit: false, output: 'b', isCurrent: false, isInitial: false, label: "S0"  },
+                { id: 2, isAdmit: false, output: 'a', isCurrent: false, isInitial: false, label: "S0"  },
+                // { id: 3, isAdmit: false, output: '3' },
+            ],
+            edges: [
+                { from: 0, to: 0, transitions: new Set([[{ title: '1' }]]) },
+                { from: 0, to: 1, transitions: new Set([[{ title: '0' }]]) },
+    
+                { from: 1, to: 1, transitions: new Set([[{ title: '0' }]]) },
+                { from: 1, to: 2, transitions: new Set([[{ title: '1' }]]) },
+    
+                { from: 2, to: 1, transitions: new Set([[{ title: '0' }]]) },
+                { from: 2, to: 0, transitions: new Set([[{ title: '1' }]]) },
+            ]        
+        }
+    }
 
 }
 
