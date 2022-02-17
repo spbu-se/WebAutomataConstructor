@@ -375,10 +375,10 @@ export const computersInfo: Record<ComputerType, ComputerInfo> = {
         description: "_",
         defaultGraph: {
             nodes: [
-                { id: 0, isAdmit: false, isCurrent: false, isInitial: true, label: "S0" },
-                { id: 1, isAdmit: false, isCurrent: false, isInitial: false, label: "S1" },
-                { id: 2, isAdmit: false, isCurrent: false, isInitial: false, label: "S2" },
-                { id: 3, isAdmit: false, isCurrent: false, isInitial: false, label: "S3" }
+                { x: 0, y: 0, id: 0, isAdmit: false, isCurrent: false, isInitial: true, label: "0 rub" },
+                { x: 300, y: -200, id: 1, isAdmit: false, isCurrent: false, isInitial: false, label: "5 rub" },
+                { x: 500, y: -300, id: 2, isAdmit: false, isCurrent: false, isInitial: false, label: "15 rub" },
+                { x: -100, y: -500, id: 3, isAdmit: false, isCurrent: false, isInitial: false, label: "10 rub" }
             ],
             edges: [
                 { from: 0, to: 1, transitions: new Set([[{ title: 'f', output: 'n' }]]) },
@@ -415,9 +415,9 @@ export const computersInfo: Record<ComputerType, ComputerInfo> = {
         preview: "moore.png",
         defaultGraph: {
             nodes: [
-                { id: 0, isAdmit: false, isCurrent: false, isInitial: true, label: "S0 | b" },
-                { id: 1, isAdmit: false, isCurrent: false, isInitial: false, label: "S1 | b"  },
-                { id: 2, isAdmit: false, isCurrent: false, isInitial: false, label: "S2 | a"  },
+                { x: 0, y: 0, id: 0, isAdmit: false, isCurrent: false, isInitial: true, label: "S0 | b" },
+                { x: 300, y: 0, id: 1, isAdmit: false, isCurrent: false, isInitial: false, label: "S1 | b"  },
+                { x: 100, y: 100, id: 2, isAdmit: false, isCurrent: false, isInitial: false, label: "S2 | a"  },
                 // { id: 3, isAdmit: false, output: '3' },
             ],
             edges: [
