@@ -40,6 +40,9 @@ var Computer = /** @class */ (function () {
         this.mooreToMealy = function () {
             throw new Error("Moor conversion");
         };
+        this.getCurrNode = function () {
+            return _this.currentNode.id;
+        };
         graph.edges
             .sort(function (a, b) { return a.from - b.from; })
             .forEach(function (value) { return _this.edges.push({
@@ -108,7 +111,14 @@ var Computer = /** @class */ (function () {
             var statementTo = this.statements.get(this.edges[i].to);
             for (var j = 0; j < this.edges[i].localValue.length; j++) {
                 var letterId = this.alphabet.get(this.edges[i].localValue[j].title);
-                // console.log(letterId)
+                // if (letterId === undefined) {
+                //     throw new Error("A")
+                // }
+                if (letterId === undefined) {
+                    continue;
+                }
+                console.log(letterId);
+                console.log(this.edges[i].localValue[j].title);
                 var stDwn = this.edges[i].localValue[j].stackDown;
                 var stPsh = this.edges[i].localValue[j].stackPush;
                 var mv = this.edges[i].localValue[j].move;

@@ -2,6 +2,7 @@ import {History, Edge, elementOfAlphabet, statement, Step, Output} from "./Types
 import {GraphCore, GraphEval, GraphEvalMultiStart, Move, NodeCore, TransitionParams} from "./IGraphTypes";
 import { statementCells } from "./PDA";
 import { Stack } from "./Stack";
+import { node } from "../react-graph-vis-types";
 
 export type statementCell = {
     readonly stackDown?: string
@@ -94,7 +95,14 @@ export abstract class Computer {
             let statementTo: statement = this.statements.get(this.edges[i].to)
             for (let j = 0; j < this.edges[i].localValue.length; j++) {
                 let letterId = this.alphabet.get(this.edges[i].localValue[j].title)
-                // console.log(letterId)
+                // if (letterId === undefined) {
+                //     throw new Error("A")
+                // }
+                if (letterId === undefined) {
+                    continue
+                }
+                console.log(letterId)
+                console.log(this.edges[i].localValue[j].title)
                 let stDwn = this.edges[i].localValue[j].stackDown
                 let stPsh = this.edges[i].localValue[j].stackPush
                 let mv = this.edges[i].localValue[j].move
@@ -125,7 +133,9 @@ export abstract class Computer {
         return this.matrix[i][j]
     }
 
-    
+    public getCurrNode = (): number => {
+        return this.currentNode.id
+    }
 
     protected constructor(graph: GraphCore, startStatements: NodeCore[]) {
         // this.setStartStatements(graph, startStatements)

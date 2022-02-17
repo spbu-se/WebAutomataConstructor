@@ -1,6 +1,6 @@
-import React, {ChangeEvent} from "react";
+import React, { ChangeEvent } from "react";
 import "./NodeControl.css";
-import {node} from "../../react-graph-vis-types";
+import { node } from "../../react-graph-vis-types";
 import ControlWrapper from "../ControlWrapper/ControlWrapper";
 
 import Switch from "@mui/material/Switch";
@@ -41,6 +41,8 @@ class NodeControl extends React.Component<nodeControlProps, nodeControlState> {
         if (this.props.node?.id !== prevState.prevNodeId) {
             this.setState({
                 label: this.props.node?.label || "",
+                    // + ((" | " + this.props.node?.output || "")) 
+                    
                 isAdmit: this.props.node?.isAdmit || false,
                 isInitial: this.props.node?.isInitial || false,
                 prevNodeId: this.props.node?.id
@@ -51,21 +53,21 @@ class NodeControl extends React.Component<nodeControlProps, nodeControlState> {
     onLabelChange = (event: ChangeEvent<HTMLInputElement>): void => {
         if (this.props.node !== null) {
             this.props.changeNodeLabel(this.props.node.id, event.target.value);
-            this.setState({label: event.target.value});
+            this.setState({ label: event.target.value });
         }
     }
 
     onIsAdmitChanged = (event: ChangeEvent<HTMLInputElement>): void => {
         if (this.props.node !== null) {
             this.props.changeStateIsAdmit(this.props.node.id, event.target.checked);
-            this.setState({isAdmit: event.target.checked}, () => this.props.reinitComputer());
+            this.setState({ isAdmit: event.target.checked }, () => this.props.reinitComputer());
         }
     }
 
     onIsInitialChanged = (event: ChangeEvent<HTMLInputElement>): void => {
         if (this.props.node !== null && !this.props.node.isAdmit) {
             this.props.changeStateIsInitial(this.props.node.id, event.target.checked);
-            this.setState({isInitial: event.target.checked}, () => this.props.reinitComputer());
+            this.setState({ isInitial: event.target.checked }, () => this.props.reinitComputer());
         }
     }
 

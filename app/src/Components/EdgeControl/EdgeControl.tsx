@@ -126,8 +126,35 @@ class EdgeControl extends React.Component<EdgeControlProps, EdgeControlState> {
                     )
                 }
             })
+        } 
+        if (this.props.computerType === "mealy") {
+            this.state.transitionsText
+            .split('')
+            .filter(x => x !== " " && x !== "\n")
+            .join('')
+            .split(";")
+            .forEach(value => {
+                let tmp = value.split("|")
+                let fst = tmp.shift()
+                let snd = tmp.shift()
+                accumulator.push({ fst: fst, snd: snd, trd: undefined, fth: undefined })
+            })
 
-        } else {
+            accumulator.forEach(value => {
+                if (value.fst !== undefined) {
+                    acc.push(
+                        {
+                            title: value.fst === 'eps' ? EPS : value.fst,
+                            output: value.snd
+                            // stackDown: value.snd === 'eps' ? EPS : value.snd,
+                            // stackPush: value.trd?.split(':').map(value => value === 'eps' ? EPS : value),
+                            // move: value.fth === 'L' ? Move.L : value.fth === 'R' ? Move.R : undefined
+                        }
+                    )
+                }
+            })
+        } 
+        else {
             this.state.transitionsText
                 .split('')
                 .filter(x => x !== " " && x !== "\n")
@@ -164,7 +191,9 @@ class EdgeControl extends React.Component<EdgeControlProps, EdgeControlState> {
         this.setState({transitionsText: value
             , transitions: transitions
         });
+        /////
         this.props.reinitComputer()
+        ///
     }
 
     deleteEdge = (): void => {
@@ -195,7 +224,9 @@ class EdgeControl extends React.Component<EdgeControlProps, EdgeControlState> {
             fst: string | undefined,
             snd: string | undefined,
             trd: string | undefined,
-            fth: string | undefined } [] = []
+            fth: string | undefined 
+            out: string | undefined
+        } [] = []
 
         if (this.props.computerType === "tm") {
             this.state.transitionsText
@@ -218,10 +249,38 @@ class EdgeControl extends React.Component<EdgeControlProps, EdgeControlState> {
                     console.log("tmp")
                     console.log(bebra)
 
-                    accumulator.push({ fst: EPS, snd: fst, trd: trd.join(':'), fth: fth })
+                    accumulator.push({ fst: EPS, snd: fst, trd: trd.join(':'), fth: fth, out: undefined })
                 })
 
-        } else {
+        } 
+        if (this.props.computerType === "mealy") {
+            this.state.transitionsText
+            .split('')
+            .filter(x => x !== " " && x !== "\n")
+            .join('')
+            .split(";")
+            .forEach(value => {
+                let tmp = value.split("|")
+                let fst = tmp.shift()
+                let snd = tmp.shift()
+                accumulator.push({ fst: fst, snd: undefined, trd: undefined, fth: undefined, out: snd })
+            })
+
+            // accumulator.forEach(value => {
+            //     if (value.fst !== undefined) {
+            //         acc.push(
+            //             {
+            //                 title: value.fst === 'eps' ? EPS : value.fst,
+            //                 output: value.snd
+            //                 // stackDown: value.snd === 'eps' ? EPS : value.snd,
+            //                 // stackPush: value.trd?.split(':').map(value => value === 'eps' ? EPS : value),
+            //                 // move: value.fth === 'L' ? Move.L : value.fth === 'R' ? Move.R : undefined
+            //             }
+            //         )
+            //     }
+            // })
+        } 
+        else {
             this.state.transitionsText
                 .split('')
                 .filter(x => x !== " " && x !== "\n")
@@ -233,7 +292,7 @@ class EdgeControl extends React.Component<EdgeControlProps, EdgeControlState> {
                     tmp = tmp.join('').split("|" || ">")
                     let snd = tmp.shift()
                     let trd = tmp
-                    accumulator.push({ fst: fst, snd: snd, trd: trd.join(':'), fth: undefined })
+                    accumulator.push({ fst: fst, snd: snd, trd: trd.join(':'), fth: undefined, out: undefined })
                 })
         }
 
@@ -246,7 +305,9 @@ class EdgeControl extends React.Component<EdgeControlProps, EdgeControlState> {
                         title: value.fst === 'eps' ? EPS : value.fst,
                         stackDown: value.snd === 'eps' ? EPS : value.snd,
                         stackPush: value.trd?.split(':').map(value => value === 'eps' ? EPS : value),
-                        move: value.fth === 'L' ? Move.L : value.fth === 'R' ? Move.R : undefined
+                        move: value.fth === 'L' ? Move.L : value.fth === 'R' ? Move.R : undefined,
+                        output: value.out,
+                        
                     }
                 )
             }
@@ -258,8 +319,9 @@ class EdgeControl extends React.Component<EdgeControlProps, EdgeControlState> {
             transitionsText: getTransitionsTitles(transitions, this.props.computerType),
             transitions: transitions
         })
+        ///
         this.props.reinitComputer()
-
+        ///
     }
 
     deleteTransition = (): void => {

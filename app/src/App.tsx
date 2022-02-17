@@ -1,4 +1,4 @@
-import React, {ReactNode} from 'react';
+import React, { ReactNode } from 'react';
 import "./App.css"
 import Graph from "react-graph-vis";
 import {
@@ -10,21 +10,23 @@ import {
     node, selectEdgeEventArgs,
     selectNodeEventArgs
 } from "./react-graph-vis-types";
-import {cloneDeep} from "lodash";
+import { cloneDeep } from "lodash";
 import NodeControl from "./Components/NodeControl/NodeControl";
 import EdgeControl from "./Components/EdgeControl/EdgeControl";
-import {computersInfo, decorateGraph, elementsToGraph, getNodeNamePrefix, getTransitionsTitles,
-    graphToElements, transitionsToLabel} from "./utils";
+import {
+    computersInfo, decorateGraph, elementsToGraph, getNodeNamePrefix, getTransitionsTitles,
+    graphToElements, transitionsToLabel
+} from "./utils";
 import RunControl from "./Components/RunControl/RunControl";
 import WelcomePopout from "./Components/WelcomePopout/WelcomePopout";
 import Paper from "@mui/material/Paper";
 import SavingPopout from "./Components/SavingPopout/SavingPopout";
-import {Route, Switch, HashRouter} from "react-router-dom";
+import { Route, Switch, HashRouter } from "react-router-dom";
 import LoginPage from "./Components/Pages/LoginPage/LoginPage";
 import PingPage from "./Components/Pages/PingPage/PingPage";
 import FailedLoginPage from "./Components/Pages/FailedLoginPage/FailedLoginPage";
 import AppHeader from "./Components/AppHeader/AppHeader";
-import {TransitionParams} from "./Logic/IGraphTypes";
+import { TransitionParams } from "./Logic/IGraphTypes";
 import SuccessLoginPage from "./Components/Pages/SuccessLoginPage/SuccessLoginPage";
 import { VisNetwork } from './VisNetwork';
 import {
@@ -33,6 +35,7 @@ import {
     Options,
     Data,
 } from "vis-network/standalone/esm/vis-network";
+import { Output } from './Logic/Types';
 // import {ContextMenu, MenuItem as CotextMenuItem, ContextMenuTrigger} from "react-contextmenu";
 
 interface appProps {
@@ -63,9 +66,9 @@ interface appState {
 export const ComputerTypeContext = React.createContext<null | ComputerType>(null);
 
 export const computerActions = {
-    init: (() => {}),
-    nfaToDfa: (() => {}),
-    minimizeDfa: (() => {})
+    init: (() => { }),
+    nfaToDfa: (() => { }),
+    minimizeDfa: (() => { })
 }
 
 interface RibbonProps {
@@ -85,19 +88,19 @@ export const Ribbon = (props: RibbonProps) => {
                     props.mem?.map((value, index) =>
                         <div
                             className="app__mem_cell"
-                            style={{border: `${index === props.ptr ? "#0041d0" : "#000000" } 2px solid`}}
+                            style={{ border: `${index === props.ptr ? "#0041d0" : "#000000"} 2px solid` }}
                         >
-                            {Math.abs (Math.abs(index) - Math.abs(props.ptr!)) <= 5
-                                ? <div ref={memRef}/>
-                                : <div/>
+                            {Math.abs(Math.abs(index) - Math.abs(props.ptr!)) <= 5
+                                ? <div ref={memRef} />
+                                : <div />
                             }
                             {value}
-                            {memRef?.current?.scrollIntoView({behavior: 'smooth'})}
+                            {memRef?.current?.scrollIntoView({ behavior: 'smooth' })}
                         </div>
                     )
                 }
             </div>
-            : <div/>
+            : <div />
     )
 }
 
@@ -115,7 +118,7 @@ class App extends React.Component<appProps, appState> {
             selectedNode: null,
             selectedEdge: null,
             inEdgeMode: false,
-            elements: {nodes: new DataSet<node>(), edges: new DataSet<edge>()},
+            elements: { nodes: new DataSet<node>(), edges: new DataSet<edge>() },
             options: {
                 edges: {
                     smooth: {
@@ -156,7 +159,7 @@ class App extends React.Component<appProps, appState> {
 
     lastNodeId = 0;
 
-////////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
     // subscribeToShortcuts = () => {
     //     document.addEventListener("keydown", (event: KeyboardEvent) => {
     //         if (event.key === "Shift" && !this.state.inEdgeMode) {
@@ -176,31 +179,31 @@ class App extends React.Component<appProps, appState> {
     // }
 
     openSavePopout = () => {
-        this.setState({savePopoutOpen: true});
+        this.setState({ savePopoutOpen: true });
     }
 
     closeSavePopout = () => {
-        this.setState({savePopoutOpen: false});
+        this.setState({ savePopoutOpen: false });
     }
 
     openWelcomePopout = () => {
-        this.setState({welcomePopoutOpen: true});
+        this.setState({ welcomePopoutOpen: true });
     }
 
     closeWelcomePopout = () => {
-        this.setState({welcomePopoutOpen: false});
+        this.setState({ welcomePopoutOpen: false });
     }
 
     login = () => {
-        this.setState({isLogin: true});
+        this.setState({ isLogin: true });
     }
 
     logout = () => {
-        this.setState({isLogin: false});
+        this.setState({ isLogin: false });
     }
 
     changePopout = (popout: ReactNode | null) => {
-        this.setState({popout: popout});
+        this.setState({ popout: popout });
     }
 
 
@@ -211,9 +214,17 @@ class App extends React.Component<appProps, appState> {
     changeNodeLabel = (id: number, label: string): void => {
         this.state.elements.nodes.forEach((node) => {
             if (node.id === id) {
+                const lableTokens =
+                    label
+                        .split('')
+                        .filter(x => x !== " " && x !== "\n")
+                        .join('')
+                        .split('|')
+                const output = lableTokens[1] !== undefined ? lableTokens[1] : "" 
                 this.state.elements.nodes.update({
                     id: node.id,
-                    label: label
+                    label: label,
+                    output: output
                 })
             }
         })
@@ -283,14 +294,14 @@ class App extends React.Component<appProps, appState> {
     selectNode = (e: { nodes: number[]; }): void => {
         const nodesIDs: number[] = e.nodes;
         const selectedNodes = this.state.elements.nodes.get(nodesIDs);
-        this.setState({selectedNode: selectedNodes[0]});
+        this.setState({ selectedNode: selectedNodes[0] });
     }
 
 
     deselectNode = (e: { nodes: number[]; }): void => {
         const nodesIDs: number[] = e.nodes;
         if (nodesIDs.length === 0) {
-            this.setState({selectedNode: null});
+            this.setState({ selectedNode: null });
         }
     }
 
@@ -309,13 +320,13 @@ class App extends React.Component<appProps, appState> {
     selectEdge = (e: { edges: any; }): void => {
         const edgesIDs: number[] = e.edges;
         const selectedEdges = this.state.elements.edges.get(edgesIDs);
-        this.setState({selectedEdge: selectedEdges[0]});
+        this.setState({ selectedEdge: selectedEdges[0] });
     }
 
     deselectEdge = (e: { edges: number[]; }): void => {
         const edgesIDs: number[] = e.edges;
         if (edgesIDs.length === 0) {
-            this.setState({selectedEdge: null});
+            this.setState({ selectedEdge: null });
         }
     }
 
@@ -400,16 +411,16 @@ class App extends React.Component<appProps, appState> {
             <HashRouter>
                 <Switch>
                     <Route path="/login">
-                        <LoginPage/>
+                        <LoginPage />
                     </Route>
                     <Route path="/ping">
-                        <PingPage/>
+                        <PingPage />
                     </Route>
                     <Route path="/failed-login">
-                        <FailedLoginPage/>
+                        <FailedLoginPage />
                     </Route>
                     <Route path="/success-login">
-                        <SuccessLoginPage onAuthSuccess={this.login}/>
+                        <SuccessLoginPage onAuthSuccess={this.login} />
                     </Route>
                     <Route path="/">
                         <ComputerTypeContext.Provider value={this.state.computerType}>
@@ -431,7 +442,7 @@ class App extends React.Component<appProps, appState> {
                                             computerType: computerType,
                                             elements: graphToElements(defaultGraph)
                                         }
-                                        , () => this.updateGraph()
+                                            , () => this.updateGraph()
                                         );
                                     }}
                                 />
@@ -439,11 +450,11 @@ class App extends React.Component<appProps, appState> {
                                 {this.state.popout}
 
                                 <SavingPopout open={this.state.savePopoutOpen}
-                                              onClose={this.closeSavePopout}
-                                              isLogin={this.state.isLogin}
-                                              onAuthFailed={this.logout}
-                                              graph={elementsToGraph    (this.state.elements)}
-                                              computerType={this.state.computerType!}/>
+                                    onClose={this.closeSavePopout}
+                                    isLogin={this.state.isLogin}
+                                    onAuthFailed={this.logout}
+                                    graph={elementsToGraph(this.state.elements)}
+                                    computerType={this.state.computerType!} />
 
                                 <div className="hint-container">
                                     <Paper className="hint" variant="outlined">
@@ -511,7 +522,7 @@ class App extends React.Component<appProps, appState> {
                                         setInit={(f: () => void) => computerActions.init = f}
                                         setNfaToDfa={(f: () => void) => computerActions.nfaToDfa = f}
                                         setMinimizeDfa={(f: () => void) => computerActions.minimizeDfa = f}
-                                        updateElements={(elements: Elements) => this.setState({elements: elements}, () => this.updateGraph())}
+                                        updateElements={(elements: Elements) => this.setState({ elements: elements }, () => this.updateGraph())}
                                         setComputerType={(type: null | ComputerType) => this.setState({ computerType: type })}
                                         setResettedStatus={(status: boolean) => this.setState({ wasComputerResetted: status })}
                                     />

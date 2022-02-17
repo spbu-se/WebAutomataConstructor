@@ -3,6 +3,7 @@ import {EPS} from "./Logic/Computer";
 import {Move, TransitionParams} from "./Logic/IGraphTypes";
 import { Elements } from "./App";
 import { DataSet } from "vis-network/standalone/esm/vis-network";
+import { Output } from "./Logic/Types";
 
 
 const epsSubstStr = (epsText: string) => (value: string) => value === EPS ? epsText : value
@@ -10,6 +11,8 @@ const epsSubstStr = (epsText: string) => (value: string) => value === EPS ? epsT
 const epsSubstStrs = (epsText: string) => (values: string[]) => values.map(v => epsSubstStr(v)(epsText)).join(":")
 
 const mvStr = (value: Move) => value === 0 ? "L" : "R"
+
+const outputStr = (output: Output) => output
 
 export const transitionsToLabel = (transitions: Set<TransitionParams[]>, frmt: null | ComputerType ): string => {
     const maxLength = (): number => {
@@ -39,7 +42,6 @@ export const transitionsToLabel = (transitions: Set<TransitionParams[]>, frmt: n
     const epsSubst = epsSubstStr("ε")
     const epsSubsts = epsSubstStrs("ε")
 
-
     let str = "" + spc
     if (transitions !== undefined) {
         if (frmt === 'tm') {
@@ -58,11 +60,19 @@ export const transitionsToLabel = (transitions: Set<TransitionParams[]>, frmt: n
                     }
                 })
             })
-        } else if (frmt === "dfa" || frmt === "nfa" || frmt === "nfa-eps" || frmt === "mealy" || frmt === "moore") {
+        } else if (frmt === "dfa" || frmt === "nfa" || frmt === "nfa-eps" || frmt === "moore") {
             transitions.forEach(value => {
                 value.forEach((v) => {
                     if (v.title !== undefined && v.title.length > 0) {
                         str += epsSubst(v.title) + " " + "\n" + spc
+                    }
+                })
+            })
+        } else if (frmt === "mealy") {
+            transitions.forEach(value => {
+                value.forEach((v) => {
+                    if (v.title !== undefined && v.title.length > 0 && v.output !== undefined) {
+                        str += epsSubst(v.title) + " | " + v.output + "\n" + spc
                     }
                 })
             })
@@ -94,11 +104,19 @@ export const getTransitionsTitles = (transitions: Set<TransitionParams[]>, frmt:
                     }
                 })
             })
-        } else if (frmt === "dfa" || frmt === "nfa" || frmt === "nfa-eps" || frmt === "mealy" || frmt === "moore") {
+        } else if (frmt === "dfa" || frmt === "nfa" || frmt === "nfa-eps" || frmt === "moore") {
             transitions.forEach(value => {
                 value.forEach((v) => {
                     if (v.title !== undefined && v.title.length > 0) {
                         str += epsSubst(v.title) + ";\n"
+                    }
+                })
+            })
+        } else if (frmt === "mealy") {
+            transitions.forEach(value => {
+                value.forEach((v) => {
+                    if (v.title !== undefined && v.title.length > 0 && v.output !== undefined) {
+                        str += epsSubst(v.title) + " | " + v.output + ";\n"
                     }
                 })
             })
@@ -117,6 +135,15 @@ export const decorateGraph = (elements: Elements, frmt: null | ComputerType) => 
     })
 
     elements.nodes.forEach((node) => {
+        const lableTokens =
+            node.label
+                .split('')
+                .filter(x => x !== " " && x !== "\n")
+                .join('')
+                .split('|')
+        const output = lableTokens[1] !== undefined ? lableTokens[1] : undefined 
+        node.output = output 
+
         const border = node.isInitial ? "#0041d0" : node.isAdmit ? "#ff0072" : "#000000"
         const background = node.isCurrent ? "#ffff55" : "#ffffff";
         const borderWidth = {
@@ -127,6 +154,8 @@ export const decorateGraph = (elements: Elements, frmt: null | ComputerType) => 
 
         elements.nodes.update({
             id: node.id,
+            // label: node.label ,
+            // + (node.output !== undefined ? " | " + node.output : ""),
             color: {
                 background: background,
                 border: border,
@@ -386,9 +415,9 @@ export const computersInfo: Record<ComputerType, ComputerInfo> = {
         preview: "moore.png",
         defaultGraph: {
             nodes: [
-                { id: 0, isAdmit: false, output: 'b', isCurrent: false, isInitial: true, label: "S0" },
-                { id: 1, isAdmit: false, output: 'b', isCurrent: false, isInitial: false, label: "S0"  },
-                { id: 2, isAdmit: false, output: 'a', isCurrent: false, isInitial: false, label: "S0"  },
+                { id: 0, isAdmit: false, isCurrent: false, isInitial: true, label: "S0 | b" },
+                { id: 1, isAdmit: false, isCurrent: false, isInitial: false, label: "S1 | b"  },
+                { id: 2, isAdmit: false, isCurrent: false, isInitial: false, label: "S2 | a"  },
                 // { id: 3, isAdmit: false, output: '3' },
             ],
             edges: [

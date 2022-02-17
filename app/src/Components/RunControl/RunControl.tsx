@@ -51,6 +51,7 @@ interface runControlState {
     wasRuned: boolean,
     memory: string[] | undefined,
     gElements: graph,
+    startNode: node | undefined,
 }
 
 
@@ -73,13 +74,24 @@ class RunControl extends React.Component<runControlProps, runControlState> {
             wasRuned: false,
             memory: undefined,
             gElements: elementsToGraph(this.props.elements),
+            startNode: undefined
             // {nodes: [], edges: []}
         };
         // this.initializeComputer()
     }
 
     componentDidMount() {
-        this.props.setInit(this.initializeComputer)
+        this.props.setInit(() => {
+            let haveEmpty = false
+            this.props.elements.edges.forEach(edge => {
+                if (edge.label === "") {
+                    haveEmpty = true
+                }
+            })
+            if (!haveEmpty) {
+                return this.initializeComputer
+            }
+        })
         this.props.setNfaToDfa(this.nfaToDfa)
         this.props.setMinimizeDfa(this.minimizeDfa)
         this.initializeComputer()
@@ -153,12 +165,13 @@ class RunControl extends React.Component<runControlProps, runControlState> {
             const initialNode: node[] = elementsToGraph(this.props.elements).nodes.filter(node => node.isInitial);
             const input = this.state.input.split("");
 
-
-
             if (initialNode === undefined) {
                 console.warn("There is no initial node. Computer will not be initialized");
                 return;
             }
+
+            console.log("this.state.gElementshis.state.gElementshis.state.gElements")
+            console.log(this.state.gElements)
 
             this.setState({
                 computer: this.getComputer(this.props.computerType, this.state.gElements, initialNode, input),
@@ -216,8 +229,8 @@ class RunControl extends React.Component<runControlProps, runControlState> {
             .map(nodeCore => this.state.gElements.nodes.find(node => node.id == nodeCore.id))
             .filter((node): node is node => node !== undefined);
 
-        console.log("stepResult.nodes[i].outputstepResult.nodes[i].outputstepResult.nodes[i].output")
-        console.log(stepResult)
+        // console.log("stepResult.nodes[i].outputstepResult.nodes[i].outputstepResult.nodes[i].output")
+        // console.log(stepResult)
 
         const _nodes = nodes.map((e, i) => {
             const stack = stepResult.nodes[i].stack
@@ -226,10 +239,22 @@ class RunControl extends React.Component<runControlProps, runControlState> {
                 b: stack !== undefined
                     ? stack.reverse()
                     : stepResult.output !== undefined
-                    ? stepResult.output!
-                    : undefined
+                        ? stepResult.output!
+                        : undefined
             }
         })
+
+        if (this.props.computerType === "moore" && stepResult.counter === 1) {
+            const startNode: { a: node, b: string[] | undefined }[] = [{
+                a: this.state.gElements.nodes.filter(node => node.id === this.state.computer!.getCurrNode())[0],
+                b: ["~"]
+            }]
+            console.log(startNode)
+            this.setState({
+                startNode: this.state.gElements.nodes.filter(node => node.id === this.state.computer!.getCurrNode())[0]
+                // history: [...this.state.history, startNode],
+            })
+        }
 
         this.setState({
             result: result,
@@ -419,7 +444,7 @@ class RunControl extends React.Component<runControlProps, runControlState> {
 
                     </div>
 
-                    {
+                    {/* {
                         this.props.computerType === "pda"
                             ?
                             <div className="run-control__button">
@@ -439,7 +464,7 @@ class RunControl extends React.Component<runControlProps, runControlState> {
                                 </Button>
                             </div>
                             : <div />
-                    }
+                    } */}
 
                     <div className="run-control__item run-control__history">
                         <div className="run-control__history__header">
@@ -448,6 +473,28 @@ class RunControl extends React.Component<runControlProps, runControlState> {
                         {
                             this.state.history.length !== 0 ?
                                 <div className="run-control__history__scroll">
+
+
+                                    {
+                                        this.state.startNode !== undefined 
+                                        ? 
+                                            <div className="run-control__history__row" key={0}>
+                                                <span className="run-control__history__index">{0}</span>
+                                                {
+                                                    <Tooltip
+                                                        title={<Typography className="display-linebreak">{"~"}</Typography>}>
+                                                        <div
+                                                            className="run-control__history__node"
+                                                            style={{ border: `${this.state.startNode!.isInitial ? "var(--accent)" : this.state.startNode!.isAdmit ? "var(--second-accent)" : "#000000"} 2px solid` }}
+                                                        >
+                                                            {this.state.startNode!.label}
+                                                        </div>
+                                                    </Tooltip>
+                                                }
+                                            </div>
+                                        : <div/>
+                                    }
+
                                     {
                                         this.state.history.map((nodes, index) => (
                                             <div className="run-control__history__row" key={index}>
