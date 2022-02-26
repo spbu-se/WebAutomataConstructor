@@ -27,10 +27,6 @@ var Moore = /** @class */ (function (_super) {
                     stmt: _this.statements.get(value.id)
                 });
             });
-            _this.historiStep.push({
-                by: "XYN",
-                nodes: _this.toNodes(_this.curPosition)
-            });
         };
         _this.mooreToMealy = function () {
             var mapNodes = new Map();
@@ -45,6 +41,7 @@ var Moore = /** @class */ (function (_super) {
                 tmpTransitions.add(tmpTransiton);
                 return { from: edge.from, to: edge.to, transitions: tmpTransitions };
             });
+            console.log('>>>>', _this.startStatements);
             return {
                 graphcore: { edges: mealyEdges, nodes: _this.nodes.map(function (node) { return ({ id: node.id, isAdmit: node.isAdmit }); }) },
                 start: _this.startStatements.map(function (statement) { return ({ id: statement.id, isAdmit: statement.isAdmit }); })
@@ -59,21 +56,17 @@ var nfa = new Moore({
     nodes: [
         { id: 0, isAdmit: false, output: 'b' },
         { id: 1, isAdmit: false, output: 'b' },
-        { id: 2, isAdmit: false, output: 'a' },
     ],
     edges: [
-        { from: 0, to: 0, transitions: new Set([[{ title: '1' }]]) },
+        // { from: 0, to: 0, transitions: new Set([[{ title: '1' }]]) },
         { from: 0, to: 1, transitions: new Set([[{ title: '0' }]]) },
-        { from: 1, to: 1, transitions: new Set([[{ title: '0' }]]) },
-        { from: 1, to: 2, transitions: new Set([[{ title: '1' }]]) },
-        { from: 2, to: 1, transitions: new Set([[{ title: '0' }]]) },
-        { from: 2, to: 0, transitions: new Set([[{ title: '1' }]]) },
+        { from: 0, to: 0, transitions: new Set([[{ title: '0' }]]) },
     ]
 }, [{ id: 0, isAdmit: false }], ["0"]);
 // console.log(nfa.run())
-nfa.restart();
-console.log(nfa.step());
-// console.log(nfa.step())
+// console.log(nfa.mooreToMealy().start)
+// edges.forEach(v => console.log(v.from, v.to, v.transitions))
+console.log(nfa.run());
 // const conv = nfa.moorToMealy()
 // conv.graphcore.edges.forEach(edge => {
 //     console.log(edge.from)

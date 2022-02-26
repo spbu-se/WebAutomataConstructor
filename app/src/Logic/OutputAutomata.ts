@@ -22,6 +22,10 @@ export abstract class OutputAutomata extends Computer {
         console.log("STMTS")
         this.statements.forEach(value => console.log(value))
         console.log(this.curPosition)
+        this.matrix.forEach(value => {
+            console.log()
+            value.forEach(value1 => console.log(value1))
+        })
     }
 
     public restart = () => {

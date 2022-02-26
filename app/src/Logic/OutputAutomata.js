@@ -139,6 +139,10 @@ var OutputAutomata = /** @class */ (function (_super) {
         console.log("STMTS");
         _this.statements.forEach(function (value) { return console.log(value); });
         console.log(_this.curPosition);
+        _this.matrix.forEach(function (value) {
+            console.log();
+            value.forEach(function (value1) { return console.log(value1); });
+        });
         return _this;
     }
     OutputAutomata.prototype.toNodes = function (positions) {

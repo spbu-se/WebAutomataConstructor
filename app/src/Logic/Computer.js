@@ -40,6 +40,9 @@ var Computer = /** @class */ (function () {
         this.mooreToMealy = function () {
             throw new Error("Moor conversion");
         };
+        this.mealyToMoore = function () {
+            throw new Error("Moor conversion");
+        };
         this.getCurrNode = function () {
             return _this.currentNode.id;
         };

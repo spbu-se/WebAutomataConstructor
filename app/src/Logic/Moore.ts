@@ -32,6 +32,7 @@ export class Moore extends OutputAutomata {
 
             return { from: edge.from, to: edge.to, transitions: tmpTransitions }
         })
+        console.log('>>>>', this.startStatements)
         return {
             graphcore: { edges: mealyEdges, nodes: this.nodes.map(node => ({ id: node.id, isAdmit: node.isAdmit })) },
             start: this.startStatements.map(statement => ({ id: statement.id, isAdmit: statement.isAdmit }))
@@ -45,24 +46,27 @@ let nfa = new Moore(
         nodes: [
             { id: 0, isAdmit: false, output: 'b' },
             { id: 1, isAdmit: false, output: 'b' },
-            { id: 2, isAdmit: false, output: 'a' },
+            // { id: 2, isAdmit: false, output: 'a' },
             // { id: 3, isAdmit: false, output: '3' },
         ],
         edges: [
-            { from: 0, to: 0, transitions: new Set([[{ title: '1' }]]) },
+            // { from: 0, to: 0, transitions: new Set([[{ title: '1' }]]) },
             { from: 0, to: 1, transitions: new Set([[{ title: '0' }]]) },
+            { from: 0, to: 0, transitions: new Set([[{ title: '0' }]]) },
 
-            { from: 1, to: 1, transitions: new Set([[{ title: '0' }]]) },
-            { from: 1, to: 2, transitions: new Set([[{ title: '1' }]]) },
+            // { from: 1, to: 1, transitions: new Set([[{ title: '0' }]]) },
+            // { from: 1, to: 2, transitions: new Set([[{ title: '1' }]]) },
 
-            { from: 2, to: 1, transitions: new Set([[{ title: '0' }]]) },
-            { from: 2, to: 0, transitions: new Set([[{ title: '1' }]]) },
+            // { from: 2, to: 1, transitions: new Set([[{ title: '0' }]]) },
+            // { from: 2, to: 0, transitions: new Set([[{ title: '1' }]]) },
         ]
     }, [{ id: 0, isAdmit: false }], ["0"])
 
 // console.log(nfa.run())
-console.log(nfa.step())
-// console.log(nfa.step())
+// console.log(nfa.mooreToMealy().start)
+// edges.forEach(v => console.log(v.from, v.to, v.transitions))
+
+console.log(nfa.run())
 // const conv = nfa.moorToMealy()
 // conv.graphcore.edges.forEach(edge => {
 //     console.log(edge.from)

@@ -51,6 +51,10 @@ export abstract class Computer {
         throw new Error("Moor conversion")
     } 
 
+    public mealyToMoore = (): GraphEvalMultiStart => {
+        throw new Error("Moor conversion")
+    }
+
     protected getAlphabetFromEdges(): void {
         let alphabetSet: Set<string> = new Set()
         for (let i = 0; i < this.edges.length; i++) {

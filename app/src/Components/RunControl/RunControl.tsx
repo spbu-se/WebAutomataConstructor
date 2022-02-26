@@ -21,9 +21,10 @@ import { TM } from "../../Logic/TM";
 import { Elements } from "../../App";
 import { decorateGraph, elementsToGraph, graphToElements } from "../../utils";
 import { Step } from "../../Logic/Types";
-import { GraphEval } from "../../Logic/IGraphTypes";
+import { GraphEval, GraphEvalMultiStart } from "../../Logic/IGraphTypes";
 import { Mealy } from "../../Logic/Mealy";
 import { Moore } from "../../Logic/Moore";
+import { start } from "repl";
 
 
 interface runControlProps {
@@ -35,6 +36,8 @@ interface runControlProps {
     setInit: ((f: () => void) => void)
     setNfaToDfa: ((f: () => void) => void)
     setMinimizeDfa: ((f: () => void) => void)
+    setMooreToMealy: ((f: () => void) => void)
+    setMealyToMoore: ((f: () => void) => void)
     updateElements: (elements: Elements) => void
     setComputerType: (type: null | ComputerType) => void
     setResettedStatus: (status: boolean) => void
@@ -94,6 +97,8 @@ class RunControl extends React.Component<runControlProps, runControlState> {
         })
         this.props.setNfaToDfa(this.nfaToDfa)
         this.props.setMinimizeDfa(this.minimizeDfa)
+        this.props.setMooreToMealy(this.mooreToMealy)
+        this.props.setMealyToMoore(this.mealyToMoore)
         this.initializeComputer()
     }
 
@@ -346,6 +351,66 @@ class RunControl extends React.Component<runControlProps, runControlState> {
         })
     }
 
+    mooreToMealy = (): void => {
+        this.initializeComputer();
+        this.reset();
+
+        const miniDFA: GraphEvalMultiStart = this.state.computer!.mooreToMealy()
+        
+        const starts = miniDFA.start.map(v => v.id)
+
+        // console.log('()()()()()))()(', miniDFA.graphcore.edges)
+
+        const nodes = miniDFA.graphcore.nodes.map((v) => ({
+            id: v.id,
+            isAdmit: v.isAdmit,
+            label: 'S' + v.id.toString(),
+            isInitial: starts.includes(v.id),
+            isCurrent: false,
+        }))
+        const edges = miniDFA.graphcore.edges
+        const gElements = {
+            nodes: nodes,
+            edges: edges
+        }
+        this.setState({
+            gElements: gElements
+        }, () => {
+            this.props.updateElements(graphToElements(gElements))
+            this.props.setComputerType("mealy")
+        })
+    }
+
+    mealyToMoore = (): void => {
+        this.initializeComputer();
+        this.reset();
+
+        const miniDFA: GraphEvalMultiStart = this.state.computer!.mealyToMoore()
+        
+        const starts = miniDFA.start.map(v => v.id)
+
+        // console.log('()()()()()))()(', miniDFA.graphcore.edges)
+
+        const nodes = miniDFA.graphcore.nodes.map((v) => ({
+            id: v.id,
+            isAdmit: v.isAdmit,
+            label: 'S' + v.id.toString() + ' | ' + v.output,
+            isInitial: starts.includes(v.id),
+            isCurrent: false,
+        }))
+        const edges = miniDFA.graphcore.edges
+        const gElements = {
+            nodes: nodes,
+            edges: edges
+        }
+        this.setState({
+            gElements: gElements
+        }, () => {
+            this.props.updateElements(graphToElements(gElements))
+            this.props.setComputerType("moore")
+        })
+    }
+
     render() {
         return (
             <ControlWrapper title={"Запуск"}>
@@ -428,43 +493,35 @@ class RunControl extends React.Component<runControlProps, runControlState> {
                             </Button>
                         </div>
 
-                        {/*{*/}
-                        {/*    this.props.computerType === "dfa" ?*/}
-                        {/*        <div className="run-control__button">*/}
-                        {/*            <Button*/}
-                        {/*                variant="outlined"*/}
-                        {/*                onClick={this.minimizeDfa}*/}
-                        {/*            >*/}
-                        {/*                minimize*/}
-                        {/*            </Button>*/}
-                        {/*        </div>*/}
-                        {/*        : <></>*/}
-                        {/*}*/}
+                        {/* {
+                           this.props.computerType === "moore" ?
+                               <div className="run-control__button">
+                                   <Button
+                                       variant="outlined"
+                                       onClick={this.mooreToMealy}
+                                   >
+                                       mealy
+                                   </Button>
+                               </div>
+                               : <></>
+                        }
+
+{
+                           this.props.computerType === "mealy" ?
+                               <div className="run-control__button">
+                                   <Button
+                                       variant="outlined"
+                                       onClick={this.mealyToMoore}
+                                   >
+                                       moore
+                                   </Button>
+                               </div>
+                               : <></>
+                        } */}
 
 
                     </div>
 
-                    {/* {
-                        this.props.computerType === "pda"
-                            ?
-                            <div className="run-control__button">
-                                <Button
-                                    variant="outlined"
-                                    color="secondary"
-                                    // onClick={this.run}
-
-                                    onClick={() => {
-                                        const curStbyEmp = this.state.byEmptyStack;
-                                        this.setState({ byEmptyStack: !curStbyEmp });
-                                        this.state.computer!.byEmptyStackAdmt(!curStbyEmp)
-                                        this.reset();
-                                    }}
-                                >
-                                    {this.state.byEmptyStack ? "По стеку" : "По состоянию"}
-                                </Button>
-                            </div>
-                            : <div />
-                    } */}
 
                     <div className="run-control__item run-control__history">
                         <div className="run-control__history__header">

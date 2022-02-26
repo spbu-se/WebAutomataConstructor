@@ -68,7 +68,9 @@ export const ComputerTypeContext = React.createContext<null | ComputerType>(null
 export const computerActions = {
     init: (() => { }),
     nfaToDfa: (() => { }),
-    minimizeDfa: (() => { })
+    minimizeDfa: (() => { }),
+    mooreToMealy: (() => { }),
+    mealyToMoore: (() => { })
 }
 
 interface RibbonProps {
@@ -160,23 +162,23 @@ class App extends React.Component<appProps, appState> {
     lastNodeId = 0;
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    // subscribeToShortcuts = () => {
-    //     document.addEventListener("keydown", (event: KeyboardEvent) => {
-    //         if (event.key === "Shift" && !this.state.inEdgeMode) {
-    //             this.enterEdgeMode();
-    //         }
-    //         if (event.key === "s" && event.ctrlKey) {
-    //             event.preventDefault();
-    //             this.openSavePopout();
-    //         }
-    //     })
-    //
-    //     document.addEventListener("keyup", (event: KeyboardEvent) => {
-    //         if (event.key === "Shift" && this.state.inEdgeMode) {
-    //             this.leaveEdgeMode();
-    //         }
-    //     })
-    // }
+    subscribeToShortcuts = () => {
+        document.addEventListener("keydown", (event: KeyboardEvent) => {
+            // if (event.key === "Shift" && !this.state.inEdgeMode) {
+            //     this.enterEdgeMode();
+            // }
+            if (event.key === "s" && event.ctrlKey) {
+                event.preventDefault();
+                this.openSavePopout();
+            }
+        })
+    
+        // document.addEventListener("keyup", (event: KeyboardEvent) => {
+        //     if (event.key === "Shift" && this.state.inEdgeMode) {
+        //         this.leaveEdgeMode();
+        //     }
+        // })
+    }
 
     openSavePopout = () => {
         this.setState({ savePopoutOpen: true });
@@ -220,7 +222,7 @@ class App extends React.Component<appProps, appState> {
                         .filter(x => x !== " " && x !== "\n")
                         .join('')
                         .split('|')
-                const output = lableTokens[1] !== undefined ? lableTokens[1] : "" 
+                const output = lableTokens[1] !== undefined ? lableTokens[1] : ""
                 this.state.elements.nodes.update({
                     id: node.id,
                     label: label,
@@ -378,6 +380,36 @@ class App extends React.Component<appProps, appState> {
         )
     }
 
+    MealyContextMenu = (handleContextMenu: any, handleClose: any) => {
+        return (
+            <div onContextMenu={handleContextMenu}>
+                <div onClick={handleClose}>
+                    <button
+                        className={"button-context-menu"}
+                        onClick={computerActions.mealyToMoore}
+                    >
+                        {"Мур"}
+                    </button>
+                </div>
+            </div>
+        )
+    }
+
+    MooreContextMenu = (handleContextMenu: any, handleClose: any) => {
+        return (
+            <div onContextMenu={handleContextMenu}>
+                <div onClick={handleClose}>
+                    <button
+                        className={"button-context-menu"}
+                        onClick={computerActions.mooreToMealy}
+                    >
+                        {"Мили"}
+                    </button>
+                </div>
+            </div>
+        )
+    }
+
     AnotherContextMenu = (handleContextMenu: any, handleClose: any) => {
         return (
             <div onContextMenu={handleContextMenu}>
@@ -399,6 +431,12 @@ class App extends React.Component<appProps, appState> {
             }
             case "dfa": {
                 return this.DFAContextMenu
+            }
+            case "mealy": {
+                return this.MealyContextMenu
+            }
+            case "moore": {
+                return this.MooreContextMenu
             }
             default: {
                 return this.AnotherContextMenu
@@ -466,6 +504,9 @@ class App extends React.Component<appProps, appState> {
                                     <Paper className="hint" variant="outlined">
                                         Двойное нажатие чтобы создать вершину
                                     </Paper>
+                                    <Paper className="hint" variant="outlined">
+                                        ПКМ для открытия контекстного меню
+                                    </Paper>
                                 </div>
 
                                 <Ribbon
@@ -522,6 +563,8 @@ class App extends React.Component<appProps, appState> {
                                         setInit={(f: () => void) => computerActions.init = f}
                                         setNfaToDfa={(f: () => void) => computerActions.nfaToDfa = f}
                                         setMinimizeDfa={(f: () => void) => computerActions.minimizeDfa = f}
+                                        setMooreToMealy={(f: () => void) => computerActions.mooreToMealy = f}
+                                        setMealyToMoore={(f: () => void) => computerActions.mealyToMoore = f}
                                         updateElements={(elements: Elements) => this.setState({ elements: elements }, () => this.updateGraph())}
                                         setComputerType={(type: null | ComputerType) => this.setState({ computerType: type })}
                                         setResettedStatus={(status: boolean) => this.setState({ wasComputerResetted: status })}
