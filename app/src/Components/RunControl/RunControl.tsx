@@ -234,8 +234,6 @@ class RunControl extends React.Component<runControlProps, runControlState> {
             .map(nodeCore => this.state.gElements.nodes.find(node => node.id == nodeCore.id))
             .filter((node): node is node => node !== undefined);
 
-        // console.log("stepResult.nodes[i].outputstepResult.nodes[i].outputstepResult.nodes[i].output")
-        // console.log(stepResult)
 
         const _nodes = nodes.map((e, i) => {
             const stack = stepResult.nodes[i].stack
@@ -355,20 +353,18 @@ class RunControl extends React.Component<runControlProps, runControlState> {
         this.initializeComputer();
         this.reset();
 
-        const miniDFA: GraphEvalMultiStart = this.state.computer!.mooreToMealy()
+        const mealy: GraphEvalMultiStart = this.state.computer!.mooreToMealy()
         
-        const starts = miniDFA.start.map(v => v.id)
+        const starts = mealy.start.map((v) => v.id)
 
-        // console.log('()()()()()))()(', miniDFA.graphcore.edges)
-
-        const nodes = miniDFA.graphcore.nodes.map((v) => ({
+        const nodes = mealy.graphcore.nodes.map((v) => ({
             id: v.id,
             isAdmit: v.isAdmit,
             label: 'S' + v.id.toString(),
             isInitial: starts.includes(v.id),
             isCurrent: false,
         }))
-        const edges = miniDFA.graphcore.edges
+        const edges = mealy.graphcore.edges
         const gElements = {
             nodes: nodes,
             edges: edges
@@ -492,6 +488,28 @@ class RunControl extends React.Component<runControlProps, runControlState> {
                                 Сбросить
                             </Button>
                         </div>
+
+                        {
+                        this.props.computerType === "pda"
+                            ?
+                                <div className="run-control__button">
+                                    <Button
+                                        variant="outlined"
+                                        color="secondary"
+                                        // onClick={this.run}
+
+                                        onClick={() => {
+                                            const curStbyEmp = this.state.byEmptyStack;
+                                            this.setState({ byEmptyStack: !curStbyEmp});
+                                            this.state.computer!.byEmptyStackAdmt(!curStbyEmp)
+                                            this.reset();
+                                        }}
+                                    >
+                                        {this.state.byEmptyStack ?  "По стеку" : "По состоянию"}
+                                    </Button>
+                                </div>
+                            : <div/>
+                    }
 
                         {/* {
                            this.props.computerType === "moore" ?

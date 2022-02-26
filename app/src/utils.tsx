@@ -8,11 +8,11 @@ import { Output } from "./Logic/Types";
 
 const epsSubstStr = (epsText: string) => (value: string) => value === EPS ? epsText : value
 
-const epsSubstStrs = (epsText: string) => (values: string[]) => values.map(v => epsSubstStr(v)(epsText)).join(":")
+const epsSubstStrs = (epsText: string) => (values: string[]) => {
+    return values.map(v =>  epsSubstStr(epsText)(v)).join(":")
+}
 
 const mvStr = (value: Move) => value === 0 ? "L" : "R"
-
-const outputStr = (output: Output) => output
 
 export const transitionsToLabel = (transitions: Set<TransitionParams[]>, frmt: null | ComputerType ): string => {
     const maxLength = (): number => {
