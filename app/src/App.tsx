@@ -60,17 +60,25 @@ interface appState {
     isLogin: boolean,
     mem: string[] | undefined,
     ptr: number | undefined,
-    wasComputerResetted: boolean
+    wasComputerResetted: boolean,
+    byEmptyStack: boolean
 }
 
 export const ComputerTypeContext = React.createContext<null | ComputerType>(null);
 
-export const computerActions = {
+export const computerAction = {
     init: (() => { }),
     nfaToDfa: (() => { }),
     minimizeDfa: (() => { }),
     mooreToMealy: (() => { }),
     mealyToMoore: (() => { })
+}
+
+export const controlAction = {
+    changerByStack: (() => { }),
+    run: (() => { }),
+    step: (() => { }),
+    reset: (() => { })
 }
 
 interface RibbonProps {
@@ -149,7 +157,8 @@ class App extends React.Component<appProps, appState> {
             isLogin: true,
             mem: undefined,
             ptr: undefined,
-            wasComputerResetted: false
+            wasComputerResetted: false,
+            byEmptyStack: false
         };
     }
 
@@ -172,7 +181,7 @@ class App extends React.Component<appProps, appState> {
                 this.openSavePopout();
             }
         })
-    
+
         // document.addEventListener("keyup", (event: KeyboardEvent) => {
         //     if (event.key === "Shift" && this.state.inEdgeMode) {
         //         this.leaveEdgeMode();
@@ -355,11 +364,36 @@ class App extends React.Component<appProps, appState> {
                 <div onClick={handleClose}>
                     <button
                         className={"button-context-menu"}
-                        onClick={computerActions.nfaToDfa}
+                        onClick={controlAction.step}
+                    >
+                        {"Шаг"}
+                    </button>
+                </div>
+                <div onClick={handleClose}>
+                    <button
+                        className={"button-context-menu"}
+                        onClick={controlAction.run}
+                    >
+                        {"Запуск"}
+                    </button>
+                </div>
+                <div onClick={handleClose}>
+                    <button
+                        className={"button-context-menu"}
+                        onClick={controlAction.reset}
+                    >
+                        {"Сброс"}
+                    </button>
+                </div>
+                <div onClick={handleClose}>
+                    <button
+                        className={"button-context-menu"}
+                        onClick={computerAction.nfaToDfa}
                     >
                         {"НКА->ДКА"}
                     </button>
                 </div>
+
             </div>
         )
     }
@@ -371,7 +405,31 @@ class App extends React.Component<appProps, appState> {
                 <div onClick={handleClose}>
                     <button
                         className={"button-context-menu"}
-                        onClick={computerActions.minimizeDfa}
+                        onClick={controlAction.step}
+                    >
+                        {"Шаг"}
+                    </button>
+                </div>
+                <div onClick={handleClose}>
+                    <button
+                        className={"button-context-menu"}
+                        onClick={controlAction.run}
+                    >
+                        {"Запуск"}
+                    </button>
+                </div>
+                <div onClick={handleClose}>
+                    <button
+                        className={"button-context-menu"}
+                        onClick={controlAction.reset}
+                    >
+                        {"Сброс"}
+                    </button>
+                </div>
+                <div onClick={handleClose}>
+                    <button
+                        className={"button-context-menu"}
+                        onClick={computerAction.minimizeDfa}
                     >
                         {"Минимизровать"}
                     </button>
@@ -386,7 +444,31 @@ class App extends React.Component<appProps, appState> {
                 <div onClick={handleClose}>
                     <button
                         className={"button-context-menu"}
-                        onClick={computerActions.mealyToMoore}
+                        onClick={controlAction.step}
+                    >
+                        {"Шаг"}
+                    </button>
+                </div>
+                <div onClick={handleClose}>
+                    <button
+                        className={"button-context-menu"}
+                        onClick={controlAction.run}
+                    >
+                        {"Запуск"}
+                    </button>
+                </div>
+                <div onClick={handleClose}>
+                    <button
+                        className={"button-context-menu"}
+                        onClick={controlAction.reset}
+                    >
+                        {"Сброс"}
+                    </button>
+                </div>
+                <div onClick={handleClose}>
+                    <button
+                        className={"button-context-menu"}
+                        onClick={computerAction.mealyToMoore}
                     >
                         {"Мур"}
                     </button>
@@ -401,9 +483,73 @@ class App extends React.Component<appProps, appState> {
                 <div onClick={handleClose}>
                     <button
                         className={"button-context-menu"}
-                        onClick={computerActions.mooreToMealy}
+                        onClick={controlAction.step}
+                    >
+                        {"Шаг"}
+                    </button>
+                </div>
+                <div onClick={handleClose}>
+                    <button
+                        className={"button-context-menu"}
+                        onClick={controlAction.run}
+                    >
+                        {"Запуск"}
+                    </button>
+                </div>
+                <div onClick={handleClose}>
+                    <button
+                        className={"button-context-menu"}
+                        onClick={controlAction.reset}
+                    >
+                        {"Сброс"}
+                    </button>
+                </div>
+                <div onClick={handleClose}>
+                    <button
+                        className={"button-context-menu"}
+                        onClick={computerAction.mooreToMealy}
                     >
                         {"Мили"}
+                    </button>
+                </div>
+            </div>
+        )
+    }
+
+    PDAContextMenu = (handleContextMenu: any, handleClose: any) => {
+        return (
+            <div onContextMenu={handleContextMenu}>
+                <div onClick={handleClose}>
+                    <button
+                        className={"button-context-menu"}
+                        onClick={controlAction.step}
+                    >
+                        {"Шаг"}
+                    </button>
+                </div>
+                <div onClick={handleClose}>
+                    <button
+                        className={"button-context-menu"}
+                        onClick={controlAction.run}
+                    >
+                        {"Запуск"}
+                    </button>
+                </div>
+                <div onClick={handleClose}>
+                    <button
+                        className={"button-context-menu"}
+                        onClick={controlAction.reset}
+                    >
+                        {"Сброс"}
+                    </button>
+                </div>
+                <div onClick={handleClose}>
+                    <button
+                        className={"button-context-menu"}
+                        onClick={controlAction.changerByStack}
+
+                    >
+                        {this.state.byEmptyStack ? "По стеку" : "По состоянию"}
                     </button>
                 </div>
             </div>
@@ -413,6 +559,22 @@ class App extends React.Component<appProps, appState> {
     AnotherContextMenu = (handleContextMenu: any, handleClose: any) => {
         return (
             <div onContextMenu={handleContextMenu}>
+                <div onClick={handleClose}>
+                    <button
+                        className={"button-context-menu"}
+                        onClick={controlAction.step}
+                    >
+                        {"Шаг"}
+                    </button>
+                </div>
+                <div onClick={handleClose}>
+                    <button
+                        className={"button-context-menu"}
+                        onClick={controlAction.run}
+                    >
+                        {"Запуск"}
+                    </button>
+                </div>
                 <div onClick={handleClose}>
                     <button
                         className={"button-context-menu"}
@@ -437,6 +599,9 @@ class App extends React.Component<appProps, appState> {
             }
             case "moore": {
                 return this.MooreContextMenu
+            }
+            case "pda": {
+                return this.PDAContextMenu
             }
             default: {
                 return this.AnotherContextMenu
@@ -546,28 +711,33 @@ class App extends React.Component<appProps, appState> {
                                         changeStateIsAdmit={this.changeStateIsAdmit}
                                         changeStateIsInitial={this.changeStateIsInitial}
                                         deleteNode={this.deleteNode}
-                                        reinitComputer={computerActions.init}
+                                        reinitComputer={computerAction.init}
                                     />
                                     <EdgeControl
                                         edge={this.state.selectedEdge}
                                         changeEdgeTransitions={this.changeEdgeTransition}
                                         deleteEdge={this.deleteEdge}
                                         computerType={this.state.computerType}
-                                        reinitComputer={computerActions.init}
+                                        reinitComputer={computerAction.init}
                                     />
                                     <RunControl
                                         updMem={this.updMem}
                                         elements={this.state.elements}
                                         changeStateIsCurrent={this.changeStateIsCurrent}
                                         network={this.network}
-                                        setInit={(f: () => void) => computerActions.init = f}
-                                        setNfaToDfa={(f: () => void) => computerActions.nfaToDfa = f}
-                                        setMinimizeDfa={(f: () => void) => computerActions.minimizeDfa = f}
-                                        setMooreToMealy={(f: () => void) => computerActions.mooreToMealy = f}
-                                        setMealyToMoore={(f: () => void) => computerActions.mealyToMoore = f}
+                                        setInit={(f: () => void) => computerAction.init = f}
+                                        setNfaToDfa={(f: () => void) => computerAction.nfaToDfa = f}
+                                        setMinimizeDfa={(f: () => void) => computerAction.minimizeDfa = f}
+                                        setMooreToMealy={(f: () => void) => computerAction.mooreToMealy = f}
+                                        setMealyToMoore={(f: () => void) => computerAction.mealyToMoore = f}
                                         updateElements={(elements: Elements) => this.setState({ elements: elements }, () => this.updateGraph())}
                                         setComputerType={(type: null | ComputerType) => this.setState({ computerType: type })}
                                         setResettedStatus={(status: boolean) => this.setState({ wasComputerResetted: status })}
+                                        setByEmptyStack={(byEmptyStack: boolean) => this.setState({ byEmptyStack: byEmptyStack })}
+                                        setChangerByStack={(f: () => void) => controlAction.changerByStack = f}
+                                        setRun={(f: () => void) => controlAction.run = f}
+                                        setStep={(f: () => void) => controlAction.step = f}
+                                        setReset={(f: () => void) => controlAction.reset = f}
                                     />
                                 </div>
 

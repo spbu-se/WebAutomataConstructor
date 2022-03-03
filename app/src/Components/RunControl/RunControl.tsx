@@ -38,9 +38,14 @@ interface runControlProps {
     setMinimizeDfa: ((f: () => void) => void)
     setMooreToMealy: ((f: () => void) => void)
     setMealyToMoore: ((f: () => void) => void)
+    setChangerByStack: (f: () => void) => void
+    setRun: (f: () => void) => void
+    setStep: (f: () => void) => void
+    setReset: (f: () => void) => void
     updateElements: (elements: Elements) => void
     setComputerType: (type: null | ComputerType) => void
     setResettedStatus: (status: boolean) => void
+    setByEmptyStack: (byEmptyStack: boolean) => void
 }
 
 interface runControlState {
@@ -99,6 +104,10 @@ class RunControl extends React.Component<runControlProps, runControlState> {
         this.props.setMinimizeDfa(this.minimizeDfa)
         this.props.setMooreToMealy(this.mooreToMealy)
         this.props.setMealyToMoore(this.mealyToMoore)
+        this.props.setChangerByStack(this.admitByStack)
+        this.props.setRun(this.run)
+        this.props.setStep(this.step)
+        this.props.setReset(this.reset)
         this.initializeComputer()
     }
 
@@ -324,6 +333,14 @@ class RunControl extends React.Component<runControlProps, runControlState> {
         })
     }
 
+    admitByStack = (): void => {
+        const curStbyEmp = this.state.byEmptyStack;
+        this.setState({ byEmptyStack: !curStbyEmp});
+        this.props.setByEmptyStack(!curStbyEmp)
+        this.state.computer!.byEmptyStackAdmt(!curStbyEmp)
+        this.reset();
+    }
+
     minimizeDfa = (): void => {
         this.initializeComputer();
         this.reset();
@@ -489,27 +506,27 @@ class RunControl extends React.Component<runControlProps, runControlState> {
                             </Button>
                         </div>
 
-                        {
-                        this.props.computerType === "pda"
-                            ?
-                                <div className="run-control__button">
-                                    <Button
-                                        variant="outlined"
-                                        color="secondary"
-                                        // onClick={this.run}
-
-                                        onClick={() => {
-                                            const curStbyEmp = this.state.byEmptyStack;
-                                            this.setState({ byEmptyStack: !curStbyEmp});
-                                            this.state.computer!.byEmptyStackAdmt(!curStbyEmp)
-                                            this.reset();
-                                        }}
-                                    >
-                                        {this.state.byEmptyStack ?  "По стеку" : "По состоянию"}
-                                    </Button>
-                                </div>
-                            : <div/>
-                    }
+                        {/* {
+                            this.props.computerType === "pda"
+                                ?
+                                    <div className="run-control__button">
+                                        <Button
+                                            variant="outlined"
+                                            color="secondary"
+                                            // onClick={this.run}
+                                            onClick={() => {
+                                                this.admitByStack()
+                                                // const curStbyEmp = this.state.byEmptyStack;
+                                                // this.setState({ byEmptyStack: !curStbyEmp});
+                                                // this.state.computer!.byEmptyStackAdmt(!curStbyEmp)
+                                                // this.reset();
+                                            }}
+                                        >
+                                            {this.state.byEmptyStack ?  "По стеку" : "По состоянию"}
+                                        </Button>
+                                    </div>
+                                : <div/>
+                        } */}
 
                         {/* {
                            this.props.computerType === "moore" ?
