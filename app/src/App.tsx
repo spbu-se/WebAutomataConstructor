@@ -578,6 +578,14 @@ class App extends React.Component<appProps, appState> {
                 <div onClick={handleClose}>
                     <button
                         className={"button-context-menu"}
+                        onClick={controlAction.reset}
+                    >
+                        {"Сброс"}
+                    </button>
+                </div>
+                <div onClick={handleClose}>
+                    <button
+                        className={"button-context-menu"}
                     >
                         {"Just-button"}
                     </button>

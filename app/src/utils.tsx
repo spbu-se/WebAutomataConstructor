@@ -370,7 +370,7 @@ export const computersInfo: Record<ComputerType, ComputerInfo> = {
         }
     },
     mealy: {
-        name: "Милли машина",
+        name: "Автомат Мили",
         preview: "mealy.png",
         description: "_",
         defaultGraph: {
@@ -410,7 +410,7 @@ export const computersInfo: Record<ComputerType, ComputerInfo> = {
         }
     },
     moore: {
-        name: "Машина Мура",
+        name: "Автомат Мура",
         description: "_",
         preview: "moore.png",
         defaultGraph: {
