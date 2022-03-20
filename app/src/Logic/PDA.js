@@ -687,21 +687,14 @@ var PDA = /** @class */ (function (_super) {
         return this.epsId !== undefined;
     };
     PDA.prototype.isDeterministic = function () {
-        var ret = this.matrix.reduce(function (acc, line) {
-            return acc && line.reduce(function (_, cell) {
-                return cell.reduce(function (accCell, stmt, index) {
-                    if (index !== 0) {
-                        if (stmt.stackDown !== undefined) {
-                            return accCell && !(stmt.stackDown === cell[0].stackDown);
-                        }
-                        if (stmt.stackDown === undefined) {
-                            return accCell && false;
-                        }
-                    }
-                    return accCell;
-                }, acc);
-            }, acc);
-        }, true);
+        var ret = true;
+        this.matrix.forEach(function (line) { return line.forEach(function (cells) {
+            var fstCell = cells[0];
+            var hasDublicates = cells.reduce(function (acc, stmt) { return acc || (stmt.stackDown === fstCell.stackDown); }, false);
+            if (cells.length > 1 && hasDublicates) {
+                ret = false;
+            }
+        }); });
         return ret && (!this.haveEpsilon());
     };
     PDA.prototype.haveAdmitting = function (positions) {

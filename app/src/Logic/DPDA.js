@@ -23,21 +23,21 @@ var DPDA = /** @class */ (function (_super) {
         // run = this.pdaRun
         _this.step = function () {
             if (!_super.prototype.isDeterministic.call(_this)) {
-                throw new Exceptions_1["default"]();
+                throw new Exceptions_1.NonDeterministic();
             }
             return _this.pdaStep();
         };
         _this.run = function () {
             if (!_super.prototype.isDeterministic.call(_this)) {
-                throw new Exceptions_1["default"]();
+                throw new Exceptions_1.NonDeterministic();
             }
             return _this.pdaRun();
         };
         _this.setInput(input);
-        if (!_super.prototype.isDeterministic.call(_this)) {
-            throw new Error("Is not determenistic");
-        }
         return _this;
+        // if (!super.isDeterministic()) {
+        //     throw new Error("Is not determenistic")
+        // }
     }
     return DPDA;
 }(PDA_1.PDA));

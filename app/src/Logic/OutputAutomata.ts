@@ -29,24 +29,37 @@ export abstract class OutputAutomata extends Computer {
     }
 
     isDeterministic(): boolean {
-        const ret = this.matrix.reduce((acc: boolean, line) =>
-            acc && line.reduce((_: boolean, cell) =>
-                cell.reduce((accCell: boolean, stmt, index) => {
-                    if (index !== 0) {
-                        if (stmt.stackDown !== undefined) {
-                            return accCell && !(stmt.stackDown === cell[0].stackDown)
-                        }
-                        if (stmt.stackDown === undefined) {
-                            return accCell && false
-                        }
-                    }
-                    return accCell
-                }
-                    , acc),
-                acc),
-            true)
-        return ret 
+        let ret = true
+        this.matrix.forEach((line) => line.forEach((cells) => {
+            const fstCell = cells[0]
+            const hasDublicates = cells.reduce((acc, stmt) => acc || (stmt.stackDown === fstCell.stackDown), false)
+
+            if (cells.length > 1 && hasDublicates) {
+                ret = false
+            }
+        }))
+        return ret
     }
+
+    // isDeterministic(): boolean {
+    //     const ret = this.matrix.reduce((acc: boolean, line) =>
+    //         acc && line.reduce((_: boolean, cell) =>
+    //             cell.reduce((accCell: boolean, stmt, index) => {
+    //                 if (index !== 0) {
+    //                     if (stmt.stackDown !== undefined) {
+    //                         return accCell && !(stmt.stackDown === cell[0].stackDown)
+    //                     }
+    //                     if (stmt.stackDown === undefined) {
+    //                         return accCell && false
+    //                     }
+    //                 }
+    //                 return accCell
+    //             }
+    //                 , acc),
+    //             acc),
+    //         true)
+    //     return ret 
+    // }
 
     public restart = () => {
         this.counterSteps = 0

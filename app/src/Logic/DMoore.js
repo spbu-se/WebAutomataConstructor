@@ -21,13 +21,13 @@ var DMoore = /** @class */ (function (_super) {
         var _this = _super.call(this, graph, startStatements, input) || this;
         _this.step = function () {
             if (!_super.prototype.isDeterministic.call(_this)) {
-                throw new Exceptions_1["default"]();
+                throw new Exceptions_1.NonDeterministic();
             }
             return _this.oaRun();
         };
         _this.run = function () {
             if (!_super.prototype.isDeterministic.call(_this)) {
-                throw new Exceptions_1["default"]();
+                throw new Exceptions_1.NonDeterministic();
             }
             return _this.oaRun();
         };
@@ -36,3 +36,15 @@ var DMoore = /** @class */ (function (_super) {
     return DMoore;
 }(Moore_1.Moore));
 exports.DMoore = DMoore;
+var nfa = new DMoore({
+    nodes: [
+        { id: 0, isAdmit: false },
+        { id: 1, isAdmit: false },
+        { id: 2, isAdmit: false },
+    ],
+    edges: [
+        { from: 0, to: 0, transitions: new Set([[{ title: '1' }]]) },
+        { from: 0, to: 1, transitions: new Set([[{ title: '1' }]]) },
+    ]
+}, [{ id: 0, isAdmit: false }], []);
+console.log(nfa.isDeterministic());

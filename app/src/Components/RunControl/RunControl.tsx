@@ -306,9 +306,9 @@ class RunControl extends React.Component<runControlProps, runControlState> {
                 console.error('KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK')
                 console.log('NonDeterministic')
             }
-            //  else {
-            //     console.log(e)
-            // }
+             else {
+                console.log(e)
+            }
         }
 
     }

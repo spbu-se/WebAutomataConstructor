@@ -29,6 +29,25 @@ var OutputAutomata = /** @class */ (function (_super) {
     __extends(OutputAutomata, _super);
     function OutputAutomata(graph, startStatements, input) {
         var _this = _super.call(this, graph, startStatements) || this;
+        // isDeterministic(): boolean {
+        //     const ret = this.matrix.reduce((acc: boolean, line) =>
+        //         acc && line.reduce((_: boolean, cell) =>
+        //             cell.reduce((accCell: boolean, stmt, index) => {
+        //                 if (index !== 0) {
+        //                     if (stmt.stackDown !== undefined) {
+        //                         return accCell && !(stmt.stackDown === cell[0].stackDown)
+        //                     }
+        //                     if (stmt.stackDown === undefined) {
+        //                         return accCell && false
+        //                     }
+        //                 }
+        //                 return accCell
+        //             }
+        //                 , acc),
+        //             acc),
+        //         true)
+        //     return ret 
+        // }
         _this.restart = function () {
             _this.counterSteps = 0;
             _this.historiStep = [];
@@ -146,21 +165,14 @@ var OutputAutomata = /** @class */ (function (_super) {
         return _this;
     }
     OutputAutomata.prototype.isDeterministic = function () {
-        var ret = this.matrix.reduce(function (acc, line) {
-            return acc && line.reduce(function (_, cell) {
-                return cell.reduce(function (accCell, stmt, index) {
-                    if (index !== 0) {
-                        if (stmt.stackDown !== undefined) {
-                            return accCell && !(stmt.stackDown === cell[0].stackDown);
-                        }
-                        if (stmt.stackDown === undefined) {
-                            return accCell && false;
-                        }
-                    }
-                    return accCell;
-                }, acc);
-            }, acc);
-        }, true);
+        var ret = true;
+        this.matrix.forEach(function (line) { return line.forEach(function (cells) {
+            var fstCell = cells[0];
+            var hasDublicates = cells.reduce(function (acc, stmt) { return acc || (stmt.stackDown === fstCell.stackDown); }, false);
+            if (cells.length > 1 && hasDublicates) {
+                ret = false;
+            }
+        }); });
         return ret;
     };
     OutputAutomata.prototype.toNodes = function (positions) {

@@ -20,9 +20,6 @@ var NonDeterministic = /** @class */ (function (_super) {
         _this.name = 'NonDeterministic';
         Object.setPrototypeOf(_this, NonDeterministic.prototype);
         return _this;
-        // console.log("HERE")
-        // Set the prototype explicitly.
-        // Object.setPrototypeOf(this, NonDeterministic.prototype);
     }
     return NonDeterministic;
 }(Error));
@@ -34,9 +31,6 @@ var NonMinimizable = /** @class */ (function (_super) {
         _this.name = 'NonMinimizable';
         Object.setPrototypeOf(_this, NonMinimizable.prototype);
         return _this;
-        // console.log("HERE")
-        // Set the prototype explicitly.
-        // Object.setPrototypeOf(this, NonDeterministic.prototype);
     }
     return NonMinimizable;
 }(Error));

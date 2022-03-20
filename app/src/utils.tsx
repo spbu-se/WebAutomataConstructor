@@ -510,7 +510,22 @@ export const computersInfo: Record<ComputerType, ComputerInfo> = {
     
                 { from: 2, to: 1, transitions: new Set([[{ title: '0' }]]) },
                 { from: 2, to: 0, transitions: new Set([[{ title: '1' }]]) },
-            ]        
+            ]
+            // nodes: [
+            //     { x: 0, y: 0, id: 0, isAdmit: false, isCurrent: false, isInitial: true, label: "S0 | b" },
+            //     { x: 300, y: 0, id: 1, isAdmit: false, isCurrent: false, isInitial: false, label: "S1 | b"  },
+            //     { x: 100, y: 100, id: 2, isAdmit: false, isCurrent: false, isInitial: false, label: "S2 | a"  },
+            // ],
+            // edges: [
+            //     { from: 0, to: 0, transitions: new Set([[{ title: '1' }]]) },
+            //     { from: 0, to: 1, transitions: new Set([[{ title: '1' }]]) },
+    
+            //     // { from: 1, to: 1, transitions: new Set([[{ title: '0' }]]) },
+            //     // { from: 1, to: 2, transitions: new Set([[{ title: '1' }]]) },
+    
+            //     // { from: 2, to: 1, transitions: new Set([[{ title: '0' }]]) },
+            //     // { from: 2, to: 0, transitions: new Set([[{ title: '1' }]]) },
+            // ]        
         }
     },
 

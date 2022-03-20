@@ -21,13 +21,13 @@ var DMealy = /** @class */ (function (_super) {
         var _this = _super.call(this, graph, startStatements, input) || this;
         _this.step = function () {
             if (!_super.prototype.isDeterministic.call(_this)) {
-                throw new Exceptions_1["default"]();
+                throw new Exceptions_1.NonDeterministic();
             }
             return _this.oaRun();
         };
         _this.run = function () {
             if (!_super.prototype.isDeterministic.call(_this)) {
-                throw new Exceptions_1["default"]();
+                throw new Exceptions_1.NonDeterministic();
             }
             return _this.oaRun();
         };
