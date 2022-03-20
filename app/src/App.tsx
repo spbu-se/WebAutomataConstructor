@@ -36,6 +36,7 @@ import {
     Data,
 } from "vis-network/standalone/esm/vis-network";
 import { Output } from './Logic/Types';
+import { NonDetermenisticModal, NonMinimizableModal } from './ErrorModal';
 // import {ContextMenu, MenuItem as CotextMenuItem, ContextMenuTrigger} from "react-contextmenu";
 
 interface appProps {
@@ -61,7 +62,9 @@ interface appState {
     mem: string[] | undefined,
     ptr: number | undefined,
     wasComputerResetted: boolean,
-    byEmptyStack: boolean
+    byEmptyStack: boolean,
+    errIsNonDetermenistic: boolean,
+    errIsNonMinimizable: boolean
 }
 
 export const ComputerTypeContext = React.createContext<null | ComputerType>(null);
@@ -80,6 +83,16 @@ export const controlAction = {
     step: (() => { }),
     reset: (() => { })
 }
+
+// export interface errorAction {
+//     isNonDetermenistic: boolean, 
+//     setIsNonDetermenistic: (v: boolean) => void
+// }
+// export const errorAction =  {
+//     isNonDetermenistic: false, 
+//     setIsNonDetermenistic: (v: boolean): void => { errorAction.isNonDetermenistic = v }
+// }
+
 
 interface RibbonProps {
     computerType: null | ComputerType,
@@ -158,9 +171,21 @@ class App extends React.Component<appProps, appState> {
             mem: undefined,
             ptr: undefined,
             wasComputerResetted: false,
-            byEmptyStack: false
+            byEmptyStack: false,
+
+            errIsNonDetermenistic: false,
+            errIsNonMinimizable: false,
+
+            // errorAction: {
+            //     isNonDetermenistic: false, 
+            //     setIsNonDetermenistic: (v: boolean): void => { this.setState({ errorAction.isNonDetermenistic = v}) }
+            // }
         };
     }
+
+    setIsNonDetermenistic = (v: boolean) => this.setState({ errIsNonDetermenistic: v })
+
+    setIsNonMinimizable = (v: boolean) => this.setState({ errIsNonMinimizable: v })
 
     componentDidMount() {
         this.updateGraph();
@@ -583,32 +608,36 @@ class App extends React.Component<appProps, appState> {
                         {"Сброс"}
                     </button>
                 </div>
-                <div onClick={handleClose}>
+                {/* <div onClick={handleClose}>
                     <button
                         className={"button-context-menu"}
                     >
                         {"Just-button"}
                     </button>
-                </div>
+                </div> */}
             </div>
         )
     }
 
     ContextMenu = (computerType: null | ComputerType) => {
         switch (computerType) {
-            case "nfa" || "nfa-eps": {
+            case "nfa":
+            case "nfa-eps": {
                 return this.NFAContextMenu
             }
             case "dfa": {
                 return this.DFAContextMenu
             }
-            case "mealy": {
+            case "mealy" : 
+            case "dmealy": {
                 return this.MealyContextMenu
             }
-            case "moore": {
+            case "moore": 
+            case "dmoore": {
                 return this.MooreContextMenu
             }
-            case "pda": {
+            case "pda": 
+            case "dpda": {
                 return this.PDAContextMenu
             }
             default: {
@@ -681,7 +710,14 @@ class App extends React.Component<appProps, appState> {
                                         ПКМ для открытия контекстного меню
                                     </Paper>
                                 </div>
-
+                                <NonDetermenisticModal
+                                    isNonDetermenistic={this.state.errIsNonDetermenistic}
+                                    setIsNonDetermenistic={this.setIsNonDetermenistic}
+                                />
+                                <NonMinimizableModal
+                                    isNonMinimizable={this.state.errIsNonMinimizable}
+                                    setIsNonMinimizable={this.setIsNonMinimizable}
+                                />
                                 <Ribbon
                                     computerType={this.state.computerType}
                                     wasComputerResetted={this.state.wasComputerResetted}
@@ -746,6 +782,8 @@ class App extends React.Component<appProps, appState> {
                                         setRun={(f: () => void) => controlAction.run = f}
                                         setStep={(f: () => void) => controlAction.step = f}
                                         setReset={(f: () => void) => controlAction.reset = f}
+                                        setIsNonDetermenistic={this.setIsNonDetermenistic}
+                                        setIsNonMinimizable={this.setIsNonMinimizable}
                                     />
                                 </div>
 

@@ -27,8 +27,25 @@ exports.__esModule = true;
 var Computer_1 = require("./Computer");
 var Stack_1 = require("./Stack");
 var lodash_1 = require("lodash");
+var Exceptions_1 = require("./Exceptions");
 var PDA = /** @class */ (function (_super) {
     __extends(PDA, _super);
+    // isDeterministic0(): boolean {
+    //     let ret = true
+    //     this.matrix.forEach(value => {
+    //         value.forEach(value1 => {
+    //             if (value1.length > 1) {
+    //                 let tmp: statementCell = value1[0]
+    //                 value1.forEach((value2, index) => {
+    //                     if (index !== 0 && tmp.stackDown === undefined && value2.stackDown || index !== 0 && tmp.stackDown === value2.stackDown ) {
+    //                         ret = false
+    //                     }
+    //                 })
+    //             }
+    //         })
+    //     })
+    //     return ret && (!this.haveEpsilon())
+    // }
     function PDA(graph, startStatements, input, byEmpty) {
         var _this = _super.call(this, graph, startStatements) || this;
         // protected matrix: statementCells[][] = []
@@ -43,7 +60,7 @@ var PDA = /** @class */ (function (_super) {
         _this.byEmptyStackAdmt = function (isAdmt) {
             _this.admitByEmptyStack = isAdmt;
         };
-        _this.step = function () {
+        _this.pdaStep = function () {
             var _a;
             var ret = _this._step(_this.counterSteps, _this.alphabet.get((_a = _this.input[_this.counterSteps]) === null || _a === void 0 ? void 0 : _a.value), _this.historiStep);
             _this.counterSteps = ret.counter;
@@ -54,7 +71,7 @@ var PDA = /** @class */ (function (_super) {
             console.log(ret.isAdmit);
             return ret;
         };
-        _this.run = function () {
+        _this.pdaRun = function () {
             _this.historiRun = [];
             _this.counterStepsForResult = 0;
             for (var i = 0; i < _this.input.length - 1; i++) {
@@ -64,6 +81,8 @@ var PDA = /** @class */ (function (_super) {
             }
             return _this._step(_this.counterStepsForResult, _this.alphabet.get(_this.input[_this.counterStepsForResult].value), _this.historiRun);
         };
+        _this.step = _this.pdaStep;
+        _this.run = _this.pdaRun;
         _this._step = function (counter, tr, histori) {
             var newPosSet = [];
             var updCurPos = function () {
@@ -345,6 +364,14 @@ var PDA = /** @class */ (function (_super) {
                 }
                 zero.push(element);
             });
+            var byEveryLetter = _this.matrix.reduce(function (acc, line) {
+                return acc && line.reduce(function (accLine, cells) { return accLine && cells.length > 0; }, acc);
+            }, true);
+            if (first.length < 1 || !byEveryLetter) {
+                console.log('CATHTHT');
+                throw new Exceptions_1.NonMinimizable();
+            }
+            // плюс если есть пробелы в таблице!
             var groups = [];
             groups.push(first);
             groups.push(second);
@@ -660,19 +687,21 @@ var PDA = /** @class */ (function (_super) {
         return this.epsId !== undefined;
     };
     PDA.prototype.isDeterministic = function () {
-        var ret = true;
-        this.matrix.forEach(function (value) {
-            value.forEach(function (value1) {
-                if (value1.length > 1) {
-                    var tmp_1 = value1[0];
-                    value1.forEach(function (value2, index) {
-                        if (index !== 0 && tmp_1.stackDown === undefined && value2.stackDown || index !== 0 && tmp_1.stackDown === value2.stackDown) {
-                            ret = false;
+        var ret = this.matrix.reduce(function (acc, line) {
+            return acc && line.reduce(function (_, cell) {
+                return cell.reduce(function (accCell, stmt, index) {
+                    if (index !== 0) {
+                        if (stmt.stackDown !== undefined) {
+                            return accCell && !(stmt.stackDown === cell[0].stackDown);
                         }
-                    });
-                }
-            });
-        });
+                        if (stmt.stackDown === undefined) {
+                            return accCell && false;
+                        }
+                    }
+                    return accCell;
+                }, acc);
+            }, acc);
+        }, true);
         return ret && (!this.haveEpsilon());
     };
     PDA.prototype.haveAdmitting = function (positions) {
@@ -795,19 +824,17 @@ var ImSet = /** @class */ (function () {
     return ImSet;
 }());
 exports.ImSet = ImSet;
-// let nfa = new PDA (
-//     {
-//         nodes: [
-//             {id: 0, isAdmit: false},
-//             {id: 1, isAdmit: false}
-//
-//         ],
-//         edges: [
-//             {from: 0, to: 1, transitions: new Set([    [{title:      '0', stackDown: 'Z0', stackPush: [EPS] } ]])},
-//         ]
-//     }, [{id: 0, isAdmit: false}], ["0"],
-// )
-// nfa.byEmptyStackAdmt(true)
+var nfa = new PDA({
+    nodes: [
+        { id: 0, isAdmit: false },
+        { id: 1, isAdmit: false }
+    ],
+    edges: [
+        { from: 0, to: 1, transitions: new Set([[{ title: '0', stackDown: 'Z0', stackPush: [Computer_1.EPS] }]]) },
+        { from: 0, to: 0, transitions: new Set([[{ title: '0', stackDown: 'Z0', stackPush: [Computer_1.EPS] }]]) },
+    ]
+}, [{ id: 0, isAdmit: false }], ["0"]);
+console.log(nfa.isDeterministic());
 // nfa.step()
 // let nfa = new PDA(
 //     {

@@ -1,64 +1,52 @@
-import {position, Step} from "./Types";
-import {EdgeCore, GraphCore, NodeCore, TransitionParams} from "./IGraphTypes";
-import {PDA} from "./PDA";
-import {cloneDeep} from "lodash";
-import { EPS } from "./Computer";
-
-
-export class EpsilonNFA extends PDA {
-
-    constructor(graph: GraphCore, startStatement: NodeCore[], input: string[]) {
-        super(graph, startStatement, input)
+"use strict";
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+exports.__esModule = true;
+var PDA_1 = require("./PDA");
+var EpsilonNFA = /** @class */ (function (_super) {
+    __extends(EpsilonNFA, _super);
+    function EpsilonNFA(graph, startStatement, input) {
+        var _this = _super.call(this, graph, startStatement, input) || this;
+        _this.enfaStep = function () {
+            var _a;
+            var ret = _this._step(_this.counterSteps, _this.alphabet.get((_a = _this.input[_this.counterSteps]) === null || _a === void 0 ? void 0 : _a.value), _this.historiStep);
+            _this.counterSteps = ret.counter;
+            _this.historiStep = ret.history;
+            ret.nodes.forEach(function (value) { return value.stack = undefined; });
+            ret.history.forEach(function (value) { return value.nodes.forEach(function (value1) { return value1.stack = undefined; }); });
+            return ret;
+        };
+        _this.enfaRun = function () {
+            _this.historiRun = [];
+            _this.counterStepsForResult = 0;
+            for (var i = 0; i < _this.input.length - 1; i++) {
+                var tmp = _this._step(_this.counterStepsForResult, _this.alphabet.get(_this.input[_this.counterStepsForResult].value), _this.historiRun);
+                _this.counterStepsForResult = tmp.counter;
+                _this.historiRun = tmp.history;
+            }
+            var ret = _this._step(_this.counterStepsForResult, _this.alphabet.get(_this.input[_this.counterStepsForResult].value), _this.historiRun);
+            ret.nodes.forEach(function (value) { return value.stack = undefined; });
+            ret.history.forEach(function (value) { return value.nodes.forEach(function (value1) { return value1.stack = undefined; }); });
+            return ret;
+        };
+        _this.step = _this.enfaStep;
+        _this.run = _this.enfaRun;
+        return _this;
     }
-
-    protected enfaStep = (): Step => {
-        let ret = this._step(
-            this.counterSteps,
-            this.alphabet.get(this.input[this.counterSteps]?.value),
-            this.historiStep
-        )
-
-        this.counterSteps = ret.counter
-        this.historiStep = ret.history
-        ret.nodes.forEach(value => value.stack = undefined)
-        ret.history.forEach(value => value.nodes.forEach(value1 => value1.stack = undefined))
-
-        return ret
-    }
-
-    protected enfaRun = (): Step => {
-        this.historiRun = []
-        this.counterStepsForResult = 0
-
-        for (let i = 0; i < this.input.length - 1; i++) {
-            let tmp = this._step(
-                this.counterStepsForResult,
-                this.alphabet.get(this.input[this.counterStepsForResult].value),
-                this.historiRun
-            )
-            this.counterStepsForResult = tmp.counter
-            this.historiRun = tmp.history
-        }
-
-        let ret = this._step(
-            this.counterStepsForResult,
-            this.alphabet.get(this.input[this.counterStepsForResult].value),
-            this.historiRun
-        )
-
-        ret.nodes.forEach(value => value.stack = undefined)
-        ret.history.forEach(value => value.nodes.forEach(value1 => value1.stack = undefined))
-
-        return ret
-    }
-
-    step = this.enfaStep
-
-    run = this.enfaRun
-}
-
-
-
+    return EpsilonNFA;
+}(PDA_1.PDA));
+exports.EpsilonNFA = EpsilonNFA;
 // let nfa = new EpsilonNFA (
 //     {
 //         nodes: [
@@ -83,7 +71,6 @@ export class EpsilonNFA extends PDA {
 // console.log(nfa.step())
 // console.log(nfa.step())
 // nfa.nfaToDfa()
-
 //
 // let nfa = new EpsilonNFA(
 //     {

@@ -77,7 +77,7 @@ class EdgeControl extends React.Component<EdgeControlProps, EdgeControlState> {
         }
     }
 
-    changeTransitions = (event: React.ChangeEvent<HTMLInputElement>) => {
+    changeTransitions = async (event: React.ChangeEvent<HTMLInputElement>) => {
         const value = event.target.value;
         this.setState({transitionsText: value});
 
@@ -111,20 +111,20 @@ class EdgeControl extends React.Component<EdgeControlProps, EdgeControlState> {
                 })
 
 
-            accumulator.forEach(value => {
-                if (value.fth !== undefined) {
-                    acc.push(
-                        {
-                            title: EPS,
-                            stackDown: value.snd === 'eps' ? EPS : value.snd,
-                            stackPush: value.trd?.split(':').map(value => value === 'eps' ? EPS : value),
-                            move: value.fth === 'L' ? Move.L : value.fth === 'R' ? Move.R : undefined
-                        }
-                    )
-                }
-            })
+            // accumulator.forEach(value => {
+            //     if (value.fth !== undefined) {
+            //         acc.push(
+            //             {
+            //                 title: EPS,
+            //                 stackDown: value.snd === 'eps' ? EPS : value.snd,
+            //                 stackPush: value.trd?.split(':').map(value => value === 'eps' ? EPS : value),
+            //                 move: value.fth === 'L' ? Move.L : value.fth === 'R' ? Move.R : undefined
+            //             }
+            //         )
+            //     }
+            // })
         } 
-        if (this.props.computerType === "mealy") {
+        if (this.props.computerType === "mealy" || this.props.computerType === "dmealy") {
             this.state.transitionsText
             .split('')
             .filter(x => x !== " " && x !== "\n")
@@ -181,20 +181,20 @@ class EdgeControl extends React.Component<EdgeControlProps, EdgeControlState> {
         let transitions: Set<TransitionParams[]> = new Set<TransitionParams[]>([acc])
 
         this.props.changeEdgeTransitions(this.props.edge!.id!, transitions)
-
+        console.log("ALLLOO")
+        /////
+        // await this.props.reinitComputer()
+        ///
         this.setState({transitionsText: value
             , transitions: transitions
-        });
-        /////
-        this.props.reinitComputer()
-        ///
+        }, () => this.props.reinitComputer());
     }
 
-    deleteEdge = (): void => {
+    deleteEdge = async (): Promise<void> => {
         if (this.props.edge !== null) {
             this.props.deleteEdge(this.props.edge.id!);
         }
-        // this.props.reinitComputer()
+        await this.props.reinitComputer()
 
     }
     
@@ -209,7 +209,7 @@ class EdgeControl extends React.Component<EdgeControlProps, EdgeControlState> {
 
     }
     
-    updateTransitions = () => {
+    updateTransitions = async () => {
         let accumulator: {
             fst: string | undefined,
             snd: string | undefined,
@@ -243,7 +243,7 @@ class EdgeControl extends React.Component<EdgeControlProps, EdgeControlState> {
                 })
 
         } 
-        if (this.props.computerType === "mealy") {
+        if (this.props.computerType === "mealy" || this.props.computerType === "dmealy") {
             this.state.transitionsText
             .split('')
             .filter(x => x !== " " && x !== "\n")
@@ -296,7 +296,7 @@ class EdgeControl extends React.Component<EdgeControlProps, EdgeControlState> {
             transitions: transitions
         })
         ///
-        this.props.reinitComputer()
+        await this.props.reinitComputer()
         ///
     }
 
@@ -327,7 +327,7 @@ class EdgeControl extends React.Component<EdgeControlProps, EdgeControlState> {
                                     size="small"
                                     value={this.state.transitionsText}
                                     onChange={this.changeTransitions}
-                                    helperText={this.props.computerType === "nfa-eps" || "pda" ? 'Список символов или "eps" через запятую' : "Список символов через запятую"}
+                                    helperText={this.props.computerType === "nfa-eps" || "pda"|| "dpda" ? 'Список символов или "eps" через запятую' : "Список символов через запятую"}
                                     onBlur={this.updateTransitions}
                                 />
                         }

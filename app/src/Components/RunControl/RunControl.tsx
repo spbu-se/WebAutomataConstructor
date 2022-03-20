@@ -25,6 +25,11 @@ import { GraphEval, GraphEvalMultiStart } from "../../Logic/IGraphTypes";
 import { Mealy } from "../../Logic/Mealy";
 import { Moore } from "../../Logic/Moore";
 import { start } from "repl";
+import { ContactSupportOutlined } from "@mui/icons-material";
+import { NonDeterministic, NonMinimizable } from "../../Logic/Exceptions";
+import { DPDA } from "../../Logic/DPDA";
+import { DMealy } from "../../Logic/DMealy";
+import { DMoore } from "../../Logic/DMoore";
 
 
 interface runControlProps {
@@ -46,6 +51,8 @@ interface runControlProps {
     setComputerType: (type: null | ComputerType) => void
     setResettedStatus: (status: boolean) => void
     setByEmptyStack: (byEmptyStack: boolean) => void
+    setIsNonDetermenistic: (v: boolean) => void
+    setIsNonMinimizable: (v: boolean) => void
 }
 
 interface runControlState {
@@ -97,7 +104,7 @@ class RunControl extends React.Component<runControlProps, runControlState> {
                 }
             })
             if (!haveEmpty) {
-                return this.initializeComputer
+                return this.initializeComputer()
             }
         })
         this.props.setNfaToDfa(this.nfaToDfa)
@@ -145,6 +152,12 @@ class RunControl extends React.Component<runControlProps, runControlState> {
             });
         }
 
+        // console.log('[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[]')
+        // prev.edges.forEach(v => {
+        //     console.log(v.from + ' ' + v.to)
+        //     v.transitions.forEach((t) => console.log(t))
+        // })
+
         return compareEdges() || compareNodes()
     }
 
@@ -162,12 +175,18 @@ class RunControl extends React.Component<runControlProps, runControlState> {
                 return new EpsilonNFA(graph, initialNode, input);
             case "pda":
                 return new PDA(graph, initialNode, input, this.state.byEmptyStack);
+            case "dpda":
+                return new DPDA(graph, initialNode, input, this.state.byEmptyStack);
             case "tm":
                 return new TM(graph, initialNode, input);
             case "mealy":
                 return new Mealy(graph, initialNode, input);
+            case "dmealy":
+                return new DMealy(graph, initialNode, input);
             case "moore":
                 return new Moore(graph, initialNode, input);
+            case "dmoore":
+                return new DMoore(graph, initialNode, input);
         }
 
     }
@@ -193,8 +212,11 @@ class RunControl extends React.Component<runControlProps, runControlState> {
             });
 
         })
-
-
+        console.log('::::::::::::::::::::::>')
+        this.props.elements.edges.forEach((v) => {
+            console.log(v.from + ' -- ' + v.to)
+            v.transitions.forEach(t => console.log(t))
+        })
     }
 
     onInputChanged = (event: ChangeEvent<HTMLInputElement>): void => {
@@ -225,57 +247,69 @@ class RunControl extends React.Component<runControlProps, runControlState> {
         if (this.state.currentInputIndex === this.state.input.length - 1 && this.props.computerType !== "tm") return;
         if (this.state.result !== undefined && this.state.currentInputIndex !== -1 && this.props.computerType !== "tm") return;
 
-        const stepResult: Step = this.state.computer.step()
+        try {
 
-        if (stepResult.nodes.length === 0) return;
+            const stepResult: Step = this.state.computer.step()
 
-        this.props.changeStateIsCurrent(stepResult.nodes.map(node => node.id), true);
-        this.props.updMem(stepResult.memory, stepResult.pointer)
+            if (stepResult.nodes.length === 0) return;
 
-        let result = undefined;
-        if (stepResult.counter === this.state.input.length) {
-            result = stepResult.isAdmit
-        } else if (this.state.currentInputIndex + 2 !== stepResult.counter) {
-            result = false;
-        }
+            this.props.changeStateIsCurrent(stepResult.nodes.map(node => node.id), true);
+            this.props.updMem(stepResult.memory, stepResult.pointer)
 
-        const nodes = stepResult.nodes
-            .map(nodeCore => this.state.gElements.nodes.find(node => node.id == nodeCore.id))
-            .filter((node): node is node => node !== undefined);
-
-
-        const _nodes = nodes.map((e, i) => {
-            const stack = stepResult.nodes[i].stack
-            return {
-                a: e,
-                b: stack !== undefined
-                    ? stack.reverse()
-                    : stepResult.output !== undefined
-                        ? stepResult.output!
-                        : undefined
+            let result = undefined;
+            if (stepResult.counter === this.state.input.length) {
+                result = stepResult.isAdmit
+            } else if (this.state.currentInputIndex + 2 !== stepResult.counter) {
+                result = false;
             }
-        })
 
-        if (this.props.computerType === "moore" && stepResult.counter === 1) {
-            const startNode: { a: node, b: string[] | undefined }[] = [{
-                a: this.state.gElements.nodes.filter(node => node.id === this.state.computer!.getCurrNode())[0],
-                b: ["~"]
-            }]
-            console.log(startNode)
-            this.setState({
-                startNode: this.state.gElements.nodes.filter(node => node.id === this.state.computer!.getCurrNode())[0]
-                // history: [...this.state.history, startNode],
+            const nodes = stepResult.nodes
+                .map(nodeCore => this.state.gElements.nodes.find(node => node.id == nodeCore.id))
+                .filter((node): node is node => node !== undefined);
+
+
+            const _nodes = nodes.map((e, i) => {
+                const stack = stepResult.nodes[i].stack
+                return {
+                    a: e,
+                    b: stack !== undefined
+                        ? stack.reverse()
+                        : stepResult.output !== undefined
+                            ? stepResult.output!
+                            : undefined
+                }
             })
+
+            if (this.props.computerType === "moore" && stepResult.counter === 1) {
+                const startNode: { a: node, b: string[] | undefined }[] = [{
+                    a: this.state.gElements.nodes.filter(node => node.id === this.state.computer!.getCurrNode())[0],
+                    b: ["~"]
+                }]
+                console.log(startNode)
+                this.setState({
+                    startNode: this.state.gElements.nodes.filter(node => node.id === this.state.computer!.getCurrNode())[0]
+                    // history: [...this.state.history, startNode],
+                })
+            }
+
+            this.setState({
+                result: result,
+                currentInputIndex: this.state.currentInputIndex + 1,
+                history: [...this.state.history, _nodes],
+                memory: stepResult.memory,
+                // counter: stepResult.counter
+            }, () => this.historyEndRef?.current?.scrollIntoView({ behavior: 'smooth' }));
+
+        } catch (e) {
+            if (e instanceof NonDeterministic) {
+                this.props.setIsNonDetermenistic(true)
+                console.error('KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK')
+                console.log('NonDeterministic')
+            }
+            //  else {
+            //     console.log(e)
+            // }
         }
-
-        this.setState({
-            result: result,
-            currentInputIndex: this.state.currentInputIndex + 1,
-            history: [...this.state.history, _nodes],
-            memory: stepResult.memory,
-            // counter: stepResult.counter
-        }, () => this.historyEndRef?.current?.scrollIntoView({ behavior: 'smooth' }));
-
 
     }
 
@@ -288,7 +322,7 @@ class RunControl extends React.Component<runControlProps, runControlState> {
             history: [],
             // counter: 0
         },
-            // () => this.initializeComputer()
+            () => this.initializeComputer()
         );
         this.state.computer?.setInput(this.state.input.split(""))
         this.props.setResettedStatus(false)
@@ -296,18 +330,26 @@ class RunControl extends React.Component<runControlProps, runControlState> {
         // this.initializeComputer()
     }
 
-    run = (): void => {
+    run = async (): Promise<void> => {
         if (this.state.computer === undefined) {
             console.error("Computer is not initialized yet");
             return;
         }
 
-        this.reset();
+        await this.reset();
 
-        const result = this.state.computer.run();
+        try {
+            const result = this.state.computer.run();
 
-        this.setState({ result: result.isAdmit, currentInputIndex: -1, history: [] });
-        this.setState({ wasRuned: true })
+            this.setState({ result: result.isAdmit, currentInputIndex: -1, history: [] });
+            this.setState({ wasRuned: true })
+        } catch (e) {
+            if (e instanceof NonDeterministic) {
+                this.props.setIsNonDetermenistic(true)
+                console.error('KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK')
+                console.log('NonDeterministic')
+            }
+        }
     }
 
     nfaToDfa = (): void => {
@@ -335,7 +377,7 @@ class RunControl extends React.Component<runControlProps, runControlState> {
 
     admitByStack = (): void => {
         const curStbyEmp = this.state.byEmptyStack;
-        this.setState({ byEmptyStack: !curStbyEmp});
+        this.setState({ byEmptyStack: !curStbyEmp });
         this.props.setByEmptyStack(!curStbyEmp)
         this.state.computer!.byEmptyStackAdmt(!curStbyEmp)
         this.reset();
@@ -345,25 +387,33 @@ class RunControl extends React.Component<runControlProps, runControlState> {
         this.initializeComputer();
         this.reset();
 
-        const miniDFA: GraphEval = this.state.computer!.minimizeDfa()
-        const nodes = miniDFA.graphcore.nodes.map((v) => ({
-            id: v.id,
-            isAdmit: v.isAdmit,
-            label: 'G' + v.id.toString(),
-            isInitial: v.id === miniDFA.start.id,
-            isCurrent: false
-        }))
-        const edges = miniDFA.graphcore.edges
-        const gElements = {
-            nodes: nodes,
-            edges: edges
-        }
+        try {
+            const miniDFA: GraphEval = this.state.computer!.minimizeDfa()
+            const nodes = miniDFA.graphcore.nodes.map((v) => ({
+                id: v.id,
+                isAdmit: v.isAdmit,
+                label: 'G' + v.id.toString(),
+                isInitial: v.id === miniDFA.start.id,
+                isCurrent: false
+            }))
+            const edges = miniDFA.graphcore.edges
+            const gElements = {
+                nodes: nodes,
+                edges: edges
+            }
 
-        this.setState({
-            gElements: gElements
-        }, () => {
-            this.props.updateElements(graphToElements(gElements))
-        })
+            this.setState({
+                gElements: gElements
+            }, () => {
+                this.props.updateElements(graphToElements(gElements))
+            })
+        } catch (e) {
+            if (e instanceof NonMinimizable) {
+                this.props.setIsNonMinimizable(true)
+                console.error('KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK')
+                console.log('NonDeterministic')
+            }
+        }
     }
 
     mooreToMealy = (): void => {
@@ -371,7 +421,7 @@ class RunControl extends React.Component<runControlProps, runControlState> {
         this.reset();
 
         const mealy: GraphEvalMultiStart = this.state.computer!.mooreToMealy()
-        
+
         const starts = mealy.start.map((v) => v.id)
 
         const nodes = mealy.graphcore.nodes.map((v) => ({
@@ -399,7 +449,7 @@ class RunControl extends React.Component<runControlProps, runControlState> {
         this.reset();
 
         const miniDFA: GraphEvalMultiStart = this.state.computer!.mealyToMoore()
-        
+
         const starts = miniDFA.start.map(v => v.id)
 
         // console.log('()()()()()))()(', miniDFA.graphcore.edges)
@@ -568,8 +618,8 @@ class RunControl extends React.Component<runControlProps, runControlState> {
 
 
                                     {
-                                        this.state.startNode !== undefined 
-                                        ? 
+                                        this.state.startNode !== undefined
+                                            ?
                                             <div className="run-control__history__row" key={0}>
                                                 <span className="run-control__history__index">{0}</span>
                                                 {
@@ -577,14 +627,14 @@ class RunControl extends React.Component<runControlProps, runControlState> {
                                                         title={<Typography className="display-linebreak">{"~"}</Typography>}>
                                                         <div
                                                             className="run-control__history__node"
-                                                            style={{ border: `${this.state.startNode!.isInitial ? "var(--accent)" : this.state.startNode!.isAdmit ? "var(--second-accent)" : "#000000"} 2px solid` }}
+                                                            style={{ border: `${this.state.startNode!.isInitial ? "#0041d0" : this.state.startNode!.isAdmit ? "#ff0072" : "#000000"} 2px solid` }}
                                                         >
                                                             {this.state.startNode!.label}
                                                         </div>
                                                     </Tooltip>
                                                 }
                                             </div>
-                                        : <div/>
+                                            : <div />
                                     }
 
                                     {
@@ -597,7 +647,7 @@ class RunControl extends React.Component<runControlProps, runControlState> {
                                                             title={<Typography className="display-linebreak">{node.b !== undefined ? node.b.join('\n') : ''}</Typography>}>
                                                             <div
                                                                 className="run-control__history__node"
-                                                                style={{ border: `${node.a.isInitial ? "var(--accent)" : node.a.isAdmit ? "var(--second-accent)" : "#000000"} 2px solid` }}
+                                                                style={{ border: `${node.a.isInitial ? "#0041d0" : node.a.isAdmit ? "#ff0072" : "#000000"} 2px solid` }}
                                                             >
                                                                 {node.a.label}
                                                             </div>

@@ -42,6 +42,8 @@ export const transitionsToLabel = (transitions: Set<TransitionParams[]>, frmt: n
     const epsSubst = epsSubstStr("ε")
     const epsSubsts = epsSubstStrs("ε")
 
+    spc = frmt === 'tm' ? '       ' : spc
+
     let str = "" + spc
     if (transitions !== undefined) {
         if (frmt === 'tm') {
@@ -52,7 +54,7 @@ export const transitionsToLabel = (transitions: Set<TransitionParams[]>, frmt: n
                     }
                 })
             })
-        } else if (frmt === 'pda') {
+        } else if (frmt === 'pda' || frmt === "dpda") {
             transitions.forEach(value => {
                 value.forEach((v) => {
                     if (v.title !== undefined && v.title.length > 0 && v.stackDown !== undefined && v.stackDown.length > 0 && v.stackPush !== undefined && v.stackPush.length > 0) {
@@ -60,7 +62,7 @@ export const transitionsToLabel = (transitions: Set<TransitionParams[]>, frmt: n
                     }
                 })
             })
-        } else if (frmt === "dfa" || frmt === "nfa" || frmt === "nfa-eps" || frmt === "moore") {
+        } else if (frmt === "dfa" || frmt === "nfa" || frmt === "nfa-eps" || frmt === "moore" || frmt === "dmoore") {
             transitions.forEach(value => {
                 value.forEach((v) => {
                     if (v.title !== undefined && v.title.length > 0) {
@@ -68,7 +70,7 @@ export const transitionsToLabel = (transitions: Set<TransitionParams[]>, frmt: n
                     }
                 })
             })
-        } else if (frmt === "mealy") {
+        } else if (frmt === "mealy" || frmt === "dmealy") {
             transitions.forEach(value => {
                 value.forEach((v) => {
                     if (v.title !== undefined && v.title.length > 0 && v.output !== undefined) {
@@ -92,11 +94,11 @@ export const getTransitionsTitles = (transitions: Set<TransitionParams[]>, frmt:
             transitions.forEach(value => {
                 value.forEach((v) => {
                     if (v.stackDown !== undefined && v.stackPush !== undefined && v.move !== undefined) {
-                        str += epsSubst(v.stackDown) + " | " + epsSubsts(v.stackPush) + ";\n"
+                        str += epsSubst(v.stackDown) + " | " + epsSubsts(v.stackPush) + '>' + mvStr(v.move) + ";\n"
                     }
                 })
             })
-        } else if (frmt === "pda") {
+        } else if (frmt === "pda" || frmt === "dpda") {
             transitions.forEach(value => {
                 value.forEach((v) => {
                     if (v.title !== undefined && v.title.length > 0 && v.stackDown !== undefined && v.stackDown.length > 0 && v.stackPush !== undefined && v.stackPush.length > 0) {
@@ -104,7 +106,7 @@ export const getTransitionsTitles = (transitions: Set<TransitionParams[]>, frmt:
                     }
                 })
             })
-        } else if (frmt === "dfa" || frmt === "nfa" || frmt === "nfa-eps" || frmt === "moore") {
+        } else if (frmt === "dfa" || frmt === "nfa" || frmt === "nfa-eps" || frmt === "moore" || frmt === "dmoore") {
             transitions.forEach(value => {
                 value.forEach((v) => {
                     if (v.title !== undefined && v.title.length > 0) {
@@ -112,7 +114,7 @@ export const getTransitionsTitles = (transitions: Set<TransitionParams[]>, frmt:
                     }
                 })
             })
-        } else if (frmt === "mealy") {
+        } else if (frmt === "mealy" || frmt === "dmealy") {
             transitions.forEach(value => {
                 value.forEach((v) => {
                     if (v.title !== undefined && v.title.length > 0 && v.output !== undefined) {
@@ -296,7 +298,7 @@ export const computersInfo: Record<ComputerType, ComputerInfo> = {
         }
     },
     pda: {
-        name: "МП",
+        name: "Автомат с магазинной памятью",
         description: "Использует стек для хранения состояний",
         preview: "pda.png",
         defaultGraph: {
@@ -346,6 +348,22 @@ export const computersInfo: Record<ComputerType, ComputerInfo> = {
 
                 {from: 2, to: 3, transitions: new Set([[{title: EPS, stackDown: 'Z0', stackPush: [EPS]}]])},
 
+            ]
+        }
+    },
+    dpda: {
+        name: "Детерминированный автомат с магазинной памятью",
+        description: "Использует стек для хранения состояний",
+        preview: "pda.png",
+        defaultGraph: {
+            nodes: [
+                {id: 1, x: 0, y: 0, label: "S0", isAdmit: false, isInitial: true, isCurrent: false},
+                // {id: 2, x: 100, y: 0, label: "S1", isAdmit: false, isInitial: false, isCurrent: false},
+            ],
+            edges: [
+                {
+                    from: 1, to: 1, transitions: new Set([[{title: '0', stackDown: 'Z0', stackPush: ['0', 'Z0']},]])
+                },
             ]
         }
     },
@@ -409,6 +427,46 @@ export const computersInfo: Record<ComputerType, ComputerInfo> = {
 //     }, [{ id: 0, isAdmit: false }], ["10", "10"])
         }
     },
+    dmealy: {
+        name: "Детерминированный автомат Мили",
+        preview: "mealy.png",
+        description: "_",
+        defaultGraph: {
+            nodes: [
+                { x: 0, y: 0, id: 0, isAdmit: false, isCurrent: false, isInitial: true, label: "0 rub" },
+                // { x: 300, y: -200, id: 1, isAdmit: false, isCurrent: false, isInitial: false, label: "5 rub" },
+                // { x: 500, y: -300, id: 2, isAdmit: false, isCurrent: false, isInitial: false, label: "15 rub" },
+                { x: -100, y: -500, id: 3, isAdmit: false, isCurrent: false, isInitial: false, label: "10 rub" }
+            ],
+            edges: [
+                { from: 0, to: 0, transitions: new Set([[{ title: 'f', output: 'n' }]]) },
+                { from: 0, to: 3, transitions: new Set([[{ title: 'f', output: 'n' }]]) },
+                // { from: 1, to: 2, transitions: new Set([[{ title: 't', output: 'n' }]]) },
+                // { from: 1, to: 3, transitions: new Set([[{ title: 'f', output: 'n' }]]) },
+                // { from: 2, to: 0, transitions: new Set([[{ title: 'f', output: '0' }, { title: 't', output: '5' }]]) },
+                // { from: 3, to: 2, transitions: new Set([[{ title: 'f', output: 'n' }]]) },
+                // { from: 3, to: 0, transitions: new Set([[{ title: 't', output: '0' }]]) },
+            ]
+            //     {
+//         nodes: [
+//             { id: 0, isAdmit: false },
+//             { id: 1, isAdmit: false },
+//             { id: 2, isAdmit: false },
+//             { id: 3, isAdmit: false },
+//         ],
+//         edges: [
+//             { from: 0, to: 1, transitions: new Set([[{ title: '5', output: 'n' }]]) },
+//             { from: 0, to: 3, transitions: new Set([[{ title: '10', output: 'n' }]]) },
+//             { from: 1, to: 2, transitions: new Set([[{ title: '10', output: 'n' }]]) },
+//             { from: 1, to: 3, transitions: new Set([[{ title: '5', output: 'n' }]]) },
+//             { from: 2, to: 0, transitions: new Set([[{ title: '5', output: '0' }, { title: '10', output: '5' }]]) },
+//             { from: 3, to: 2, transitions: new Set([[{ title: '5', output: 'n' }]]) },
+//             { from: 3, to: 0, transitions: new Set([[{ title: '10', output: '0' }]]) },
+        
+//         ]
+//     }, [{ id: 0, isAdmit: false }], ["10", "10"])
+        }
+    },
     moore: {
         name: "Автомат Мура",
         description: "_",
@@ -431,7 +489,30 @@ export const computersInfo: Record<ComputerType, ComputerInfo> = {
                 { from: 2, to: 0, transitions: new Set([[{ title: '1' }]]) },
             ]        
         }
-    }
+    },
+    dmoore: {
+        name: "Детерминированный автомат Мура",
+        description: "_",
+        preview: "moore.png",
+        defaultGraph: {
+            nodes: [
+                { x: 0, y: 0, id: 0, isAdmit: false, isCurrent: false, isInitial: true, label: "S0 | b" },
+                { x: 300, y: 0, id: 1, isAdmit: false, isCurrent: false, isInitial: false, label: "S1 | b"  },
+                { x: 100, y: 100, id: 2, isAdmit: false, isCurrent: false, isInitial: false, label: "S2 | a"  },
+                // { id: 3, isAdmit: false, output: '3' },
+            ],
+            edges: [
+                { from: 0, to: 0, transitions: new Set([[{ title: '1' }]]) },
+                { from: 0, to: 1, transitions: new Set([[{ title: '0' }]]) },
+    
+                { from: 1, to: 1, transitions: new Set([[{ title: '0' }]]) },
+                { from: 1, to: 2, transitions: new Set([[{ title: '1' }]]) },
+    
+                { from: 2, to: 1, transitions: new Set([[{ title: '0' }]]) },
+                { from: 2, to: 0, transitions: new Set([[{ title: '1' }]]) },
+            ]        
+        }
+    },
 
 }
 

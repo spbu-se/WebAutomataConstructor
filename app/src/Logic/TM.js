@@ -26,6 +26,7 @@ var __assign = (this && this.__assign) || function () {
 exports.__esModule = true;
 var IGraphTypes_1 = require("./IGraphTypes");
 var PDA_1 = require("./PDA");
+var Exceptions_1 = require("./Exceptions");
 var TMMemory = /** @class */ (function () {
     function TMMemory() {
         this.storage = ['_'];
@@ -124,7 +125,7 @@ var TM = /** @class */ (function (_super) {
                     stmt: _this.statements.get(_this.startStatements[0].id)
                 }];
         };
-        _this.run = function () {
+        _this.mtTrun = function () {
             throw Error("TM run");
         };
         _this.setInput = function (input) {
@@ -140,7 +141,7 @@ var TM = /** @class */ (function (_super) {
                 }];
             console.log(_this.curPosition);
         };
-        _this.step = function () {
+        _this.mtStep = function () {
             console.log("STPMT");
             var ret = _this.__step(_this.counterSteps, 0, _this.historiStep);
             _this.counterSteps = ret.counter;
@@ -149,6 +150,18 @@ var TM = /** @class */ (function (_super) {
                 ret.nodes = [];
             }
             return __assign(__assign({}, ret), { memory: _this.mem.getStorage() });
+        };
+        _this.step = function () {
+            if (!_super.prototype.isDeterministic.call(_this)) {
+                throw new Exceptions_1.NonDeterministic();
+            }
+            return _this.mtStep();
+        };
+        _this.run = function () {
+            if (!_super.prototype.isDeterministic.call(_this)) {
+                throw new Exceptions_1.NonDeterministic();
+            }
+            return _this.mtTrun();
         };
         _this.checkMemFormat(graph);
         // if (!this.isDeterministic()) {

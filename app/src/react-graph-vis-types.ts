@@ -8,6 +8,9 @@ export type ComputerType
     | "tm"
     | "moore"
     | "mealy"
+    | "dpda"
+    | "dmealy"
+    | "dmoore"
 
 export type ComputerInfo = {
     name: string

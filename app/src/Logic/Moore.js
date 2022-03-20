@@ -47,32 +47,47 @@ var Moore = /** @class */ (function (_super) {
                 start: _this.startStatements.map(function (statement) { return ({ id: statement.id, isAdmit: statement.isAdmit }); })
             };
         };
+        _this.step = _this.oaStep;
+        // (): Step => {
+        //     if (!super.isDeterministic()) {
+        //         throw new NonDeterministic()
+        //     }
+        //     return this.oaRun()
+        // }
+        _this.run = _this.oaRun;
         return _this;
     }
     return Moore;
 }(OutputAutomata_1.OutputAutomata));
 exports.Moore = Moore;
-var nfa = new Moore({
-    nodes: [
-        { id: 0, isAdmit: false, output: 'b' },
-        { id: 1, isAdmit: false, output: 'b' },
-    ],
-    edges: [
-        // { from: 0, to: 0, transitions: new Set([[{ title: '1' }]]) },
-        { from: 0, to: 1, transitions: new Set([[{ title: '0' }]]) },
-        { from: 0, to: 0, transitions: new Set([[{ title: '0' }]]) },
-    ]
-}, [{ id: 0, isAdmit: false }], ["0"]);
+// let nfa = new Moore(
+//     {
+//         nodes: [
+//             { id: 0, isAdmit: false, output: 'b' },
+//             { id: 1, isAdmit: false, output: 'b' },
+//             // { id: 2, isAdmit: false, output: 'a' },
+//             // { id: 3, isAdmit: false, output: '3' },
+//         ],
+//         edges: [
+//             // { from: 0, to: 0, transitions: new Set([[{ title: '1' }]]) },
+//             { from: 0, to: 1, transitions: new Set([[{ title: '0' }]]) },
+//             { from: 0, to: 0, transitions: new Set([[{ title: '0' }]]) },
+//             // { from: 1, to: 1, transitions: new Set([[{ title: '0' }]]) },
+//             // { from: 1, to: 2, transitions: new Set([[{ title: '1' }]]) },
+//             // { from: 2, to: 1, transitions: new Set([[{ title: '0' }]]) },
+//             // { from: 2, to: 0, transitions: new Set([[{ title: '1' }]]) },
+//         ]
+//     }, [{ id: 0, isAdmit: false }], ["0"])
+// // console.log(nfa.run())
+// // console.log(nfa.mooreToMealy().start)
+// // edges.forEach(v => console.log(v.from, v.to, v.transitions))
 // console.log(nfa.run())
-// console.log(nfa.mooreToMealy().start)
-// edges.forEach(v => console.log(v.from, v.to, v.transitions))
-console.log(nfa.run());
-// const conv = nfa.moorToMealy()
-// conv.graphcore.edges.forEach(edge => {
-//     console.log(edge.from)
-//     console.log(edge.to)
-//     console.log(edge.transitions)
-// })
-// conv.graphcore.nodes.forEach(node => {
-//     console.log(node)
-// })
+// // const conv = nfa.moorToMealy()
+// // conv.graphcore.edges.forEach(edge => {
+// //     console.log(edge.from)
+// //     console.log(edge.to)
+// //     console.log(edge.transitions)
+// // })
+// // conv.graphcore.nodes.forEach(node => {
+// //     console.log(node)
+// // })

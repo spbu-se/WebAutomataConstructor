@@ -1,9 +1,10 @@
 import { Interface } from "readline";
 import { edge } from "../react-graph-vis-types";
 import { Computer, statementCell } from "./Computer";
+// import {NonDeterministic} from "./Exceptions";
 import { EdgeCore, GraphCore, GraphEvalMultiStart, NodeCore, TransitionParams } from "./IGraphTypes";
 import { OutputAutomata } from "./OutputAutomata";
-import { Output, position, statement } from "./Types";
+import { Output, position, statement, Step } from "./Types";
 
 export class Mealy extends OutputAutomata {
     constructor(graph: GraphCore, startStatements: NodeCore[], input: string[]) {
@@ -124,8 +125,39 @@ export class Mealy extends OutputAutomata {
             start
         }
     }
+
+    step = this.oaStep
+
+    run = this.oaRun
+
+    // step = (): Step => {
+    //     if (!super.isDeterministic()) {
+    //         throw new NonDeterministic()
+    //     }
+    //     return this.oaStep()
+    // }
+
+    // run = (): Step => {
+    //     if (!super.isDeterministic()) {
+    //         throw new NonDeterministic()
+    //     }
+    //     return this.oaRun()
+    // }
 }
 
+
+// let nfa = new Mealy(
+//     {
+//         nodes: [
+//             { id: 0, isAdmit: false },
+//             { id: 1, isAdmit: false },
+//         ],
+//         edges: [
+//             { from: 0, to: 0, transitions: new Set([[{ title: '5', output: 'n' }]]) },
+//             { from: 0, to: 1, transitions: new Set([[{ title: '5', output: 'n' }]]) },
+//         ]
+//     }, [{ id: 0, isAdmit: false }], [])
+// console.log(nfa.isDeterministic())
 
 // let nfa = new Mealy(
 //     {

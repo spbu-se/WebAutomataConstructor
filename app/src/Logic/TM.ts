@@ -2,6 +2,7 @@ import {History, position, Step} from "./Types";
 import {GraphCore, NodeCore, Move} from "./IGraphTypes";
 import {PDA} from "./PDA";
 import { EPS } from "./Computer";
+import {NonDeterministic} from "./Exceptions";
 
 export class TMMemory {
     private storage: string[] = ['_']
@@ -142,7 +143,7 @@ export class TM extends PDA {
         }]
     }
 
-    run = (): Step => {
+    mtTrun = (): Step => {
         throw Error("TM run")
     }
 
@@ -160,7 +161,7 @@ export class TM extends PDA {
         console.log(this.curPosition)
     }
 
-    step = (): Step => {
+    mtStep = (): Step => {
         console.log("STPMT")
         let ret = this.__step
         (
@@ -179,6 +180,20 @@ export class TM extends PDA {
         }
     }
 
+
+    step = (): Step => {
+        if (!super.isDeterministic()) {
+            throw new NonDeterministic()
+        }
+        return this.mtStep()
+    }
+
+    run = (): Step => {
+        if (!super.isDeterministic()) {
+            throw new NonDeterministic()
+        }
+        return this.mtTrun()
+    }
 
 
 }
