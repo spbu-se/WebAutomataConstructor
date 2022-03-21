@@ -103,14 +103,7 @@ export const VisNetwork = (props: PropsVisNet) => {
         setContextMenu(null);
     };
 
-    useLayoutEffect(() => {
-
-        if (domNode.current) {
-            props.network.current = new Network(domNode.current, props.data, options);
-        }
-
-        window.addEventListener("contextmenu", e => e.preventDefault());
-
+    useEffect(() => {
         document.addEventListener("keydown", (event) => {
             if (props.network.current) {
                 if (event.ctrlKey) {
@@ -124,6 +117,29 @@ export const VisNetwork = (props: PropsVisNet) => {
                 props.network.current.disableEditMode();
             }
         })
+    })
+
+    useLayoutEffect(() => {
+
+        if (domNode.current) {
+            props.network.current = new Network(domNode.current, props.data, options);
+        }
+
+        window.addEventListener("contextmenu", e => e.preventDefault());
+
+        // document.addEventListener("keydown", (event) => {
+        //     if (props.network.current) {
+        //         if (event.ctrlKey) {
+        //             props.network.current.addEdgeMode();
+        //         }
+        //     }
+        // })
+
+        // document.addEventListener("keyup", (event) => {
+        //     if (props.network.current) {
+        //         props.network.current.disableEditMode();
+        //     }
+        // })
 
         if (props.network.current) {
             props.network.current.on('doubleClick', props.onDoubleClick)
