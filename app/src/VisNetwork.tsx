@@ -120,10 +120,6 @@ export const VisNetwork = (props: PropsVisNet) => {
         }
     });
 
-    const [input, setInput] = useState("")
-
-    const [elements, setElements] = useState<graph>({ edges: [], nodes: [] })
-
     const [contextMenu, setContextMenu] = React.useState<{ mouseX: any, mouseY: any } | null>(null);
 
     const handleContextMenu = (event: { preventDefault: () => void; clientX: number; clientY: number; }) => {
@@ -145,32 +141,9 @@ export const VisNetwork = (props: PropsVisNet) => {
         setContextMenu(null);
     };
 
-    // const [inEdgeMode, setInEdgeMode] = useState(false);
     const [keyPressed, setKeyPressed] = useState<boolean>(false);
 
-    // const enterEdgeMode = (): void => {
-    //     if (props.network.current) {
-    //         props.network.current.addEdgeMode();
-    //     }
-    //     setInEdgeMode(true)
-    //     // this.setState({inEdgeMode: true});
-    // }
-
-    // const leaveEdgeMode = (): void => {
-    //     if (props.network.current) {
-    //         props.network.current.disableEdgeMode();
-    //     }
-    //     setInEdgeMode(false)
-
-    // }
-
-    const [cnt, setCnt] = useState(0);
-
-
-    const [nnnn, setNnnn] = useState<number>(0);
-
     const handleUserKeyPress = useCallback(event => {
-        // const { key, keyCode } = event;
         if (event.keyCode === 17) {
             if (!keyPressed) {
                 console.log('handleUserKeyPress')
@@ -183,7 +156,6 @@ export const VisNetwork = (props: PropsVisNet) => {
 
 
     const handleUserKeyUnPress = useCallback(event => {
-        // const { key, keyCode } = event;
         if (event.keyCode === 17) {
             if (keyPressed) {
                 console.log('handleUserKeyUnPress')
@@ -195,81 +167,6 @@ export const VisNetwork = (props: PropsVisNet) => {
     }, [keyPressed]);
 
     useEffect(() => {
-        // props.network.current.addEdgeMode();
-
-
-        // document.addEventListener("keydown", (event: KeyboardEvent) => {
-
-        // })
-
-
-        // console.log("XXXXXXXXXXXXXXXXXXXXXXX!!!!")
-
-        // event.key === "Shift"
-
-        // document.addEventListener("keyup", (event: KeyboardEvent) => {
-        //     if (event.key === "Shift" && inEdgeMode) {
-        //         leaveEdgeMode();
-        //     }
-        // })
-
-        // window.addEventListener("keydown", async (event: KeyboardEvent) => {
-        //     if (event.key === ' ' ) {
-        //         console.log('vvvvvvv')
-        //         await setKeyPressed(true)
-        //         console.log(keyPressed)
-        //         // enterEdgeMode()
-        //         // leaveEdgeMode();
-        //     }
-
-        //     // if ( event.key === 'a' && !inEdgeMode) {
-        //     //     // enterEdgeMode();
-        //     //     console.log('aaaaaa')
-
-        //     // }
-        // })
-
-
-
-
-        // const scrollHandler = (e: KeyboardEvent) => {
-        //     setNnnn(nnnn + 1)
-        //     console.log(e.code)
-        //     console.log(nnnn)
-        // }
-
-        // document.addEventListener('keypress', scrollHandler);
-        // return () => {
-        //     window.removeEventListener("keypress", scrollHandler);
-        // }
-
-        // console.log('rmed')
-
-        // window.addEventListener('keydown', downHandler);
-        // console.log('oOOOOo')
-        // window.addEventListener('keyup', upHandler);
-        // return () => {
-        //   window.removeEventListener('keydown', downHandler);
-        //   window.removeEventListener('keyup', upHandler);
-        // };
-        // if (!keyPressed) {
-        //     document.addEventListener('keydown', onKk)
-        //     return () => {
-        //         window.removeEventListener('keydown', onKk);
-        //         window.removeEventListener('keyup', onKu);
-        //     };
-        // }
-        // if (keyPressed) {
-        //     document.addEventListener('keyup', onKu)
-
-        //     return () => {
-        //         window.removeEventListener('keydown', onKk);
-        //         window.removeEventListener('keyup', onKu);
-        //     };
-        // }
-        
-        
-        
         window.addEventListener("keydown", handleUserKeyPress);
         window.addEventListener("keyup", handleUserKeyUnPress);
         
@@ -279,89 +176,6 @@ export const VisNetwork = (props: PropsVisNet) => {
             window.removeEventListener("keyup", handleUserKeyUnPress);
         };
     }, [handleUserKeyPress])
-
-
-    const onKk = (e: any) => {
-        if (e.keyCode === 17) {
-            if (!keyPressed) {
-                if (props.network.current) {
-                    console.log('ENTER-ctrl')
-                    setCnt(cnt + 1)
-                    setKeyPressed(true)
-                    props.network.current.addEdgeMode();
-                }
-            }
-        }
-    }
-
-
-    const onKu = (e: any) => {
-        // e = e.event
-        if (e.keyCode === 17) {
-            if (keyPressed) {
-                if (props.network.current) {
-                    console.log('exit-ctrl')
-                    console.log(cnt)
-                    setKeyPressed(false)
-                    props.network.current.disableEditMode();
-                }
-            }
-        }
-    }
-
-    const [shiftHeld, setShiftHeld] = useState(false);
-    function downHandler(key: any) {
-        if (key === 'KeyZ') {
-            setShiftHeld(true);
-        }
-    }
-
-    function upHandler(key: any): void {
-        if (key === 'KeyZ') {
-            setShiftHeld(false);
-        }
-    }
-
-
-    // useKey([" "], () => {
-    //     if (props.network.current) {
-    //         console.log('ENTER')
-    //         setKeyPressed(true)
-    //         props.network.current.addEdgeMode();
-    //     }
-    // }, { when: !keyPressed });
-
-
-    // useKey([" "], () => {
-    //     if (props.network.current) {
-    //         console.log('exit')
-    //         setKeyPressed(false)
-    //         props.network.current.disableEditMode();
-    //     }
-    // }, { when: keyPressed });
-
-
-
-
-    // useKeydown(!keyPressed, ' ', () => {
-    //     setNnnn(nnnn + 1)
-    //     setKeyPressed(true)
-    //     props.network.current.addEdgeMode();
-    //     console.log('BB', nnnn, keyPressed)
-    // })
-
-    // useKeydown(keyPressed, ' ', () => {
-    //     setNnnn(nnnn + 1)
-    //     setKeyPressed(false)
-    //     props.network.current.disableEdgeMode();
-    //     console.log('BB', nnnn, keyPressed)
-    // })
-
-    // const clearSelection = () => {
-    //     if (props.network.current) {
-    //         props.network.current.unselectAll();
-    //     }
-    // };
 
     useLayoutEffect(() => {
 
@@ -373,26 +187,7 @@ export const VisNetwork = (props: PropsVisNet) => {
         console.log("HERE<-")
         window.addEventListener("contextmenu", e => e.preventDefault());
 
-
-
-
-        // document.addEventListener("keydown", (event) => {
-        //     if (props.network.current) {
-        //         if (event.ctrlKey) {
-        //             props.network.current.addEdgeMode();
-        //         }
-        //     }
-        // })
-
-        // document.addEventListener("keyup", (event) => {
-        //     if (props.network.current) {
-        //         props.network.current.disableEditMode();
-        //     }
-        // })
-
         if (props.network.current) {
-
-
             props.network.current.on('doubleClick', (params: any) => {
                 setKeyPressed(false)
                 props.onDoubleClick(params)
@@ -407,20 +202,14 @@ export const VisNetwork = (props: PropsVisNet) => {
                 props.network.current.unselectAll();
             });
 
-            // props.network.current.on('click', () => {
-            //     setShowMenu(false)
-            // });
-            // props.network.current.on('contextmenu', handleContextMenu);
+
+            props.network.current.on('controlNodeDragging', () => {
+                props.network.current.unselectAll();
+            });
+            
         }
 
 
-        const scrollHandler = (e: KeyboardEvent) => {
-            setNnnn(nnnn + 1)
-            console.log(e.code)
-            console.log(nnnn)
-        }
-
-        return () => window.removeEventListener("keypress", scrollHandler);
     }, [domNode, props.data, props.network, options]);
     // 
     const refContainer = () => {
