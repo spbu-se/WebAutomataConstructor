@@ -1,6 +1,6 @@
 import React, { ReactNode } from 'react';
 import "./App.css"
-import Graph from "react-graph-vis";
+// import Graph from "react-graph-vis";
 import {
     ComputerType,
     controlNodeDraggingEventArgs, deselectEdgeEventArgs,
@@ -357,6 +357,7 @@ class App extends React.Component<appProps, appState> {
         const edgesIDs: number[] = e.edges;
         const selectedEdges = this.state.elements.edges.get(edgesIDs);
         this.setState({ selectedEdge: selectedEdges[0] });
+        console.log('click1  = selectEdge')
     }
 
     deselectEdge = (e: { edges: number[]; }): void => {
