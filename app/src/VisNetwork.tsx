@@ -1,5 +1,4 @@
-import React, { useEffect, useRef, useState, useLayoutEffect } from "react";
-import { FullItem } from "vis-data/declarations/data-interface";
+import React, { useEffect, useRef, useState, useLayoutEffect, useCallback } from "react";
 import {
     DataSet,
     Network,
@@ -7,13 +6,15 @@ import {
     Data,
 } from "vis-network/standalone/esm/vis-network";
 import { Move, NodeCore } from "./Logic/IGraphTypes";
-import {edge, graph, node } from "./react-graph-vis-types";
-import {Menu, MenuItem, MenuList, Paper, Typography } from "@mui/material";
+import { edge, graph, node } from "./react-graph-vis-types";
+import { Menu, MenuItem, MenuList, Paper, Typography } from "@mui/material";
+import { useKey } from "rooks";
+import { network } from "vis-network";
 
 interface PropsVisNet {
     nodes: DataSet<node>,
     edges: DataSet<edge>,
-    data: {nodes: DataSet<node, "id">, edges: DataSet<edge, "id">},
+    data: { nodes: DataSet<node, "id">, edges: DataSet<edge, "id"> },
     onDoubleClick: (params?: any) => void,
     onClick1: (params?: any) => void,
     onClick2: (params?: any) => void,
@@ -23,7 +24,30 @@ interface PropsVisNet {
     contextMenu?: any
 }
 
+export const MyUseKey = (key: any, condition: boolean) => {
+    const [isKeyPressed, setIsKeyPressed] = useState(false)
 
+    const downHadler = (k: any) => {
+        if (key === k) setIsKeyPressed(true)
+    }
+
+    const upHadler = (k: any) => {
+        if (key !== k) setIsKeyPressed(false)
+    }
+
+    useEffect(() => {
+        if (condition) {
+            window.addEventListener('keydown', downHadler)
+            window.addEventListener('keyup', upHadler)
+
+            return () => {
+                window.removeEventListener('keydown', downHadler)
+                window.removeEventListener('keyup', upHadler)
+            }
+        }
+    }, [])
+    return isKeyPressed
+}
 
 export const VisNetwork = (props: PropsVisNet) => {
     // A reference to the div rendered by this component
@@ -53,7 +77,25 @@ export const VisNetwork = (props: PropsVisNet) => {
             },
             length: 200
         },
-        layout: {improvedLayout:false},
+        manipulation: {
+            enabled: true,
+            addEdge: function (data: { from: any; to: any; }, callback: (arg0: any) => void) {
+                console.log('add edge', data);
+                callback(data);
+                // after each adding you will be back to addEdge mode
+                setKeyPressed(false)
+
+                props.network.current.disableEditMode()
+                // addEdgeMode();
+            }
+
+        },
+        // interaction: {
+        //     dragView: false,
+        //     keyboard: false,
+        //     dragNodes: false,
+        // },
+        layout: { improvedLayout: false },
         nodes: {
             shapeProperties: {
                 interpolation: false
@@ -62,7 +104,7 @@ export const VisNetwork = (props: PropsVisNet) => {
             font: "18px Roboto black",
             labelHighlightBold: false,
             size: 40,
-            borderWidth : 2,
+            borderWidth: 2,
             color: {
                 background: "#ffffff",
                 border: "#000000",
@@ -78,11 +120,7 @@ export const VisNetwork = (props: PropsVisNet) => {
         }
     });
 
-    const [input, setInput] = useState("")
-
-    const [elements, setElements] = useState<graph>({ edges: [], nodes: [] })
-
-    const [contextMenu, setContextMenu] = React.useState<{mouseX: any, mouseY: any} | null>(null);
+    const [contextMenu, setContextMenu] = React.useState<{ mouseX: any, mouseY: any } | null>(null);
 
     const handleContextMenu = (event: { preventDefault: () => void; clientX: number; clientY: number; }) => {
         event.preventDefault();
@@ -93,8 +131,8 @@ export const VisNetwork = (props: PropsVisNet) => {
                     mouseY: event.clientY - 4,
                 }
                 : // repeated contextmenu when it is already open closes it with Chrome 84 on Ubuntu
-                  // Other native context menus might behave different.
-                  // With this behavior we prevent contextmenu from the backdrop to re-locale existing context menus.
+                // Other native context menus might behave different.
+                // With this behavior we prevent contextmenu from the backdrop to re-locale existing context menus.
                 null,
         );
     };
@@ -103,42 +141,77 @@ export const VisNetwork = (props: PropsVisNet) => {
         setContextMenu(null);
     };
 
+    const [keyPressed, setKeyPressed] = useState<boolean>(false);
+
+    const handleUserKeyPress = useCallback(event => {
+        if (event.keyCode === 17) {
+            if (!keyPressed) {
+                console.log('handleUserKeyPress')
+                props.network.current.addEdgeMode();
+                setKeyPressed(true);
+                console.log('-->' + keyPressed)
+            }
+        }
+    }, [keyPressed]);
+
+
+    const handleUserKeyUnPress = useCallback(event => {
+        if (event.keyCode === 17) {
+            if (keyPressed) {
+                console.log('handleUserKeyUnPress')
+                props.network.current.disableEditMode();
+                setKeyPressed(false);
+                console.log('-->' + keyPressed)
+            }
+        }
+    }, [keyPressed]);
+
+    useEffect(() => {
+        window.addEventListener("keydown", handleUserKeyPress);
+        window.addEventListener("keyup", handleUserKeyUnPress);
+        
+        console.log('--' + keyPressed)
+        return () => {
+            window.removeEventListener("keydown", handleUserKeyPress);
+            window.removeEventListener("keyup", handleUserKeyUnPress);
+        };
+    }, [handleUserKeyPress])
+
     useLayoutEffect(() => {
 
         if (domNode.current) {
             props.network.current = new Network(domNode.current, props.data, options);
+            console.log("HERE<-domNode.current")
         }
 
+        console.log("HERE<-")
         window.addEventListener("contextmenu", e => e.preventDefault());
 
-        document.addEventListener("keydown", (event) => {
-            if (props.network.current) {
-                if (event.ctrlKey) {
-                    props.network.current.addEdgeMode();
-                }
-            }
-        })
-
-        document.addEventListener("keyup", (event) => {
-            if (props.network.current) {
-                props.network.current.disableEditMode();
-            }
-        })
-
         if (props.network.current) {
-            props.network.current.on('doubleClick', props.onDoubleClick)
+            props.network.current.on('doubleClick', (params: any) => {
+                setKeyPressed(false)
+                props.onDoubleClick(params)
+            })
             props.network.current.on('click', props.onClick1);
             props.network.current.on('click', props.onClick2);
             props.network.current.on('click', props.onClick3);
             props.network.current.on('click', props.onClick4);
-            // props.network.current.on('click', () => {
-            //     setShowMenu(false)
-            // });
-            // props.network.current.on('contextmenu', handleContextMenu);
+            props.network.current.on('click', props.onClick4);
+
+            props.network.current.on('dragging', () => {
+                props.network.current.unselectAll();
+            });
+
+
+            props.network.current.on('controlNodeDragging', () => {
+                props.network.current.unselectAll();
+            });
+            
         }
 
-    }, [domNode, props.network, props.data, options]);
 
+    }, [domNode, props.data, props.network, options]);
+    // 
     const refContainer = () => {
         return (
             <div
@@ -154,26 +227,26 @@ export const VisNetwork = (props: PropsVisNet) => {
     return (
         props.contextMenu === undefined
             ?
-                refContainer()
+            refContainer()
             :
-                <div onContextMenu={handleContextMenu}
-                     style={{
-                         height: "100%",
-                         width: "100%",
+            <div onContextMenu={handleContextMenu}
+                style={{
+                    height: "100%",
+                    width: "100%",
                 }}>
-                    {refContainer()}
-                    <Menu
-                        open={contextMenu !== null}
-                        onClose={handleClose}
-                        anchorReference="anchorPosition"
-                        anchorPosition={
-                            contextMenu !== null
-                                ? { top: contextMenu.mouseY, left: contextMenu.mouseX }
-                                : undefined
-                        }
-                    >
-                        {props.contextMenu(handleClose, handleContextMenu)}
-                    </Menu>
-                </div>
+                {refContainer()}
+                <Menu
+                    open={contextMenu !== null}
+                    onClose={handleClose}
+                    anchorReference="anchorPosition"
+                    anchorPosition={
+                        contextMenu !== null
+                            ? { top: contextMenu.mouseY, left: contextMenu.mouseX }
+                            : undefined
+                    }
+                >
+                    {props.contextMenu(handleClose, handleContextMenu)}
+                </Menu>
+            </div>
     );
 };
