@@ -29,6 +29,7 @@ pub fn register_user(uid: String) {
 
     let new_user = NewUser {
         registration_datetime: Utc::now().naive_utc(),
+        username: format!("user-{}", uid),
         uid,
     };
 

@@ -5,6 +5,8 @@ use chrono::NaiveDateTime;
 pub struct User {
     pub uid: String,
     pub registration_datetime: Option<NaiveDateTime>,
+    pub username: String,
+    pub name: Option<String>,
 }
 
 #[derive(Insertable, Debug)]
@@ -12,4 +14,5 @@ pub struct User {
 pub struct NewUser {
     pub uid: String,
     pub registration_datetime: NaiveDateTime,
+    pub username: String,
 }
