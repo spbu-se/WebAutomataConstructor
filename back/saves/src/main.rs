@@ -30,7 +30,8 @@ async fn main() -> std::io::Result<()> {
                 web::scope("/users")
                     .wrap(auth_middleware::Authentication)
                     .route("/update_username", web::post().to(user_handlers::update_username))
-                    .route("/update", web::post().to(user_handlers::update)),
+                    .route("/update", web::post().to(user_handlers::update))
+                    .route("", web::get().to(user_handlers::get))
             )
     })
     .bind(env::var("LISTEN_URL").unwrap())
