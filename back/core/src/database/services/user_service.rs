@@ -1,4 +1,4 @@
-use crate::database::models::{NewUser, User};
+use crate::database::models::{NewUser, UpdateUser, User};
 use crate::database::schema::users;
 use chrono::Utc;
 use diesel::dsl::*;
@@ -68,6 +68,33 @@ pub fn update_user_username(uid: String, username: String) -> Option<User> {
 
     let updated_user = update(users::table.filter(users::uid.eq(&uid)))
         .set(users::username.eq(&username))
+        .get_result(&connection)
+        .unwrap();
+
+    return Some(updated_user);
+}
+
+pub fn update_user(uid: String, update_user: UpdateUser) -> Option<User> {
+    let connection = establish_connection();
+
+    let mut something_to_update = false;
+
+    match &update_user.name {
+        Some(name) => {
+            if name.len() > 256 {
+                return None;
+            }
+            something_to_update = true;
+        }
+        None => (),
+    };
+
+    if something_to_update == false {
+        return None;
+    }
+
+    let updated_user = update(users::table.filter(users::uid.eq(&uid)))
+        .set(&update_user)
         .get_result(&connection)
         .unwrap();
 

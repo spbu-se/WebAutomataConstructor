@@ -1,6 +1,6 @@
 use crate::database::schema::users;
 use chrono::NaiveDateTime;
-use serde::Serialize;
+use serde::{Serialize, Deserialize};
 
 #[derive(Queryable, Debug, Serialize)]
 pub struct User {
@@ -16,4 +16,10 @@ pub struct NewUser {
     pub uid: String,
     pub registration_datetime: NaiveDateTime,
     pub username: String,
+}
+
+#[derive(Debug, AsChangeset, Deserialize)]
+#[table_name = "users"]
+pub struct UpdateUser {
+    pub name: Option<String>,
 }

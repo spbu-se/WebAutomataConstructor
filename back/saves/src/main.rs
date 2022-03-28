@@ -15,20 +15,23 @@ async fn main() -> std::io::Result<()> {
     HttpServer::new(move || {
         let cors = core::server::cors();
 
-        App::new().wrap(cors).service(
-            web::scope("/saves")
-                .wrap(auth_middleware::Authentication)
-                .route("", web::get().to(handlers::get_saves))
-                .route("/{save_id}", web::get().to(handlers::get_save))
-                .route("", web::post().to(handlers::put_save))
-                .route("/{save_id}/rename", web::post().to(handlers::rename_save))
-                .route("/{save_id}", web::delete().to(handlers::delete_save)),
-        )
-        .service(
-            web::scope("/users")
-                .wrap(auth_middleware::Authentication)
-                .route("/update_username", web::post().to(user_handlers::update_username))
-        )
+        App::new()
+            .wrap(cors)
+            .service(
+                web::scope("/saves")
+                    .wrap(auth_middleware::Authentication)
+                    .route("", web::get().to(handlers::get_saves))
+                    .route("/{save_id}", web::get().to(handlers::get_save))
+                    .route("", web::post().to(handlers::put_save))
+                    .route("/{save_id}/rename", web::post().to(handlers::rename_save))
+                    .route("/{save_id}", web::delete().to(handlers::delete_save)),
+            )
+            .service(
+                web::scope("/users")
+                    .wrap(auth_middleware::Authentication)
+                    .route("/update_username", web::post().to(user_handlers::update_username))
+                    .route("/update", web::post().to(user_handlers::update)),
+            )
     })
     .bind(env::var("LISTEN_URL").unwrap())
     .unwrap()
