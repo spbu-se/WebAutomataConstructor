@@ -11,7 +11,7 @@ const GoogleOAuthButton: FC<GoogleOAuthButtonProps> = ({style, className}) => {
     const domain = "https://accounts.google.com/o/oauth2/v2/auth";
     const access_type = "offline";
     const client_id = "196702226545-b0hbpiq78pg29jle3rigem4jcucu8g36.apps.googleusercontent.com";
-    const callback_url = "https://sscss.ru:2101/auth/oauth/google/callback";
+    const callback_url = process.env.REACT_APP_GOOGLE_OAUTH_CALLBACK_URL;
     const response_type = "code";
     const scope = "https://www.googleapis.com/auth/userinfo.email";
     const state = getRandomString(30);
