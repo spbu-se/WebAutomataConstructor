@@ -1,7 +1,8 @@
 use crate::database::schema::users;
 use chrono::NaiveDateTime;
+use serde::Serialize;
 
-#[derive(Queryable, Debug)]
+#[derive(Queryable, Debug, Serialize)]
 pub struct User {
     pub uid: String,
     pub registration_datetime: Option<NaiveDateTime>,

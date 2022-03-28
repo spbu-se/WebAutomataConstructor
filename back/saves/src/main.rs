@@ -4,6 +4,7 @@ use std::env;
 
 mod auth_middleware;
 mod handlers;
+mod user_handlers;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
@@ -22,6 +23,11 @@ async fn main() -> std::io::Result<()> {
                 .route("", web::post().to(handlers::put_save))
                 .route("/{save_id}/rename", web::post().to(handlers::rename_save))
                 .route("/{save_id}", web::delete().to(handlers::delete_save)),
+        )
+        .service(
+            web::scope("/users")
+                .wrap(auth_middleware::Authentication)
+                .route("/update_username", web::post().to(user_handlers::update_username))
         )
     })
     .bind(env::var("LISTEN_URL").unwrap())

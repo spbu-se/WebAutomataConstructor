@@ -50,3 +50,26 @@ pub fn get_user(uid: String) -> Option<User> {
 
     return user;
 }
+
+pub fn update_user_username(uid: String, username: String) -> Option<User> {
+    let connection = establish_connection();
+
+    if username.is_empty() || username.len() > 256 {
+        return None;
+    }
+
+    let username_exists = select(exists(users::table.filter(users::username.eq(&username))))
+        .get_result(&connection)
+        .unwrap();
+
+    if username_exists {
+        return None;
+    }
+
+    let updated_user = update(users::table.filter(users::uid.eq(&uid)))
+        .set(users::username.eq(&username))
+        .get_result(&connection)
+        .unwrap();
+
+    return Some(updated_user);
+}

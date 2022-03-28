@@ -6,6 +6,6 @@ edition = "2018"
 [dependencies]
 actix-cors = "0.5"
 diesel = { version = "1.4", features = ["postgres", "chrono"] }
-chrono = "0.4"
+chrono = { version = "0.4", features = ["serde"] }
 dotenv = "0.15"
 serde = "1.0"
