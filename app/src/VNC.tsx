@@ -1,18 +1,15 @@
 import React, { useEffect, useRef, useState, useLayoutEffect, useCallback } from "react";
 import {
-    // DataSet,
+    DataSet,
     Network,
     Options,
-    Data, 
-} from "vis-network/peer";
-import { DataSet } from "vis-data/peer";
-import { Timeline } from "vis-timeline/peer";
-// vis-network/standalone/esm/vis-network
+    Data,
+} from "vis-network/standalone/esm/vis-network";
 import { Move, NodeCore } from "./Logic/IGraphTypes";
 import { edge, graph, node } from "./react-graph-vis-types";
 import { Menu, MenuItem, MenuList, Paper, Typography } from "@mui/material";
 import { useKey } from "rooks";
-// import { Timeline } from "vis-network";
+import { network } from "vis-network";
 
 interface PropsVisNet {
     nodes: DataSet<node>,
@@ -52,7 +49,7 @@ export const MyUseKey = (key: any, condition: boolean) => {
     return isKeyPressed
 }
 
-export const VisNetwork = (props: PropsVisNet) => {
+export const VNC = (props: PropsVisNet) => {
     // A reference to the div rendered by this component
     const [domNode, setdomNode] = useState(useRef<HTMLDivElement>(null));
 
@@ -169,27 +166,6 @@ export const VisNetwork = (props: PropsVisNet) => {
         }
     }, [keyPressed]);
 
-
-  // DOM element where the Timeline will be attached
-  const [container, _co] = useState(useRef<HTMLDivElement>(null)) ;
-//   document.getElementById("visualization");
-
-  // Create a DataSet (allows two way data-binding)
-  const items = new DataSet([
-    { id: 1, content: "item 1", start: "2014-04-20" },
-    { id: 2, content: "item 2", start: "2014-04-14" },
-    { id: 3, content: "item 3", start: "2014-04-18" },
-    { id: 4, content: "item 4", start: "2014-04-16", end: "2014-04-19" },
-    { id: 5, content: "item 5", start: "2014-04-25" },
-    { id: 6, content: "item 6", start: "2014-04-27", type: "point" }
-  ]);
-
-  // Configuration for the Timeline
-  const timeLineOptions = {};
-
-  // Create a Timeline
-
-
     useEffect(() => {
         window.addEventListener("keydown", handleUserKeyPress);
         window.addEventListener("keyup", handleUserKeyUnPress);
@@ -200,16 +176,11 @@ export const VisNetwork = (props: PropsVisNet) => {
             window.removeEventListener("keyup", handleUserKeyUnPress);
         };
     }, [handleUserKeyPress])
-    const timeline = React.createRef<Timeline | null>();
-    // const timeline
 
     useLayoutEffect(() => {
 
         if (domNode.current) {
             props.network.current = new Network(domNode.current, props.data, options);
-            // timeline = new Timeline(container, items, options)
-            // timeline.current = new Timeline(container.current, items, timeLineOptions);
-
             console.log("HERE<-domNode.current")
         }
 
@@ -243,7 +214,7 @@ export const VisNetwork = (props: PropsVisNet) => {
     // 
     const refContainer = () => {
         return (
-            <div id={"network"}
+            <div id={"vnc"}
                 style={{
                     height: "100%",
                     width: "100%",

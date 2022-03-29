@@ -37,6 +37,7 @@ import {
 } from "vis-network/standalone/esm/vis-network";
 import { Output } from './Logic/Types';
 import { NonDetermenisticModal, NonMinimizableModal } from './ErrorModal';
+import { VNC } from './VNC';
 // import {ContextMenu, MenuItem as CotextMenuItem, ContextMenuTrigger} from "react-contextmenu";
 
 interface appProps {
@@ -131,7 +132,8 @@ class App extends React.Component<appProps, appState> {
 
     memRef = React.createRef<HTMLDivElement>();
     network = React.createRef<Network | null>();
-
+    networkTST = React.createRef<Network | null>();
+    
     constructor(props: appProps) {
         super(props);
 
@@ -745,6 +747,22 @@ class App extends React.Component<appProps, appState> {
                                         onClick3={this.deselectNode}
                                         onClick4={this.deselectEdge}
                                         network={this.network}
+                                        contextMenu={this.ContextMenu(this.state.computerType)}
+                                    />
+                                </div>
+
+
+                                <div className="field__container0">
+                                    <VNC
+                                        nodes={this.state.elements.nodes}
+                                        edges={this.state.elements.edges}
+                                        data={this.state.elements}
+                                        onDoubleClick={this.createNode}
+                                        onClick1={this.selectEdge}
+                                        onClick2={this.selectNode}
+                                        onClick3={this.deselectNode}
+                                        onClick4={this.deselectEdge}
+                                        network={this.networkTST}
                                         contextMenu={this.ContextMenu(this.state.computerType)}
                                     />
                                 </div>
