@@ -79,7 +79,9 @@ const AccountPage: FC<AccountPageProps> = ({onAuthFailed}) => {
                     {
                         inEditMode
                             ?
-                            <TextField value={inEditUsername} onChange={onInEditUsernameChanged}/>
+                            <div className="account-page__user-field">
+                                <TextField value={inEditUsername} onChange={onInEditUsernameChanged} size="small"/>
+                            </div>
                             :
                             <Typography variant="h6">
                                 {user?.username}
@@ -89,7 +91,9 @@ const AccountPage: FC<AccountPageProps> = ({onAuthFailed}) => {
                     {
                         inEditMode
                             ?
-                            <TextField value={inEditName} onChange={onInEditNameChanged}/>
+                            <div className="account-page__user-field">
+                                <TextField value={inEditName} onChange={onInEditNameChanged} size="small"/>
+                            </div>
                             :
                             <Typography variant="subtitle1">
                                 {user?.name}
