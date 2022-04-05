@@ -25,7 +25,8 @@ import FailedLoginPage from "./Components/Pages/FailedLoginPage/FailedLoginPage"
 import AppHeader from "./Components/AppHeader/AppHeader";
 import {TransitionParams} from "./Logic/IGraphTypes";
 import SuccessLoginPage from "./Components/Pages/SuccessLoginPage/SuccessLoginPage";
-import { Box } from '@mui/material';
+import {Box} from '@mui/material';
+import AccountPage from "./Components/Pages/AccountPage/AccountPage";
 
 interface appProps {
 }
@@ -96,7 +97,6 @@ class App extends React.Component<appProps, appState> {
 
     componentDidUpdate() {
     }
-
 
 
     componentDidMount() {
@@ -381,12 +381,12 @@ class App extends React.Component<appProps, appState> {
     }
 
     updMem = (mem: string[], ptr: number): void => {
-        this.setState({ mem: mem, ptr: ptr });
+        this.setState({mem: mem, ptr: ptr});
     }
 
     memPos = (index: number | undefined): void => {
         // if (index !== undefined && index > 5) {
-            this.memRef?.current?.scrollIntoView({behavior: 'smooth'})
+        this.memRef?.current?.scrollIntoView({behavior: 'smooth'})
         // }
     }
 
@@ -415,6 +415,9 @@ class App extends React.Component<appProps, appState> {
                     </Route>
                     <Route path="/success-login">
                         <SuccessLoginPage onAuthSuccess={this.login}/>
+                    </Route>
+                    <Route path="/account">
+                        <AccountPage onAuthFailed={this.logout}/>
                     </Route>
                     <Route path="/">
                         <ComputerTypeContext.Provider value={this.state.computerType}>
@@ -461,24 +464,25 @@ class App extends React.Component<appProps, appState> {
 
 
                                 {
-                                        this.state.computerType === "tm" ?
-                                            <div className="app__mem_ribbon">
-                                                    {
-                                                        this.state.mem?.map((value, index) =>
-                                                            <div
-                                                                className="app__mem_cell"
-                                                                style={{border: `${index === this.state.ptr ? "#0041d0" : "#000000" } 2px solid`}}
-                                                            >
+                                    this.state.computerType === "tm" ?
+                                        <div className="app__mem_ribbon">
+                                            {
+                                                this.state.mem?.map((value, index) =>
+                                                    <div
+                                                        className="app__mem_cell"
+                                                        style={{border: `${index === this.state.ptr ? "#0041d0" : "#000000"} 2px solid`}}
+                                                    >
 
-                                                                {Math.abs (Math.abs(index) - Math.abs(this.state.ptr!)) <= 5  ? <div ref={this.memRef}/> : <div/>}
-                                                                {value}
-                                                                {this.memRef?.current?.scrollIntoView({behavior: 'smooth'})                                                                }
-                                                            </div>
-                                                        )
-                                                    }
-                                            </div>
+                                                        {Math.abs(Math.abs(index) - Math.abs(this.state.ptr!)) <= 5 ?
+                                                            <div ref={this.memRef}/> : <div/>}
+                                                        {value}
+                                                        {this.memRef?.current?.scrollIntoView({behavior: 'smooth'})}
+                                                    </div>
+                                                )
+                                            }
+                                        </div>
                                         : <div/>
-                                    }
+                                }
 
 
                                 <AppHeader
@@ -511,7 +515,7 @@ class App extends React.Component<appProps, appState> {
                                         deleteEdge={this.deleteEdge}
                                     />
                                     <RunControl
-                                        updMem = {this.updMem}
+                                        updMem={this.updMem}
                                         elements={this.state.elements}
                                         changeStateIsCurrent={this.changeStateIsCurrent}
                                     />
