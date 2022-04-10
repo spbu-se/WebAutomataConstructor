@@ -78,7 +78,7 @@ export const VNC = (props: PropsVisNet) => {
             length: 200
         },
         manipulation: {
-            enabled: true,
+            enabled: false,
             addEdge: function (data: { from: any; to: any; }, callback: (arg0: any) => void) {
                 console.log('add edge', data);
                 callback(data);
@@ -90,12 +90,23 @@ export const VNC = (props: PropsVisNet) => {
             }
 
         },
-        // interaction: {
-        //     dragView: false,
-        //     keyboard: false,
-        //     dragNodes: false,
-        // },
-        layout: { improvedLayout: false },
+        interaction: {
+            // dragView: false,
+            keyboard: false,
+            dragNodes: false,
+        },
+        layout: {
+         hierarchical: {
+        //  direction: directionInput,
+         treeSpacing:200,
+         direction: 'LR',
+         parentCentralization: false,
+         sortMethod: 'directed',
+         shakeTowards: 'roots'
+        //  directed
+      },
+    },
+        // layout: { improvedLayout: false },
         nodes: {
             shapeProperties: {
                 interpolation: false

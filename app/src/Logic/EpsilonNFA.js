@@ -20,7 +20,8 @@ var EpsilonNFA = /** @class */ (function (_super) {
         var _this = _super.call(this, graph, startStatement, input) || this;
         _this.enfaStep = function () {
             var _a;
-            var ret = _this._step(_this.counterSteps, _this.alphabet.get((_a = _this.input[_this.counterSteps]) === null || _a === void 0 ? void 0 : _a.value), _this.historiStep);
+            var histUnit = [];
+            var ret = _this._step(_this.counterSteps, _this.alphabet.get((_a = _this.input[_this.counterSteps]) === null || _a === void 0 ? void 0 : _a.value), _this.historiStep, histUnit);
             _this.counterSteps = ret.counter;
             _this.historiStep = ret.history;
             ret.nodes.forEach(function (value) { return value.stack = undefined; });
@@ -28,14 +29,15 @@ var EpsilonNFA = /** @class */ (function (_super) {
             return ret;
         };
         _this.enfaRun = function () {
+            var histUnit = [];
             _this.historiRun = [];
             _this.counterStepsForResult = 0;
             for (var i = 0; i < _this.input.length - 1; i++) {
-                var tmp = _this._step(_this.counterStepsForResult, _this.alphabet.get(_this.input[_this.counterStepsForResult].value), _this.historiRun);
+                var tmp = _this._step(_this.counterStepsForResult, _this.alphabet.get(_this.input[_this.counterStepsForResult].value), _this.historiRun, histUnit);
                 _this.counterStepsForResult = tmp.counter;
                 _this.historiRun = tmp.history;
             }
-            var ret = _this._step(_this.counterStepsForResult, _this.alphabet.get(_this.input[_this.counterStepsForResult].value), _this.historiRun);
+            var ret = _this._step(_this.counterStepsForResult, _this.alphabet.get(_this.input[_this.counterStepsForResult].value), _this.historiRun, histUnit);
             ret.nodes.forEach(function (value) { return value.stack = undefined; });
             ret.history.forEach(function (value) { return value.nodes.forEach(function (value1) { return value1.stack = undefined; }); });
             return ret;

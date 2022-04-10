@@ -1,4 +1,4 @@
-import { Computer } from "./Computer";
+import { Computer, EPS } from "./Computer";
 import { GraphCore, NodeCore } from "./IGraphTypes";
 import { Output, position, Step, History } from "./Types";
 
@@ -60,6 +60,7 @@ export abstract class OutputAutomata extends Computer {
     //         true)
     //     return ret 
     // }
+    public haveEpsilon = () => this.alphabet.get(EPS) !== undefined
 
     public restart = () => {
         this.counterSteps = 0

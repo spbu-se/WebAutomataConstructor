@@ -48,6 +48,7 @@ var OutputAutomata = /** @class */ (function (_super) {
         //         true)
         //     return ret 
         // }
+        _this.haveEpsilon = function () { return _this.alphabet.get(Computer_1.EPS) !== undefined; };
         _this.restart = function () {
             _this.counterSteps = 0;
             _this.historiStep = [];

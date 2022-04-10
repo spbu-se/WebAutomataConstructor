@@ -24,6 +24,22 @@ export class DFA extends EpsilonNFA {
     }
 }
 
+
+let nfa = new DFA (
+        {
+            nodes: [
+                {id: 1, isAdmit: false},
+                {id: 2, isAdmit: true},
+            ],
+            edges: [
+    
+                {from: 1, to: 2, transitions: new Set([ [{title: '0'}] ])},
+                {from: 2, to: 2, transitions: new Set([ [{title: '0'}] ])},
+            ]
+        }, [{id: 1, isAdmit: false}], [],
+    )
+// nfa.
+
 // let nfa = new DFA (
 //     {
 //         nodes: [

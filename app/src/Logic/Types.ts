@@ -22,6 +22,12 @@ export type History = {
     by: string
 }
 
+export interface HistUnit {
+    by: any,
+    from: NodeCore //number, //NodeCore
+    value: NodeCore // number //NodeCore
+    
+}
 export type Step = {
     nodes: NodeCore[]
     counter: number
@@ -30,10 +36,17 @@ export type Step = {
     memory?: string[]
     pointer?: number
     output?: Output[]
+    tree?: HistUnit[][]
+    byEpsPred?: NodeCore[], 
+    byEpsAfter?: NodeCore[], 
+    byLetter?: NodeCore[]
 }
 
 
 export type position = {
     stmt: statement,
+    from?: NodeCore,
+    cur?: NodeCore,
+    by?: any,
     stack?: Stack<string>
 }

@@ -1,11 +1,14 @@
 import { Output } from "./Types";
 
-export interface NodeCore  {
-    id: number
-    isAdmit: boolean
-    stack?: string[]
-    move?: Move
-    output?: Output
+export interface NodeCore {
+    id: number,
+    isAdmit: boolean,
+    stack?: string[],
+    move?: Move,
+    output?: Output,
+    from?: NodeCore,
+    cur?: NodeCore,
+    by?: any
 }
 
 export enum Move {

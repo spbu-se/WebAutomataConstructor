@@ -7,6 +7,7 @@ import {
     deselectNodeEventArgs,
     doubleClickEventArgs, dragEndEventArgs, edge,
     graph,
+    histNode,
     node, selectEdgeEventArgs,
     selectNodeEventArgs
 } from "./react-graph-vis-types";
@@ -48,12 +49,18 @@ export type Elements = {
     edges: DataSet<edge, "id">
 }
 
+export type HistElements = {
+    nodes: DataSet<histNode, "id">,
+    edges: DataSet<edge, "id">
+}
+
 interface appState {
     computerType: null | ComputerType,
     selectedNode: node | null,
     selectedEdge: edge | null,
     inEdgeMode: boolean,
     elements: Elements,
+    treeElems: HistElements,
     options: any,
     initiallyStabilized: boolean,
     popout: ReactNode | null,
@@ -66,6 +73,7 @@ interface appState {
     byEmptyStack: boolean,
     errIsNonDetermenistic: boolean,
     errIsNonMinimizable: boolean
+    showTree: boolean
 }
 
 export const ComputerTypeContext = React.createContext<null | ComputerType>(null);
@@ -82,7 +90,7 @@ export const controlAction = {
     changerByStack: (() => { }),
     run: (() => { }),
     step: (() => { }),
-    reset: (() => { })
+    reset: (() => { }),
 }
 
 // export interface errorAction {
@@ -133,7 +141,7 @@ class App extends React.Component<appProps, appState> {
     memRef = React.createRef<HTMLDivElement>();
     network = React.createRef<Network | null>();
     networkTST = React.createRef<Network | null>();
-    
+
     constructor(props: appProps) {
         super(props);
 
@@ -144,6 +152,7 @@ class App extends React.Component<appProps, appState> {
             selectedEdge: null,
             inEdgeMode: false,
             elements: { nodes: new DataSet<node>(), edges: new DataSet<edge>() },
+            treeElems: { nodes: new DataSet<histNode>(), edges: new DataSet<edge>() },
             options: {
                 edges: {
                     smooth: {
@@ -178,6 +187,7 @@ class App extends React.Component<appProps, appState> {
             errIsNonDetermenistic: false,
             errIsNonMinimizable: false,
 
+            showTree: false
             // errorAction: {
             //     isNonDetermenistic: false, 
             //     setIsNonDetermenistic: (v: boolean): void => { this.setState({ errorAction.isNonDetermenistic = v}) }
@@ -329,6 +339,48 @@ class App extends React.Component<appProps, appState> {
         this.state.elements.nodes.add(node);
     }
 
+    lastHistNodeId = 0
+
+    createHistNode = (idd: number, label: string, isAdmit: boolean, isInitial: boolean, isCurrent: boolean) => {
+        this.lastHistNodeId++;
+
+        const node: histNode = {
+            id: this.lastHistNodeId,
+            idd,
+            label,
+            isAdmit,
+            isInitial,
+            isCurrent
+        }
+        this.state.treeElems.nodes.add(node);
+    }
+
+    createHistEdge = (from: number, to: number, by: any) => {
+        const transitions = new Set([[{ title: by }]])
+
+        this.state.treeElems.edges.add({
+            from: from,
+            to: to,
+            transitions: transitions,
+            label: transitionsToLabel(transitions, this.state.computerType)
+        })
+    }
+
+    getLastHistNodeId = () => this.lastHistNodeId
+
+    resetHistTree = () => {
+        for (let i = 0; i <= this.lastHistNodeId; i++) {
+            this.state.treeElems.nodes.remove(i)
+        }
+        this.state.treeElems.edges.forEach((e) => this.state.treeElems.edges.remove(e.id!))
+        this.lastHistNodeId = 0;
+        // this.state.treeElems.nodes.remove()
+        // this.state.treeElems.edges.clear()
+        // this.setState({
+        //     treeElems: { nodes: new DataSet<histNode>(), edges: new DataSet<edge>() }
+        // })
+    }
+
     selectNode = (e: { nodes: number[]; }): void => {
         const nodesIDs: number[] = e.nodes;
         const selectedNodes = this.state.elements.nodes.get(nodesIDs);
@@ -421,11 +473,24 @@ class App extends React.Component<appProps, appState> {
                         {"НКА->ДКА"}
                     </button>
                 </div>
-
+                <div onClick={handleClose}>
+                    <button
+                        className={"button-context-menu"}
+                        onClick={this.treeVisible}
+                    >
+                        {this.treeContextInfo()}
+                    </button>
+                </div>
             </div>
         )
     }
 
+    treeVisible = () => {
+        this.setState({showTree: !this.state.showTree})
+        return !this.state.showTree
+    }
+
+    treeContextInfo = () => (this.state.showTree ? "закрыть" : "открыть") + " дерево вычислений" 
 
     DFAContextMenu = (handleContextMenu: any, handleClose: any) => {
         return (
@@ -631,15 +696,15 @@ class App extends React.Component<appProps, appState> {
             case "dfa": {
                 return this.DFAContextMenu
             }
-            case "mealy" : 
+            case "mealy":
             case "dmealy": {
                 return this.MealyContextMenu
             }
-            case "moore": 
+            case "moore":
             case "dmoore": {
                 return this.MooreContextMenu
             }
-            case "pda": 
+            case "pda":
             case "dpda": {
                 return this.PDAContextMenu
             }
@@ -751,22 +816,22 @@ class App extends React.Component<appProps, appState> {
                                     />
                                 </div>
 
-
-                                <div className="field__container0">
-                                    <VNC
-                                        nodes={this.state.elements.nodes}
-                                        edges={this.state.elements.edges}
-                                        data={this.state.elements}
-                                        onDoubleClick={this.createNode}
-                                        onClick1={this.selectEdge}
-                                        onClick2={this.selectNode}
-                                        onClick3={this.deselectNode}
-                                        onClick4={this.deselectEdge}
-                                        network={this.networkTST}
-                                        contextMenu={this.ContextMenu(this.state.computerType)}
-                                    />
-                                </div>
-
+                                {this.state.showTree ?
+                                    <div className="eval-tree">
+                                        <VNC
+                                            nodes={this.state.treeElems.nodes}
+                                            edges={this.state.treeElems.edges}
+                                            data={this.state.treeElems}
+                                            onDoubleClick={this.createNode}
+                                            onClick1={this.selectEdge}
+                                            onClick2={this.selectNode}
+                                            onClick3={this.deselectNode}
+                                            onClick4={this.deselectEdge}
+                                            network={this.networkTST}
+                                            contextMenu={this.ContextMenu(this.state.computerType)}
+                                        />
+                                    </div>
+                                    : <div />}
                                 <div className="app__right-menu">
                                     <NodeControl
                                         node={this.state.selectedNode}
@@ -775,6 +840,7 @@ class App extends React.Component<appProps, appState> {
                                         changeStateIsInitial={this.changeStateIsInitial}
                                         deleteNode={this.deleteNode}
                                         reinitComputer={computerAction.init}
+
                                     />
                                     <EdgeControl
                                         edge={this.state.selectedEdge}
@@ -786,6 +852,11 @@ class App extends React.Component<appProps, appState> {
                                     <RunControl
                                         updMem={this.updMem}
                                         elements={this.state.elements}
+                                        treeElems={this.state.treeElems}
+                                        createHistNode={this.createHistNode}
+                                        createHistEdge={this.createHistEdge}
+                                        getLastHistNodeId={this.getLastHistNodeId}
+                                        resetHistTree={this.resetHistTree}
                                         changeStateIsCurrent={this.changeStateIsCurrent}
                                         network={this.network}
                                         setInit={(f: () => void) => computerAction.init = f}

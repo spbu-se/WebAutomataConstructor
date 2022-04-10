@@ -1,4 +1,4 @@
-import { History, position, statement, Step } from "./Types";
+import { History, HistUnit, position, statement, Step } from "./Types";
 import { EdgeCore, GraphCore, GraphEval, Move, NodeCore, TransitionParams } from "./IGraphTypes";
 import { BOTTOM, Computer, EPS, statementCell } from "./Computer";
 import { Stack } from "./Stack";
@@ -11,6 +11,7 @@ type element = {
     idLogic: number
     top: Stack<string>
 }
+
 
 
 export class PDA extends Computer {
@@ -136,7 +137,9 @@ export class PDA extends Computer {
         let visited: boolean[] = []
         this.cellMatrix(curLId, this.epsId).forEach(() => visited.push(false))
 
-        let permutes = this.cellMatrix(curLId, this.epsId)[0] !== undefined ? PDA.permute0(this.cellMatrix(curLId, this.epsId)) : [(this.cellMatrix(curLId, this.epsId))]
+        let permutes = this.cellMatrix(curLId, this.epsId)[0] !== undefined
+            ? PDA.permute0(this.cellMatrix(curLId, this.epsId))
+            : [(this.cellMatrix(curLId, this.epsId))]
         // permutes.push(this.cellMatrix(curLId, this.epsId))
         // let permutes: statementCell[][] = PDA.permute(this.cellMatrix(curLId, this.epsId))
 
@@ -184,7 +187,7 @@ export class PDA extends Computer {
         return positions
     }
 
-    private epsilonStep(curLId: number, stackDown: string, stack: Stack<string>): position[] | undefined {
+    private epsilonStep(curLId: number, stackDown: string, stack: Stack<string>, hist: HistUnit[]): position[] | undefined {
         if (this.epsId === undefined) {
             return
         }
@@ -232,15 +235,26 @@ export class PDA extends Computer {
             return elements
         }
 
+        const histUnit: HistUnit[] = []
         let endsOfEpsWay: element[] = dfs(curLId, stack, stackDown, [])
         let positions: position[] = []
         for (let i = 0; i < endsOfEpsWay.length; i++) {
             let stmt = this.statements.get(this.nodes[endsOfEpsWay[i].idLogic].id)
-            positions.push({ stmt: stmt, stack: endsOfEpsWay[i].top })
+            positions.push({
+                stmt: stmt, stack: endsOfEpsWay[i].top
+                , from: this.nodes[curLId]
+                , cur: this.nodes[stmt.idLogic]
+                , by: EPS
+                //?
+            })
+            hist.push({ by: EPS, from: this.nodes[curLId], value: this.nodes[stmt.idLogic] })
         }
+
+        // hist.push(histUnit)
 
         return positions
     }
+
 
     private matchPushEpsVal(value: statementCell, newStack: Stack<string>): void {
         if (value.stackPush![0] === EPS) {
@@ -257,14 +271,25 @@ export class PDA extends Computer {
     private matchDownEpsVal(value: statementCell, newStack: Stack<string>): void {
         if (value.stackPush![0] === EPS && value.stackPush!.length !== 1) {
             throw Error("pushing list should be consist by [EPS] for 'pop'")
-        } else if (value.stackPush![0] !== EPS) { //??
+        } else if (value.stackPush![0] !== EPS) {
             let pushVals = this.copyPushList(value)
             this.pushReverse(pushVals, newStack)
         }
     }
 
-    private letterStep(transformedInput: number, curLId: number, stackDown: string, stack: Stack<string>): position[] {
+    private letterStep(transformedInput: number, curLId: number, stackDown: string, stack: Stack<string>, hist: HistUnit[]): position[] {
         let positions: position[] = []
+        const histUnit: HistUnit[] = []
+
+        const getLetter = (id: number): any => {
+            let ret
+            this.alphabet.forEach((v, k) => {
+                if (id === v) {
+                    ret = k
+                }
+            })
+            return ret
+        }
 
         this.cellMatrix(curLId, transformedInput).forEach((value) => {
 
@@ -272,18 +297,34 @@ export class PDA extends Computer {
                 case stackDown: {
                     let newStack = stack.cpyTo(new Stack<string>())
                     this.matchPushEpsVal(value, newStack)
-                    positions.push({ stmt: this.statements.get(value.id), stack: newStack })
+                    positions.push({
+                        stmt: this.statements.get(value.id), stack: newStack
+                        , from: this.nodes[curLId]
+                        , cur: this.nodes[value.idLogic]
+                        , by: getLetter(transformedInput)
+                        //? 
+                    })
+                    hist.push({ by: getLetter(transformedInput), from: this.nodes[curLId], value: this.nodes[value.idLogic] })
                     break
                 }
                 case EPS: {
                     let newStack: Stack<string> = stack.cpyTo(new Stack<string>())
                     this.matchDownEpsVal(value, newStack)
-                    positions.push({ stmt: this.statements.get(value.id), stack: newStack })
+                    positions.push({
+                        stmt: this.statements.get(value.id), stack: newStack
+                        , from: this.nodes[curLId]
+                        , cur: this.nodes[value.idLogic]
+                        , by: getLetter(transformedInput)
+                        //? 
+                    })
+                    hist.push({ by: getLetter(transformedInput), from: this.nodes[curLId], value: this.nodes[value.idLogic] })
                     break
                 }
             }
 
         })
+
+        // hist.push(histUnit)
 
         return positions
     }
@@ -296,7 +337,7 @@ export class PDA extends Computer {
         this.restart()
     }
 
-    protected haveEpsilon(): boolean {
+    haveEpsilon = (): boolean => {
         return this.epsId !== undefined
     }
 
@@ -348,14 +389,14 @@ export class PDA extends Computer {
         // })
         this.stack.push(BOTTOM)
         this.curPosition = []//{stack: new Stack<string>(), stmt: startStatements}
-
+        this.treeHist = []
         startStatements.forEach(value => {
             let stack = new Stack<string>()
             stack.push(BOTTOM)
 
             this.curPosition.push({
                 stmt: this.statements.get(value.id),
-                stack: stack
+                stack: stack,
             })
 
         })
@@ -406,7 +447,12 @@ export class PDA extends Computer {
     private toNodes(positions: position[]): NodeCore[] {
         let retNodes: NodeCore[] = []
         positions.forEach(value => {
-            let temp: NodeCore = { ...this.nodes[value.stmt.idLogic], stack: value.stack!.getStorage() }
+            let temp: NodeCore = {
+                ...this.nodes[value.stmt.idLogic], stack: value.stack!.getStorage(),
+                from: value.from,
+                cur: value.cur,
+                by: value.by
+            }
             retNodes.push(temp)
         })
         return retNodes
@@ -416,16 +462,22 @@ export class PDA extends Computer {
         this.admitByEmptyStack = isAdmt
     }
 
+    protected treeHist: HistUnit[][] = []
+
     protected pdaStep = (): Step => {
+        const histUnit: HistUnit[] = []
+
         let ret = this._step
             (
                 this.counterSteps,
                 this.alphabet.get(this.input[this.counterSteps]?.value),
-                this.historiStep
+                this.historiStep,
+                histUnit
             )
         this.counterSteps = ret.counter
         this.historiStep = ret.history
 
+        this.treeHist = ret.tree ? ret.tree : []
 
         console.log("STEP stck: ")
         ret.history.forEach(value => value.nodes.forEach(value1 => console.log(value1.stack)))
@@ -439,12 +491,14 @@ export class PDA extends Computer {
     protected pdaRun = (): Step => {
         this.historiRun = []
         this.counterStepsForResult = 0
+        const histUnit: HistUnit[] = []
 
         for (let i = 0; i < this.input.length - 1; i++) {
             let tmp = this._step(
                 this.counterStepsForResult,
                 this.alphabet.get(this.input[this.counterStepsForResult].value),
-                this.historiRun
+                this.historiRun,
+                histUnit
             )
             this.counterStepsForResult = tmp.counter
             this.historiRun = tmp.history
@@ -453,16 +507,26 @@ export class PDA extends Computer {
         return this._step(
             this.counterStepsForResult,
             this.alphabet.get(this.input[this.counterStepsForResult].value),
-            this.historiRun
+            this.historiRun,
+            histUnit
         )
     }
 
     step = this.pdaStep
 
     run = this.pdaRun
+    // (): Step => {
+    //     return { counter: 0, history: [], isAdmit: false, nodes: [] }
+    // }
+    // this.pdaRun
 
-    protected _step = (counter: number, tr: number, histori: History[]): Step => {
+    protected _step = (counter: number, tr: number, histori: History[], unitHsit: HistUnit[]): Step => {
+        const byEpsPred: NodeCore[] = []
+        const byEpsAfter: NodeCore[] = []
+        const byLetter: NodeCore[] = []
+
         let newPosSet: position[] = []
+
         const updCurPos = () => {
             this.curPosition = []
             newPosSet.forEach(value => this.curPosition.push(value))
@@ -470,13 +534,13 @@ export class PDA extends Computer {
         }
         const epsStep = () => {
             this.curPosition.forEach(value => {
-                let pPos = this.epsilonStep(value.stmt.idLogic, value.stack?.peek()!, value.stack!)
+                let pPos = this.epsilonStep(value.stmt.idLogic, value.stack?.peek()!, value.stack!, unitHsit)
                 pPos?.forEach(value1 => newPosSet.push(value1))
             })
         }
         const letterSter = () => {
             this.curPosition.forEach(value => {
-                let pPos = this.letterStep(tr, value.stmt.idLogic, value.stack!.peek()!, value.stack!)
+                let pPos = this.letterStep(tr, value.stmt.idLogic, value.stack!.peek()!, value.stack!, unitHsit)
                 pPos.forEach(value1 => newPosSet.push(value1))
             })
         }
@@ -484,9 +548,12 @@ export class PDA extends Computer {
             let htable: Map<string, position> = new Map<string, position>()
             let positions: position[] = []
             this.curPosition.forEach(value => {
-                if (htable.get(JSON.stringify(value)) === undefined) {
+                const v: position = {
+                    stmt: value.stmt, stack: value.stack
+                }
+                if (htable.get(JSON.stringify(v)) === undefined) {
                     positions.push(value)
-                    htable.set(JSON.stringify(value), value)
+                    htable.set(JSON.stringify(v), value)
                 }
             })
             this.curPosition = []
@@ -496,13 +563,20 @@ export class PDA extends Computer {
         if (this.epsId !== undefined) {
             epsStep()
             updCurPos()
+            rmRepeations()
+            this.toNodes(this.curPosition).forEach((v) => byEpsPred.push(v))
         }
         if (counter < this.input.length) {
             letterSter()
             updCurPos()
+            rmRepeations()
+            this.toNodes(this.curPosition).forEach((v) => byLetter.push(v))
             if (this.epsId !== undefined) {
                 epsStep()
                 updCurPos()
+            rmRepeations()
+
+                this.toNodes(this.curPosition).forEach((v) => byEpsAfter.push(v))
             }
         } else {
             rmRepeations()
@@ -514,11 +588,17 @@ export class PDA extends Computer {
             // })
             // console.log(":::::::::::::::::::")
 
+            this.treeHist.push(unitHsit)
+
             return {
                 nodes: this.toNodes(this.curPosition),
                 counter: counter,
                 isAdmit: this.haveAdmitting(this.curPosition),
-                history: histori
+                history: histori,
+                tree: this.treeHist,
+
+                byEpsPred, byEpsAfter, byLetter
+
             };
         }
         rmRepeations()
@@ -533,11 +613,17 @@ export class PDA extends Computer {
         histori.push({ nodes: this.toNodes(this.curPosition), by: this.input[counter].value })
         counter++
 
+        this.treeHist.push(unitHsit)
+
         return {
             nodes: this.toNodes(this.curPosition),
             counter: counter,
             isAdmit: this.haveAdmitting(this.curPosition),
-            history: histori
+            history: histori,
+            tree: this.treeHist,
+
+            byEpsPred, byEpsAfter, byLetter
+
         };
     }
 
@@ -545,6 +631,8 @@ export class PDA extends Computer {
         this.counterSteps = 0
         this.historiStep = []
         this.curPosition = []
+        this.treeHist = []
+
         this.startStatements.forEach(value => {
             let stack = new Stack<string>()
             stack.push(BOTTOM)
@@ -579,7 +667,7 @@ export class PDA extends Computer {
                 const EPStack = new Stack<string>()
                 EPStack.push(EPS)
                 positions.forEach((position) => {
-                    const tmp = this.epsilonStep(position.stmt.idLogic, EPS, EPStack)
+                    const tmp = this.epsilonStep(position.stmt.idLogic, EPS, EPStack, [])
                     if (tmp !== undefined) {
                         acc.push(tmp)
                     }
@@ -947,18 +1035,103 @@ export class ImSet<T extends Record<any, any>> {
 let nfa = new PDA(
     {
         nodes: [
-            { id: 0, isAdmit: false },
-            { id: 1, isAdmit: false }
+            // { id: 9, isAdmit: false },
+            { id: 10, isAdmit: false },
+            { id: 11, isAdmit: false },
+            { id: 12, isAdmit: false },
+            { id: 13, isAdmit: false },
+            { id: 14, isAdmit: false },
+            { id: 15, isAdmit: false },
+            { id: 16, isAdmit: false },
+            { id: 17, isAdmit: false },
+
+
+            // { id: 1, isAdmit: false },
+            // { id: 2, isAdmit: false },
+            // { id: 3, isAdmit: false },
 
         ],
         edges: [
-            { from: 0, to: 1, transitions: new Set([[{ title: '0', stackDown: 'Z0', stackPush: [EPS] }]]) },
-            { from: 0, to: 0, transitions: new Set([[{ title: '0', stackDown: 'Z0', stackPush: [EPS] }]]) },
+            // { from: 9, to: 10, transitions: new Set([[{ title: EPS }]]) },
+            { from: 10, to: 11, transitions: new Set([[{ title: 'a' }]]) },
+            { from: 11, to: 12, transitions: new Set([[{ title: EPS }]]) },
+            { from: 12, to: 13, transitions: new Set([[{ title: 'b' }]]) },
+           
+            { from: 14, to: 15, transitions: new Set([[{ title: 'a' }]]) },
+            { from: 15, to: 16, transitions: new Set([[{ title: EPS }]]) },
+            { from: 16, to: 17, transitions: new Set([[{ title: 'b' }]]) },
+            // { from: 12, to: 14, transitions: new Set([[{ title: 'a' }]]) },
+            // { from: 12, to: 14, transitions: new Set([[{ title: 'a' }]]) },
+            // { from: 14, to: 13, transitions: new Set([[{ title: EPS }]]) },
+
+            // {
+            //     from: 1, to: 1, transitions: new Set([
+            //         [
+            //             {title: '0', stackDown: 'Z0', stackPush: ['0', 'Z0']},
+            //             {title: '1', stackDown: 'Z0', stackPush: ['1', 'Z0']},
+            //             {title: '0', stackDown: '0', stackPush: ['0', '0']},
+            //             {title: '0', stackDown: '1', stackPush: ['0', '1']},
+            //             {title: '1', stackDown: '0', stackPush: ['1', '0']},
+            //             {title: '1', stackDown: '1', stackPush: ['1', '1']}
+            //         ]])
+            // },
+
+            // // {from: 1, to: 1, transitions: new Set([[{title: '1',  stackDown: 'Z0', stackPush: ['1', 'Z0']}]])},
+            // // {from: 1, to: 1, transitions: new Set([[{title: '0',  stackDown: '0',  stackPush: ['0', '0' ]}]])},
+            // // {from: 1, to: 1, transitions: new Set([[{title: '0',  stackDown: '1',  stackPush: ['0', '1' ]}]])},
+            // // {from: 1, to: 1, transitions: new Set([[{title: '1',  stackDown: '0',  stackPush: ['1', '0' ]}]])},
+            // // {from: 1, to: 1, transitions: new Set([[{title: '1',  stackDown: '1',  stackPush: ['1', '1' ]}]])},
+
+            // {
+            //     from: 1, to: 2, transitions: new Set([
+            //         [
+            //             {title: EPS, stackDown: 'Z0', stackPush: ['Z0']},
+            //             {title: EPS, stackDown: '0', stackPush: ['0']},
+            //             {title: EPS, stackDown: '1', stackPush: ['1']}
+            //         ]])
+            // },
+            // // {from: 1, to: 2, transitions: new Set([[{title: EPS,  stackDown: '0',  stackPush: ['0'      ]}]])},
+            // // {from: 1, to: 2, transitions: new Set([[{title: EPS,  stackDown: '1',  stackPush: ['1'      ]}]])},
+
+            // {
+            //     from: 2, to: 2, transitions: new Set([
+            //         [
+            //             {title: '0', stackDown: '0', stackPush: [EPS]},
+            //             {title: '1', stackDown: '1', stackPush: [EPS]}
+            //         ]])
+            // },
+            // // {from: 2, to: 2, transitions: new Set([[{title: '1',  stackDown: '1',  stackPush: [EPS      ]}]])},
+
+            // {from: 2, to: 3, transitions: new Set([[{title: EPS, stackDown: 'Z0', stackPush: [EPS]}]])},
+
         ]
-    }, [{ id: 0, isAdmit: false }], ["0"],
+    }, [{ id: 10, isAdmit: false }, { id: 14, isAdmit: false }], ['a', 'a'],
 )
-console.log(nfa.isDeterministic())
+// console.log(nfa.isDeterministic())
 // nfa.step()
+const aa = nfa.step()
+console.log()
+console.log()
+console.log('Letter')
+console.log(aa.byLetter)
+console.log('byEpsPred')
+console.log(aa.byEpsPred)
+console.log('byEpsAfter')
+console.log(aa.byEpsAfter)
+
+// const a = nfa.step()
+// console.log()
+// console.log()
+// console.log('Letter')
+// console.log(a.byLetter)
+// console.log('byEpsPred')
+// console.log(a.byEpsPred)
+// console.log('byEpsAfter')
+// console.log(a.byEpsAfter)
+// a.tree?.forEach((v) => {
+//     v.forEach((vv) => console.log(vv.by, vv.from, vv.value))
+//     console.log()
+// })
 
 
 // let nfa = new PDA(

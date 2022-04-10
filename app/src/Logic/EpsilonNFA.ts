@@ -1,4 +1,4 @@
-import {position, Step} from "./Types";
+import {HistUnit, position, Step} from "./Types";
 import {EdgeCore, GraphCore, NodeCore, TransitionParams} from "./IGraphTypes";
 import {PDA} from "./PDA";
 import {cloneDeep} from "lodash";
@@ -12,10 +12,14 @@ export class EpsilonNFA extends PDA {
     }
 
     protected enfaStep = (): Step => {
+        const histUnit: HistUnit[] = []
+
         let ret = this._step(
             this.counterSteps,
             this.alphabet.get(this.input[this.counterSteps]?.value),
-            this.historiStep
+            this.historiStep,
+            histUnit
+
         )
 
         this.counterSteps = ret.counter
@@ -27,6 +31,8 @@ export class EpsilonNFA extends PDA {
     }
 
     protected enfaRun = (): Step => {
+        const histUnit: HistUnit[] = []
+
         this.historiRun = []
         this.counterStepsForResult = 0
 
@@ -34,7 +40,9 @@ export class EpsilonNFA extends PDA {
             let tmp = this._step(
                 this.counterStepsForResult,
                 this.alphabet.get(this.input[this.counterStepsForResult].value),
-                this.historiRun
+                this.historiRun,
+                histUnit
+
             )
             this.counterStepsForResult = tmp.counter
             this.historiRun = tmp.history
@@ -43,7 +51,9 @@ export class EpsilonNFA extends PDA {
         let ret = this._step(
             this.counterStepsForResult,
             this.alphabet.get(this.input[this.counterStepsForResult].value),
-            this.historiRun
+            this.historiRun,
+            histUnit
+
         )
 
         ret.nodes.forEach(value => value.stack = undefined)

@@ -46,6 +46,9 @@ var Computer = /** @class */ (function () {
         this.getCurrNode = function () {
             return _this.currentNode.id;
         };
+        this.getStartStatements = function () {
+            return _this.startStatements;
+        };
         graph.edges
             .sort(function (a, b) { return a.from - b.from; })
             .forEach(function (value) { return _this.edges.push({
