@@ -1,42 +1,66 @@
-import React, {ReactNode} from 'react';
+import React, { ReactNode } from 'react';
 import "./App.css"
-import Graph from "react-graph-vis";
+// import Graph from "react-graph-vis";
 import {
     ComputerType,
     controlNodeDraggingEventArgs, deselectEdgeEventArgs,
     deselectNodeEventArgs,
     doubleClickEventArgs, dragEndEventArgs, edge,
     graph,
+    histNode,
     node, selectEdgeEventArgs,
     selectNodeEventArgs
 } from "./react-graph-vis-types";
-import {cloneDeep} from "lodash";
+import { cloneDeep } from "lodash";
 import NodeControl from "./Components/NodeControl/NodeControl";
 import EdgeControl from "./Components/EdgeControl/EdgeControl";
-import {computersInfo, decorateGraph, getNodeNamePrefix, getTransitionsTitles} from "./utils";
+import {
+    computersInfo, decorateGraph, elementsToGraph, getNodeNamePrefix, getTransitionsTitles,
+    graphToElements, transitionsToLabel
+} from "./utils";
 import RunControl from "./Components/RunControl/RunControl";
 import WelcomePopout from "./Components/WelcomePopout/WelcomePopout";
 import Paper from "@mui/material/Paper";
 import SavingPopout from "./Components/SavingPopout/SavingPopout";
-import {Route, Switch, HashRouter} from "react-router-dom";
+import { Route, Switch, HashRouter } from "react-router-dom";
 import LoginPage from "./Components/Pages/LoginPage/LoginPage";
 import PingPage from "./Components/Pages/PingPage/PingPage";
 import FailedLoginPage from "./Components/Pages/FailedLoginPage/FailedLoginPage";
 import AppHeader from "./Components/AppHeader/AppHeader";
-import {TransitionParams} from "./Logic/IGraphTypes";
+import { TransitionParams } from "./Logic/IGraphTypes";
 import SuccessLoginPage from "./Components/Pages/SuccessLoginPage/SuccessLoginPage";
-import { Box } from '@mui/material';
+import { VisNetwork } from './VisNetwork';
+import {
+    DataSet,
+    Network,
+    Options,
+    Data,
+} from "vis-network/standalone/esm/vis-network";
+import { Output } from './Logic/Types';
+import { NonDetermenisticModal, NonMinimizableModal } from './ErrorModal';
+import { VNC } from './VNC';
+// import {ContextMenu, MenuItem as CotextMenuItem, ContextMenuTrigger} from "react-contextmenu";
 
 interface appProps {
 }
 
+export type Elements = {
+    nodes: DataSet<node, "id">,
+    edges: DataSet<edge, "id">
+}
+
+export type HistElements = {
+    nodes: DataSet<histNode, "id">,
+    edges: DataSet<edge, "id">
+}
+
 interface appState {
     computerType: null | ComputerType,
-
     selectedNode: node | null,
     selectedEdge: edge | null,
     inEdgeMode: boolean,
-    elements: graph,
+    elements: Elements,
+    treeElems: HistElements,
     options: any,
     initiallyStabilized: boolean,
     popout: ReactNode | null,
@@ -44,15 +68,79 @@ interface appState {
     welcomePopoutOpen: boolean,
     isLogin: boolean,
     mem: string[] | undefined,
-    ptr: number | undefined
+    ptr: number | undefined,
+    wasComputerResetted: boolean,
+    byEmptyStack: boolean,
+    errIsNonDetermenistic: boolean,
+    errIsNonMinimizable: boolean
+    showTree: boolean
 }
 
 export const ComputerTypeContext = React.createContext<null | ComputerType>(null);
 
+export const computerAction = {
+    init: (() => { }),
+    nfaToDfa: (() => { }),
+    minimizeDfa: (() => { }),
+    mooreToMealy: (() => { }),
+    mealyToMoore: (() => { })
+}
+
+export const controlAction = {
+    changerByStack: (() => { }),
+    run: (() => { }),
+    step: (() => { }),
+    reset: (() => { }),
+}
+
+// export interface errorAction {
+//     isNonDetermenistic: boolean, 
+//     setIsNonDetermenistic: (v: boolean) => void
+// }
+// export const errorAction =  {
+//     isNonDetermenistic: false, 
+//     setIsNonDetermenistic: (v: boolean): void => { errorAction.isNonDetermenistic = v }
+// }
+
+
+interface RibbonProps {
+    computerType: null | ComputerType,
+    wasComputerResetted: boolean,
+    mem: string[] | undefined,
+    ptr: number | undefined
+}
+
+export const Ribbon = (props: RibbonProps) => {
+    const memRef = React.createRef<HTMLDivElement>()
+    return (
+        props.computerType === "tm" && props.wasComputerResetted
+            ?
+            <div className="app__mem_ribbon">
+                {
+                    props.mem?.map((value, index) =>
+                        <div
+                            className="app__mem_cell"
+                            style={{ border: `${index === props.ptr ? "#0041d0" : "#000000"} 2px solid` }}
+                        >
+                            {Math.abs(Math.abs(index) - Math.abs(props.ptr!)) <= 5
+                                ? <div ref={memRef} />
+                                : <div />
+                            }
+                            {value}
+                            {memRef?.current?.scrollIntoView({ behavior: 'smooth' })}
+                        </div>
+                    )
+                }
+            </div>
+            : <div />
+    )
+}
+
 class App extends React.Component<appProps, appState> {
 
     memRef = React.createRef<HTMLDivElement>();
-
+    network = React.createRef<Network | null>();
+    networkTST = React.createRef<Network | null>();
 
     constructor(props: appProps) {
         super(props);
@@ -63,7 +151,8 @@ class App extends React.Component<appProps, appState> {
             selectedNode: null,
             selectedEdge: null,
             inEdgeMode: false,
-            elements: {nodes: [], edges: []},
+            elements: { nodes: new DataSet<node>(), edges: new DataSet<edge>() },
+            treeElems: { nodes: new DataSet<histNode>(), edges: new DataSet<edge>() },
             options: {
                 edges: {
                     smooth: {
@@ -78,6 +167,7 @@ class App extends React.Component<appProps, appState> {
                     font: "18px Roboto black",
                     labelHighlightBold: false,
                     widthConstraint: 40,
+                    color: "red",
                     heightConstraint: 40
                 },
                 physics: {
@@ -90,331 +180,555 @@ class App extends React.Component<appProps, appState> {
             welcomePopoutOpen: false,
             isLogin: true,
             mem: undefined,
-            ptr: undefined
+            ptr: undefined,
+            wasComputerResetted: false,
+            byEmptyStack: false,
+
+            errIsNonDetermenistic: false,
+            errIsNonMinimizable: false,
+
+            showTree: false
+            // errorAction: {
+            //     isNonDetermenistic: false, 
+            //     setIsNonDetermenistic: (v: boolean): void => { this.setState({ errorAction.isNonDetermenistic = v}) }
+            // }
         };
     }
 
-    componentDidUpdate() {
-    }
+    setIsNonDetermenistic = (v: boolean) => this.setState({ errIsNonDetermenistic: v })
 
-
+    setIsNonMinimizable = (v: boolean) => this.setState({ errIsNonMinimizable: v })
 
     componentDidMount() {
         this.updateGraph();
-        this.subscribeToShortcuts();
+        // this.subscribeToShortcuts();
         this.openWelcomePopout();
     }
 
-    network: any;
     lastNodeId = 0;
 
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
     subscribeToShortcuts = () => {
         document.addEventListener("keydown", (event: KeyboardEvent) => {
-            if (event.key === "Shift" && !this.state.inEdgeMode) {
-                this.enterEdgeMode();
-            }
+            // if (event.key === "Shift" && !this.state.inEdgeMode) {
+            //     this.enterEdgeMode();
+            // }
             if (event.key === "s" && event.ctrlKey) {
                 event.preventDefault();
                 this.openSavePopout();
             }
         })
 
-        document.addEventListener("keyup", (event: KeyboardEvent) => {
-            if (event.key === "Shift" && this.state.inEdgeMode) {
-                this.leaveEdgeMode();
-            }
-        })
+        // document.addEventListener("keyup", (event: KeyboardEvent) => {
+        //     if (event.key === "Shift" && this.state.inEdgeMode) {
+        //         this.leaveEdgeMode();
+        //     }
+        // })
     }
 
     openSavePopout = () => {
-        this.setState({savePopoutOpen: true});
+        this.setState({ savePopoutOpen: true });
     }
 
     closeSavePopout = () => {
-        this.setState({savePopoutOpen: false});
+        this.setState({ savePopoutOpen: false });
     }
 
     openWelcomePopout = () => {
-        this.setState({welcomePopoutOpen: true});
+        this.setState({ welcomePopoutOpen: true });
     }
 
     closeWelcomePopout = () => {
-        this.setState({welcomePopoutOpen: false});
+        this.setState({ welcomePopoutOpen: false });
     }
 
     login = () => {
-        this.setState({isLogin: true});
+        this.setState({ isLogin: true });
     }
 
     logout = () => {
-        this.setState({isLogin: false});
+        this.setState({ isLogin: false });
     }
 
     changePopout = (popout: ReactNode | null) => {
-        this.setState({popout: popout});
+        this.setState({ popout: popout });
     }
 
-    getNodeById = (id: number): node | undefined => {
-        return this.state.elements.nodes.find(node => node.id === id);
-    }
-
-    getEdgeById = (id: string): edge | undefined => {
-        return this.state.elements.edges.find(edge => edge.id === id);
-    }
 
     updateGraph = (): void => {
-        if (this.network) {
-            this.network.setData(decorateGraph(this.state.elements));
-        }
+        decorateGraph(this.state.elements, this.state.computerType)
     }
 
     changeNodeLabel = (id: number, label: string): void => {
-        const elements = cloneDeep(this.state.elements);
-
-        for (let i = 0; i < elements.nodes.length; i++) {
-            if (elements.nodes[i].id === id) {
-                elements.nodes[i].label = label;
+        this.state.elements.nodes.forEach((node) => {
+            if (node.id === id) {
+                const lableTokens =
+                    label
+                        .split('')
+                        .filter(x => x !== " " && x !== "\n")
+                        .join('')
+                        .split('|')
+                const output = lableTokens[1] !== undefined ? lableTokens[1] : ""
+                this.state.elements.nodes.update({
+                    id: node.id,
+                    label: label,
+                    output: output
+                })
             }
-        }
-
-        this.setState({elements: elements}, () => this.updateGraph());
+        })
+        this.updateGraph()
     }
 
+
     changeStateIsAdmit = (id: number, isAdmit: boolean): void => {
-        const elements = cloneDeep(this.state.elements);
-
-        for (let i = 0; i < elements.nodes.length; i++) {
-            if (elements.nodes[i].id === id) {
-                elements.nodes[i].isAdmit = isAdmit;
+        this.state.elements.nodes.forEach((node) => {
+            if (node.id === id) {
+                this.state.elements.nodes.update({
+                    id: node.id,
+                    isAdmit: isAdmit
+                })
             }
-        }
-
-        this.setState({elements: elements}, () => this.updateGraph());
+        })
+        this.updateGraph()
     }
 
     changeStateIsInitial = (id: number, isInitial: boolean): void => {
-        const elements = cloneDeep(this.state.elements);
-
-        for (let i = 0; i < elements.nodes.length; i++) {
-            if (elements.nodes[i].isInitial) {
-                elements.nodes[i].isInitial = false;
+        this.state.elements.nodes.forEach((node) => {
+            if (node.id === id) {
+                this.state.elements.nodes.update({
+                    id: node.id,
+                    isInitial: isInitial
+                })
             }
-
-            if (elements.nodes[i].id === id) {
-                elements.nodes[i].isInitial = isInitial
-            }
-        }
-
-        this.setState({elements: elements}, () => this.updateGraph());
+        })
+        this.updateGraph()
     }
+
 
     changeStateIsCurrent = (ids: number[], isCurrent: boolean): void => {
-        const elements = cloneDeep(this.state.elements);
-
-        for (let i = 0; i < elements.nodes.length; i++) {
-            if (elements.nodes[i].isCurrent) {
-                elements.nodes[i].isCurrent = false;
+        this.state.elements.nodes.forEach((node) => {
+            if (node.isCurrent) {
+                this.state.elements.nodes.update({
+                    id: node.id,
+                    isCurrent: false
+                })
             }
-        }
-
-        for (let i = 0; i < elements.nodes.length; i++) {
-            if (ids.includes(elements.nodes[i].id)) {
-                elements.nodes[i].isCurrent = isCurrent
+        })
+        this.state.elements.nodes.forEach((node) => {
+            if (ids.includes(node.id)) {
+                this.state.elements.nodes.update({
+                    id: node.id,
+                    isCurrent: isCurrent
+                })
             }
-        }
-
-        this.setState({elements: elements}, () => this.updateGraph());
+        })
+        this.updateGraph()
     }
 
-    changeNodePosition = (id: number, x: number, y: number): void => {
-        const elements = cloneDeep(this.state.elements);
-
-        for (let i = 0; i < elements.nodes.length; i++) {
-            if (elements.nodes[i].id === id) {
-                elements.nodes[i].x = x;
-                elements.nodes[i].y = y;
-            }
-        }
-
-        this.setState({elements: elements}, () => this.updateGraph());
-    }
-
-    createNode = (args: doubleClickEventArgs): void => {
-        const x = args.pointer.canvas.x;
-        const y = args.pointer.canvas.y;
-
-        const elements = cloneDeep(this.state.elements);
-
-        elements.nodes.push({
-            id: ++this.lastNodeId,
-            x: x,
-            y: y,
-            label: getNodeNamePrefix(this.state.elements),
+    createNode = (e: { pointer: { canvas: { x: any; y: any; }; }; }) => {
+        this.lastNodeId++;
+        const node = {
+            id: this.lastNodeId,
+            label: 'S' + (this.lastNodeId),
+            x: e.pointer.canvas.x,
+            y: e.pointer.canvas.y,
             isAdmit: false,
-            isInitial: false
-        });
-
-        this.setState({elements: elements}, () => this.updateGraph());
-    }
-
-    selectNode = (args: selectNodeEventArgs): void => {
-        if (args.nodes.length > 0) {
-            this.setState({selectedNode: this.getNodeById(args.nodes[0])!});
+            isInitial: false,
+            isCurrent: false,
         }
+        this.state.elements.nodes.add(node);
     }
 
-    deselectNode = (args: deselectNodeEventArgs): void => {
-        if (args.nodes.length === 0) {
-            this.setState({selectedNode: null});
+    lastHistNodeId = 0
+
+    createHistNode = (idd: number, label: string, isAdmit: boolean, isInitial: boolean, isCurrent: boolean) => {
+        this.lastHistNodeId++;
+
+        const node: histNode = {
+            id: this.lastHistNodeId,
+            idd,
+            label,
+            isAdmit,
+            isInitial,
+            isCurrent
+        }
+        this.state.treeElems.nodes.add(node);
+    }
+
+    createHistEdge = (from: number, to: number, by: any) => {
+        const transitions = new Set([[{ title: by }]])
+
+        this.state.treeElems.edges.add({
+            from: from,
+            to: to,
+            transitions: transitions,
+            label: transitionsToLabel(transitions, this.state.computerType)
+        })
+    }
+
+    getLastHistNodeId = () => this.lastHistNodeId
+
+    resetHistTree = () => {
+        for (let i = 0; i <= this.lastHistNodeId; i++) {
+            this.state.treeElems.nodes.remove(i)
+        }
+        this.state.treeElems.edges.forEach((e) => this.state.treeElems.edges.remove(e.id!))
+        this.lastHistNodeId = 0;
+        // this.state.treeElems.nodes.remove()
+        // this.state.treeElems.edges.clear()
+        // this.setState({
+        //     treeElems: { nodes: new DataSet<histNode>(), edges: new DataSet<edge>() }
+        // })
+    }
+
+    selectNode = (e: { nodes: number[]; }): void => {
+        const nodesIDs: number[] = e.nodes;
+        const selectedNodes = this.state.elements.nodes.get(nodesIDs);
+        this.setState({ selectedNode: selectedNodes[0] });
+    }
+
+
+    deselectNode = (e: { nodes: number[]; }): void => {
+        const nodesIDs: number[] = e.nodes;
+        if (nodesIDs.length === 0) {
+            this.setState({ selectedNode: null });
         }
     }
 
     deleteNode = (id: number): void => {
-        const elements = cloneDeep(this.state.elements);
+        this.state.elements.nodes.remove(id)
 
-        for (let i = 0; i < elements.nodes.length; i++) {
-            if (elements.nodes[i].id === id) {
-                elements.nodes.splice(i, 1);
-                break;
+        let rmEdges: string[] = []
+        this.state.elements.edges.forEach((edge) => {
+            if (edge.from === id || edge.to === id) {
+                rmEdges.push(edge.id!)
             }
-        }
-
-        for (let i = 0; i < elements.edges.length; i++) {
-            if (elements.edges[i].from === id ||
-                elements.edges[i].to === id) {
-                elements.edges.splice(i, 1);
-                i--;
-            }
-        }
-
-        this.setState({selectedNode: null});
-        this.setState({elements: elements}, () => this.updateGraph());
+        })
+        this.state.elements.edges.remove(rmEdges)
     }
 
-    addEdge = (from: number, to: number): void => {
-        const elements = cloneDeep(this.state.elements);
-
-        elements.edges.push({from: from, to: to, label: "", transitions: new Set()});
-
-        this.setState({elements: elements}, () => this.updateGraph());
+    selectEdge = (e: { edges: any; }): void => {
+        const edgesIDs: number[] = e.edges;
+        const selectedEdges = this.state.elements.edges.get(edgesIDs);
+        this.setState({ selectedEdge: selectedEdges[0] });
+        console.log('click1  = selectEdge')
     }
 
-    enterEdgeMode = (): void => {
-        if (this.network) {
-            this.network.addEdgeMode();
-        }
-        this.setState({inEdgeMode: true});
-    }
-
-    leaveEdgeMode = (): void => {
-        if (this.network) {
-            this.network.disableEditMode();
-        }
-        this.setState({inEdgeMode: false});
-    }
-
-    onEdgeDragEnd = (args: controlNodeDraggingEventArgs): void => {
-        if (args.controlEdge.to !== undefined) {
-            this.addEdge(args.controlEdge.from, args.controlEdge.to);
-            this.leaveEdgeMode();
+    deselectEdge = (e: { edges: number[]; }): void => {
+        const edgesIDs: number[] = e.edges;
+        if (edgesIDs.length === 0) {
+            this.setState({ selectedEdge: null });
         }
     }
 
-    selectEdge = (args: selectEdgeEventArgs): void => {
-        if (args.edges.length === 1) {
-            this.setState({selectedEdge: this.getEdgeById(args.edges[0])!});
-        }
-    }
-
-    deselectEdge = (args: deselectEdgeEventArgs): void => {
-        if (args.edges.length === 0) {
-            this.setState({selectedEdge: null});
-        }
-    }
-
-    changeEdgeLabel = (id: string, label: string): void => {
-        const elements = cloneDeep(this.state.elements);
-
-        for (let i = 0; i < elements.edges.length; i++) {
-            if (elements.edges[i].id === id) {
-                elements.edges[i].label = 'label';
-            }
-        }
-
-        this.setState({elements: elements}, () => this.updateGraph());
-    }
 
     changeEdgeTransition = (id: string, transitions: Set<TransitionParams[]>): void => {
-        const elements: graph = cloneDeep(this.state.elements);
-        for (let i = 0; i < elements.edges.length; i++) {
-            if (elements.edges[i].id === id) {
-                elements.edges[i].transitions = transitions;
-                // elements.edges[i].transitions.forEach(value => console.log("vv: ", value))
-                elements.edges[i].label = getTransitionsTitles(transitions);
-            }
-        }
-        this.setState({elements: elements}, () => this.updateGraph());
+        this.state.elements.edges.update({
+            id: id,
+            label: transitionsToLabel(transitions, this.state.computerType),
+            transitions: transitions
+        })
     }
 
     deleteEdge = (id: string): void => {
-        const elements = cloneDeep(this.state.elements);
-
-        for (let i = 0; i < elements.edges.length; i++) {
-            if (elements.edges[i].id === id) {
-                elements.edges.splice(i, 1);
-                break;
-            }
-        }
-
-        this.setState({selectedEdge: null});
-        this.setState({elements: elements}, () => this.updateGraph());
-    }
-
-
-    onDragEnd = (args: dragEndEventArgs): void => {
-        if (args.nodes.length === 1) {
-            const node = args.nodes[0];
-            const {x, y} = args.pointer.canvas;
-
-            this.changeNodePosition(node, x, y);
-        }
+        this.state.elements.edges.remove(id)
     }
 
     updMem = (mem: string[], ptr: number): void => {
         this.setState({ mem: mem, ptr: ptr });
     }
 
-    memPos = (index: number | undefined): void => {
-        // if (index !== undefined && index > 5) {
-            this.memRef?.current?.scrollIntoView({behavior: 'smooth'})
-        // }
+    NFAContextMenu = (handleContextMenu: any, handleClose: any) => {
+        return (
+            <div onContextMenu={handleContextMenu}>
+                <div onClick={handleClose}>
+                    <button
+                        className={"button-context-menu"}
+                        onClick={controlAction.step}
+                    >
+                        {"Шаг"}
+                    </button>
+                </div>
+                <div onClick={handleClose}>
+                    <button
+                        className={"button-context-menu"}
+                        onClick={controlAction.run}
+                    >
+                        {"Запуск"}
+                    </button>
+                </div>
+                <div onClick={handleClose}>
+                    <button
+                        className={"button-context-menu"}
+                        onClick={controlAction.reset}
+                    >
+                        {"Сброс"}
+                    </button>
+                </div>
+                <div onClick={handleClose}>
+                    <button
+                        className={"button-context-menu"}
+                        onClick={computerAction.nfaToDfa}
+                    >
+                        {"НКА->ДКА"}
+                    </button>
+                </div>
+                <div onClick={handleClose}>
+                    <button
+                        className={"button-context-menu"}
+                        onClick={this.treeVisible}
+                    >
+                        {this.treeContextInfo()}
+                    </button>
+                </div>
+            </div>
+        )
     }
 
-    events = {
-        doubleClick: this.createNode,
-        selectNode: this.selectNode,
-        selectEdge: this.selectEdge,
-        deselectNode: this.deselectNode,
-        deselectEdge: this.deselectEdge,
-        controlNodeDragEnd: this.onEdgeDragEnd,
-        dragEnd: this.onDragEnd
-    };
+    treeVisible = () => {
+        this.setState({showTree: !this.state.showTree})
+        return !this.state.showTree
+    }
+
+    treeContextInfo = () => (this.state.showTree ? "закрыть" : "открыть") + " дерево вычислений" 
+
+    DFAContextMenu = (handleContextMenu: any, handleClose: any) => {
+        return (
+            <div onContextMenu={handleContextMenu}>
+                <div onClick={handleClose}>
+                    <button
+                        className={"button-context-menu"}
+                        onClick={controlAction.step}
+                    >
+                        {"Шаг"}
+                    </button>
+                </div>
+                <div onClick={handleClose}>
+                    <button
+                        className={"button-context-menu"}
+                        onClick={controlAction.run}
+                    >
+                        {"Запуск"}
+                    </button>
+                </div>
+                <div onClick={handleClose}>
+                    <button
+                        className={"button-context-menu"}
+                        onClick={controlAction.reset}
+                    >
+                        {"Сброс"}
+                    </button>
+                </div>
+                <div onClick={handleClose}>
+                    <button
+                        className={"button-context-menu"}
+                        onClick={computerAction.minimizeDfa}
+                    >
+                        {"Минимизровать"}
+                    </button>
+                </div>
+            </div>
+        )
+    }
+
+    MealyContextMenu = (handleContextMenu: any, handleClose: any) => {
+        return (
+            <div onContextMenu={handleContextMenu}>
+                <div onClick={handleClose}>
+                    <button
+                        className={"button-context-menu"}
+                        onClick={controlAction.step}
+                    >
+                        {"Шаг"}
+                    </button>
+                </div>
+                <div onClick={handleClose}>
+                    <button
+                        className={"button-context-menu"}
+                        onClick={controlAction.run}
+                    >
+                        {"Запуск"}
+                    </button>
+                </div>
+                <div onClick={handleClose}>
+                    <button
+                        className={"button-context-menu"}
+                        onClick={controlAction.reset}
+                    >
+                        {"Сброс"}
+                    </button>
+                </div>
+                <div onClick={handleClose}>
+                    <button
+                        className={"button-context-menu"}
+                        onClick={computerAction.mealyToMoore}
+                    >
+                        {"Мур"}
+                    </button>
+                </div>
+            </div>
+        )
+    }
+
+    MooreContextMenu = (handleContextMenu: any, handleClose: any) => {
+        return (
+            <div onContextMenu={handleContextMenu}>
+                <div onClick={handleClose}>
+                    <button
+                        className={"button-context-menu"}
+                        onClick={controlAction.step}
+                    >
+                        {"Шаг"}
+                    </button>
+                </div>
+                <div onClick={handleClose}>
+                    <button
+                        className={"button-context-menu"}
+                        onClick={controlAction.run}
+                    >
+                        {"Запуск"}
+                    </button>
+                </div>
+                <div onClick={handleClose}>
+                    <button
+                        className={"button-context-menu"}
+                        onClick={controlAction.reset}
+                    >
+                        {"Сброс"}
+                    </button>
+                </div>
+                <div onClick={handleClose}>
+                    <button
+                        className={"button-context-menu"}
+                        onClick={computerAction.mooreToMealy}
+                    >
+                        {"Мили"}
+                    </button>
+                </div>
+            </div>
+        )
+    }
+
+    PDAContextMenu = (handleContextMenu: any, handleClose: any) => {
+        return (
+            <div onContextMenu={handleContextMenu}>
+                <div onClick={handleClose}>
+                    <button
+                        className={"button-context-menu"}
+                        onClick={controlAction.step}
+                    >
+                        {"Шаг"}
+                    </button>
+                </div>
+                <div onClick={handleClose}>
+                    <button
+                        className={"button-context-menu"}
+                        onClick={controlAction.run}
+                    >
+                        {"Запуск"}
+                    </button>
+                </div>
+                <div onClick={handleClose}>
+                    <button
+                        className={"button-context-menu"}
+                        onClick={controlAction.reset}
+                    >
+                        {"Сброс"}
+                    </button>
+                </div>
+                <div onClick={handleClose}>
+                    <button
+                        className={"button-context-menu"}
+                        onClick={controlAction.changerByStack}
+
+                    >
+                        {this.state.byEmptyStack ? "По стеку" : "По состоянию"}
+                    </button>
+                </div>
+            </div>
+        )
+    }
+
+    AnotherContextMenu = (handleContextMenu: any, handleClose: any) => {
+        return (
+            <div onContextMenu={handleContextMenu}>
+                <div onClick={handleClose}>
+                    <button
+                        className={"button-context-menu"}
+                        onClick={controlAction.step}
+                    >
+                        {"Шаг"}
+                    </button>
+                </div>
+                <div onClick={handleClose}>
+                    <button
+                        className={"button-context-menu"}
+                        onClick={controlAction.run}
+                    >
+                        {"Запуск"}
+                    </button>
+                </div>
+                <div onClick={handleClose}>
+                    <button
+                        className={"button-context-menu"}
+                        onClick={controlAction.reset}
+                    >
+                        {"Сброс"}
+                    </button>
+                </div>
+                {/* <div onClick={handleClose}>
+                    <button
+                        className={"button-context-menu"}
+                    >
+                        {"Just-button"}
+                    </button>
+                </div> */}
+            </div>
+        )
+    }
+
+    ContextMenu = (computerType: null | ComputerType) => {
+        switch (computerType) {
+            case "nfa":
+            case "nfa-eps": {
+                return this.NFAContextMenu
+            }
+            case "dfa": {
+                return this.DFAContextMenu
+            }
+            case "mealy":
+            case "dmealy": {
+                return this.MealyContextMenu
+            }
+            case "moore":
+            case "dmoore": {
+                return this.MooreContextMenu
+            }
+            case "pda":
+            case "dpda": {
+                return this.PDAContextMenu
+            }
+            default: {
+                return this.AnotherContextMenu
+            }
+        }
+    }
 
     render() {
         return (
             <HashRouter>
                 <Switch>
                     <Route path="/login">
-                        <LoginPage/>
+                        <LoginPage />
                     </Route>
                     <Route path="/ping">
-                        <PingPage/>
+                        <PingPage />
                     </Route>
                     <Route path="/failed-login">
-                        <FailedLoginPage/>
+                        <FailedLoginPage />
                     </Route>
                     <Route path="/success-login">
-                        <SuccessLoginPage onAuthSuccess={this.login}/>
+                        <SuccessLoginPage onAuthSuccess={this.login} />
                     </Route>
                     <Route path="/">
                         <ComputerTypeContext.Provider value={this.state.computerType}>
@@ -429,57 +743,55 @@ class App extends React.Component<appProps, appState> {
 
                                         console.log(defaultGraph);
                                         console.log(defaultGraph["nodes"]);
+                                        graphToElements(defaultGraph).nodes.forEach((v) => console.log(v))
 
                                         this.lastNodeId = defaultGraph.nodes.length;
                                         this.setState({
                                             computerType: computerType,
-                                            elements: defaultGraph
-                                        }, () => this.updateGraph());
+                                            elements: graphToElements(defaultGraph)
+                                        }
+                                            , () => this.updateGraph()
+                                        );
                                     }}
                                 />
 
                                 {this.state.popout}
 
                                 <SavingPopout open={this.state.savePopoutOpen}
-                                              onClose={this.closeSavePopout}
-                                              isLogin={this.state.isLogin}
-                                              onAuthFailed={this.logout}
-                                              graph={this.state.elements}
-                                              computerType={this.state.computerType!}/>
+                                    onClose={this.closeSavePopout}
+                                    isLogin={this.state.isLogin}
+                                    onAuthFailed={this.logout}
+                                    graph={elementsToGraph(this.state.elements)}
+                                    computerType={this.state.computerType!} />
 
                                 <div className="hint-container">
                                     <Paper className="hint" variant="outlined">
                                         Ctrl+S — сохранить автомат
                                     </Paper>
                                     <Paper className="hint" variant="outlined">
-                                        Удерживайте Shift чтобы создать ребро
+                                        Удерживайте Ctrl чтобы создать ребро
                                     </Paper>
                                     <Paper className="hint" variant="outlined">
                                         Двойное нажатие чтобы создать вершину
                                     </Paper>
+                                    <Paper className="hint" variant="outlined">
+                                        ПКМ для открытия контекстного меню
+                                    </Paper>
                                 </div>
-
-
-                                {
-                                        this.state.computerType === "tm" ?
-                                            <div className="app__mem_ribbon">
-                                                    {
-                                                        this.state.mem?.map((value, index) =>
-                                                            <div
-                                                                className="app__mem_cell"
-                                                                style={{border: `${index === this.state.ptr ? "#0041d0" : "#000000" } 2px solid`}}
-                                                            >
-
-                                                                {Math.abs (Math.abs(index) - Math.abs(this.state.ptr!)) <= 5  ? <div ref={this.memRef}/> : <div/>}
-                                                                {value}
-                                                                {this.memRef?.current?.scrollIntoView({behavior: 'smooth'})                                                                }
-                                                            </div>
-                                                        )
-                                                    }
-                                            </div>
-                                        : <div/>
-                                    }
-
+                                <NonDetermenisticModal
+                                    isNonDetermenistic={this.state.errIsNonDetermenistic}
+                                    setIsNonDetermenistic={this.setIsNonDetermenistic}
+                                />
+                                <NonMinimizableModal
+                                    isNonMinimizable={this.state.errIsNonMinimizable}
+                                    setIsNonMinimizable={this.setIsNonMinimizable}
+                                />
+                                <Ribbon
+                                    computerType={this.state.computerType}
+                                    wasComputerResetted={this.state.wasComputerResetted}
+                                    mem={this.state.mem}
+                                    ptr={this.state.ptr}
+                                />
 
                                 <AppHeader
                                     onMenuButtonClicked={this.openWelcomePopout}
@@ -488,15 +800,38 @@ class App extends React.Component<appProps, appState> {
                                     isLogin={this.state.isLogin}
                                 />
 
+
                                 <div className="field__container">
-                                    <Graph
-                                        getNetwork={(network: any) => this.network = network}
-                                        graph={{nodes: [], edges: []}}
-                                        options={this.state.options}
-                                        events={this.events}
+                                    <VisNetwork
+                                        nodes={this.state.elements.nodes}
+                                        edges={this.state.elements.edges}
+                                        data={this.state.elements}
+                                        onDoubleClick={this.createNode}
+                                        onClick1={this.selectEdge}
+                                        onClick2={this.selectNode}
+                                        onClick3={this.deselectNode}
+                                        onClick4={this.deselectEdge}
+                                        network={this.network}
+                                        contextMenu={this.ContextMenu(this.state.computerType)}
                                     />
                                 </div>
 
+                                {this.state.showTree ?
+                                    <div className="eval-tree">
+                                        <VNC
+                                            nodes={this.state.treeElems.nodes}
+                                            edges={this.state.treeElems.edges}
+                                            data={this.state.treeElems}
+                                            onDoubleClick={this.createNode}
+                                            onClick1={this.selectEdge}
+                                            onClick2={this.selectNode}
+                                            onClick3={this.deselectNode}
+                                            onClick4={this.deselectEdge}
+                                            network={this.networkTST}
+                                            contextMenu={this.ContextMenu(this.state.computerType)}
+                                        />
+                                    </div>
+                                    : <div />}
                                 <div className="app__right-menu">
                                     <NodeControl
                                         node={this.state.selectedNode}
@@ -504,16 +839,41 @@ class App extends React.Component<appProps, appState> {
                                         changeStateIsAdmit={this.changeStateIsAdmit}
                                         changeStateIsInitial={this.changeStateIsInitial}
                                         deleteNode={this.deleteNode}
+                                        reinitComputer={computerAction.init}
+
                                     />
                                     <EdgeControl
                                         edge={this.state.selectedEdge}
                                         changeEdgeTransitions={this.changeEdgeTransition}
                                         deleteEdge={this.deleteEdge}
+                                        computerType={this.state.computerType}
+                                        reinitComputer={computerAction.init}
                                     />
                                     <RunControl
-                                        updMem = {this.updMem}
+                                        updMem={this.updMem}
                                         elements={this.state.elements}
+                                        treeElems={this.state.treeElems}
+                                        createHistNode={this.createHistNode}
+                                        createHistEdge={this.createHistEdge}
+                                        getLastHistNodeId={this.getLastHistNodeId}
+                                        resetHistTree={this.resetHistTree}
                                         changeStateIsCurrent={this.changeStateIsCurrent}
+                                        network={this.network}
+                                        setInit={(f: () => void) => computerAction.init = f}
+                                        setNfaToDfa={(f: () => void) => computerAction.nfaToDfa = f}
+                                        setMinimizeDfa={(f: () => void) => computerAction.minimizeDfa = f}
+                                        setMooreToMealy={(f: () => void) => computerAction.mooreToMealy = f}
+                                        setMealyToMoore={(f: () => void) => computerAction.mealyToMoore = f}
+                                        updateElements={(elements: Elements) => this.setState({ elements: elements }, () => this.updateGraph())}
+                                        setComputerType={(type: null | ComputerType) => this.setState({ computerType: type })}
+                                        setResettedStatus={(status: boolean) => this.setState({ wasComputerResetted: status })}
+                                        setByEmptyStack={(byEmptyStack: boolean) => this.setState({ byEmptyStack: byEmptyStack })}
+                                        setChangerByStack={(f: () => void) => controlAction.changerByStack = f}
+                                        setRun={(f: () => void) => controlAction.run = f}
+                                        setStep={(f: () => void) => controlAction.step = f}
+                                        setReset={(f: () => void) => controlAction.reset = f}
+                                        setIsNonDetermenistic={this.setIsNonDetermenistic}
+                                        setIsNonMinimizable={this.setIsNonMinimizable}
                                     />
                                 </div>
 

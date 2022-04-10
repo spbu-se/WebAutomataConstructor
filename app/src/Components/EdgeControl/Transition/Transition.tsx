@@ -9,6 +9,7 @@ export interface TransitionProps extends AllHTMLAttributes<HTMLElement> {
     transition: TransitionParams[],
     active: boolean,
     deleteTransition: () => void
+    computerType: any
 }
 
 class Transition extends React.Component<TransitionProps, {}> {
@@ -26,7 +27,7 @@ class Transition extends React.Component<TransitionProps, {}> {
             >
                 {active ? <HighlightOffIcon className="transition__remove" onClick={() => deleteTransition()}/> : null}
                 {/*{transition.map(value => value.title)}*/}
-                {getTransitionsTitles(new Set<TransitionParams[]>([transition])) }
+                {getTransitionsTitles(new Set<TransitionParams[]>([transition]), this.props.computerType)}
             </div>
         );
     }

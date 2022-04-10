@@ -26,6 +26,8 @@ var __assign = (this && this.__assign) || function () {
 exports.__esModule = true;
 var IGraphTypes_1 = require("./IGraphTypes");
 var PDA_1 = require("./PDA");
+var Computer_1 = require("./Computer");
+var Exceptions_1 = require("./Exceptions");
 var TMMemory = /** @class */ (function () {
     function TMMemory() {
         this.storage = ['_'];
@@ -124,7 +126,7 @@ var TM = /** @class */ (function (_super) {
                     stmt: _this.statements.get(_this.startStatements[0].id)
                 }];
         };
-        _this.run = function () {
+        _this.mtTrun = function () {
             throw Error("TM run");
         };
         _this.setInput = function (input) {
@@ -140,12 +142,27 @@ var TM = /** @class */ (function (_super) {
                 }];
             console.log(_this.curPosition);
         };
-        _this.step = function () {
+        _this.mtStep = function () {
             console.log("STPMT");
             var ret = _this.__step(_this.counterSteps, 0, _this.historiStep);
             _this.counterSteps = ret.counter;
             _this.historiStep = ret.history;
+            if (ret.history[ret.history.length - 1].by === "") {
+                ret.nodes = [];
+            }
             return __assign(__assign({}, ret), { memory: _this.mem.getStorage() });
+        };
+        _this.step = function () {
+            if (!_this.isDeterministic()) {
+                throw new Exceptions_1.NonDeterministic();
+            }
+            return _this.mtStep();
+        };
+        _this.run = function () {
+            if (!_this.isDeterministic()) {
+                throw new Exceptions_1.NonDeterministic();
+            }
+            return _this.mtTrun();
         };
         _this.checkMemFormat(graph);
         // if (!this.isDeterministic()) {
@@ -178,9 +195,42 @@ var TM = /** @class */ (function (_super) {
     TM.prototype.assignCurMt = function (newPos) {
         this.curPosition[0] = newPos;
     };
+    TM.prototype.isDeterministic = function () {
+        var ret = true;
+        this.matrix.forEach(function (line) { return line.forEach(function (cells) {
+            var fstCell = cells[0];
+            var isEquals = function (stPush0, stPush1) {
+                if (!stPush0 || !stPush1) {
+                    return false;
+                }
+                if (stPush0.length !== stPush1.length) {
+                    return false;
+                }
+                return stPush0.reduce(function (acc, v, index) { return acc && stPush0[index] === stPush1[index]; }, true);
+            };
+            var hasDublicates = cells.reduce(function (acc, stmt, index) {
+                return index !== 0 &&
+                    (acc || (stmt.stackDown === fstCell.stackDown && isEquals(stmt.stackPush, fstCell.stackPush)));
+            }, false);
+            if (cells.length > 1 && hasDublicates) {
+                ret = false;
+            }
+        }); });
+        return ret;
+    };
     return TM;
 }(PDA_1.PDA));
 exports.TM = TM;
+var nfa = new TM({
+    nodes: [
+        { id: 1, isAdmit: false },
+        { id: 2, isAdmit: false },
+    ],
+    edges: [
+        { from: 1, to: 2, transitions: new Set([[{ title: Computer_1.EPS, stackDown: '0', stackPush: ['0'], move: IGraphTypes_1.Move.R }, { title: Computer_1.EPS, stackDown: '1', stackPush: ['1'], move: IGraphTypes_1.Move.R }]]) },
+    ]
+}, [{ id: 1, isAdmit: false }], ['1']);
+console.log(nfa.isDeterministic());
 // let nfa = new TM(
 //     {
 //         nodes: [

@@ -27,14 +27,29 @@ exports.__esModule = true;
 var Computer_1 = require("./Computer");
 var Stack_1 = require("./Stack");
 var lodash_1 = require("lodash");
+var Exceptions_1 = require("./Exceptions");
 var PDA = /** @class */ (function (_super) {
     __extends(PDA, _super);
+    // isDeterministic0(): boolean {
+    //     let ret = true
+    //     this.matrix.forEach(value => {
+    //         value.forEach(value1 => {
+    //             if (value1.length > 1) {
+    //                 let tmp: statementCell = value1[0]
+    //                 value1.forEach((value2, index) => {
+    //                     if (index !== 0 && tmp.stackDown === undefined && value2.stackDown || index !== 0 && tmp.stackDown === value2.stackDown ) {
+    //                         ret = false
+    //                     }
+    //                 })
+    //             }
+    //         })
+    //     })
+    //     return ret && (!this.haveEpsilon())
+    // }
     function PDA(graph, startStatements, input, byEmpty) {
         var _this = _super.call(this, graph, startStatements) || this;
-        _this.matrix = [];
+        // protected matrix: statementCells[][] = []
         _this.stack = new Stack_1.Stack();
-        _this.historiStep = [];
-        _this.historiRun = [];
         _this.setInput = function (input) {
             _this.input = [];
             input.forEach(function (value) {
@@ -42,31 +57,47 @@ var PDA = /** @class */ (function (_super) {
             });
             _this.restart();
         };
+        _this.haveEpsilon = function () {
+            return _this.epsId !== undefined;
+        };
         _this.byEmptyStackAdmt = function (isAdmt) {
             _this.admitByEmptyStack = isAdmt;
         };
-        _this.step = function () {
+        _this.treeHist = [];
+        _this.pdaStep = function () {
             var _a;
-            var ret = _this._step(_this.counterSteps, _this.alphabet.get((_a = _this.input[_this.counterSteps]) === null || _a === void 0 ? void 0 : _a.value), _this.historiStep);
+            var histUnit = [];
+            var ret = _this._step(_this.counterSteps, _this.alphabet.get((_a = _this.input[_this.counterSteps]) === null || _a === void 0 ? void 0 : _a.value), _this.historiStep, histUnit);
             _this.counterSteps = ret.counter;
             _this.historiStep = ret.history;
+            _this.treeHist = ret.tree ? ret.tree : [];
             console.log("STEP stck: ");
             ret.history.forEach(function (value) { return value.nodes.forEach(function (value1) { return console.log(value1.stack); }); });
             console.log("STEP admit: ");
             console.log(ret.isAdmit);
             return ret;
         };
-        _this.run = function () {
+        _this.pdaRun = function () {
             _this.historiRun = [];
             _this.counterStepsForResult = 0;
+            var histUnit = [];
             for (var i = 0; i < _this.input.length - 1; i++) {
-                var tmp = _this._step(_this.counterStepsForResult, _this.alphabet.get(_this.input[_this.counterStepsForResult].value), _this.historiRun);
+                var tmp = _this._step(_this.counterStepsForResult, _this.alphabet.get(_this.input[_this.counterStepsForResult].value), _this.historiRun, histUnit);
                 _this.counterStepsForResult = tmp.counter;
                 _this.historiRun = tmp.history;
             }
-            return _this._step(_this.counterStepsForResult, _this.alphabet.get(_this.input[_this.counterStepsForResult].value), _this.historiRun);
+            return _this._step(_this.counterStepsForResult, _this.alphabet.get(_this.input[_this.counterStepsForResult].value), _this.historiRun, histUnit);
         };
-        _this._step = function (counter, tr, histori) {
+        _this.step = _this.pdaStep;
+        _this.run = _this.pdaRun;
+        // (): Step => {
+        //     return { counter: 0, history: [], isAdmit: false, nodes: [] }
+        // }
+        // this.pdaRun
+        _this._step = function (counter, tr, histori, unitHsit) {
+            var byEpsPred = [];
+            var byEpsAfter = [];
+            var byLetter = [];
             var newPosSet = [];
             var updCurPos = function () {
                 _this.curPosition = [];
@@ -76,13 +107,13 @@ var PDA = /** @class */ (function (_super) {
             var epsStep = function () {
                 _this.curPosition.forEach(function (value) {
                     var _a;
-                    var pPos = _this.epsilonStep(value.stmt.idLogic, (_a = value.stack) === null || _a === void 0 ? void 0 : _a.peek(), value.stack);
+                    var pPos = _this.epsilonStep(value.stmt.idLogic, (_a = value.stack) === null || _a === void 0 ? void 0 : _a.peek(), value.stack, unitHsit);
                     pPos === null || pPos === void 0 ? void 0 : pPos.forEach(function (value1) { return newPosSet.push(value1); });
                 });
             };
             var letterSter = function () {
                 _this.curPosition.forEach(function (value) {
-                    var pPos = _this.letterStep(tr, value.stmt.idLogic, value.stack.peek(), value.stack);
+                    var pPos = _this.letterStep(tr, value.stmt.idLogic, value.stack.peek(), value.stack, unitHsit);
                     pPos.forEach(function (value1) { return newPosSet.push(value1); });
                 });
             };
@@ -90,9 +121,12 @@ var PDA = /** @class */ (function (_super) {
                 var htable = new Map();
                 var positions = [];
                 _this.curPosition.forEach(function (value) {
-                    if (htable.get(JSON.stringify(value)) === undefined) {
+                    var v = {
+                        stmt: value.stmt, stack: value.stack
+                    };
+                    if (htable.get(JSON.stringify(v)) === undefined) {
                         positions.push(value);
-                        htable.set(JSON.stringify(value), value);
+                        htable.set(JSON.stringify(v), value);
                     }
                 });
                 _this.curPosition = [];
@@ -101,13 +135,19 @@ var PDA = /** @class */ (function (_super) {
             if (_this.epsId !== undefined) {
                 epsStep();
                 updCurPos();
+                rmRepeations();
+                _this.toNodes(_this.curPosition).forEach(function (v) { return byEpsPred.push(v); });
             }
             if (counter < _this.input.length) {
                 letterSter();
                 updCurPos();
+                rmRepeations();
+                _this.toNodes(_this.curPosition).forEach(function (v) { return byLetter.push(v); });
                 if (_this.epsId !== undefined) {
                     epsStep();
                     updCurPos();
+                    rmRepeations();
+                    _this.toNodes(_this.curPosition).forEach(function (v) { return byEpsAfter.push(v); });
                 }
             }
             else {
@@ -118,11 +158,14 @@ var PDA = /** @class */ (function (_super) {
                 //     console.log(value.stack)
                 // })
                 // console.log(":::::::::::::::::::")
+                _this.treeHist.push(unitHsit);
                 return {
                     nodes: _this.toNodes(_this.curPosition),
                     counter: counter,
                     isAdmit: _this.haveAdmitting(_this.curPosition),
-                    history: histori
+                    history: histori,
+                    tree: _this.treeHist,
+                    byEpsPred: byEpsPred, byEpsAfter: byEpsAfter, byLetter: byLetter
                 };
             }
             rmRepeations();
@@ -134,17 +177,21 @@ var PDA = /** @class */ (function (_super) {
             // console.log(":::::::::::::::::::")
             histori.push({ nodes: _this.toNodes(_this.curPosition), by: _this.input[counter].value });
             counter++;
+            _this.treeHist.push(unitHsit);
             return {
                 nodes: _this.toNodes(_this.curPosition),
                 counter: counter,
                 isAdmit: _this.haveAdmitting(_this.curPosition),
-                history: histori
+                history: histori,
+                tree: _this.treeHist,
+                byEpsPred: byEpsPred, byEpsAfter: byEpsAfter, byLetter: byLetter
             };
         };
         _this.restart = function () {
             _this.counterSteps = 0;
             _this.historiStep = [];
             _this.curPosition = [];
+            _this.treeHist = [];
             _this.startStatements.forEach(function (value) {
                 var stack = new Stack_1.Stack();
                 stack.push(Computer_1.BOTTOM);
@@ -156,164 +203,249 @@ var PDA = /** @class */ (function (_super) {
         };
         // move to Nfa
         _this.nfaToDfa = function () {
-            _this.restart();
-            var start = _this.curPosition;
-            var dfaStmts = new ImSet();
-            var tmp = [];
-            var i = 0;
-            var dfaMatrix = [];
-            dfaStmts.add(_this.curPosition);
-            while (i < dfaStmts.size()) {
-                _this.curPosition = dfaStmts.getNth(i);
-                _this.alphabet.forEach(function (value) {
-                    _this._step(0, value, []);
-                    if (_this.curPosition.length > 0) {
-                        dfaStmts.add(_this.curPosition);
-                    }
-                    tmp.push(_this.curPosition);
-                    _this.curPosition = dfaStmts.getNth(i);
-                });
-                dfaMatrix.push(tmp);
-                tmp = [];
-                i++;
-            }
-            var nodes = [];
-            var edges = [];
-            var mp = new Map();
-            dfaStmts.myForEach(function (value, index) {
-                mp.set(JSON.stringify(value), index);
-                var isAdmt = _this.haveAdmitting(value);
-                nodes.push({ id: index, isAdmit: isAdmt });
-            });
-            dfaStmts.myForEach(function (value, index) {
-                _this.alphabet.forEach(function (value1, key) {
-                    var from = mp.get(JSON.stringify(value));
-                    var to = mp.get(JSON.stringify(dfaMatrix[from][value1]));
-                    if (to !== undefined) {
-                        edges.push({ from: from, to: to, transitions: new Set([[{ title: key }]]) });
-                    }
-                });
-            });
-            var _edges = [];
-            nodes.forEach(function (value) { return nodes.forEach(function (value1) {
+            var nextStepPosition = function (position, by) {
+                return _this.cellMatrix(position.stmt.idLogic, by).map(function (v) { return ({ stmt: v }); });
+            };
+            var _nextStepPositions = function (positions, by) {
                 var acc = [];
-                edges.forEach(function (value2) {
-                    if (value.id === value2.from && value1.id === value2.to) {
-                        acc.push(Array.from(value2.transitions)[0][0]);
-                        // console.log("->>", acc)
+                positions.map(function (v) {
+                    return nextStepPosition(v, by);
+                }).forEach(function (ps) {
+                    return ps.forEach(function (p) { return acc.push(p); });
+                });
+                return acc;
+            };
+            var nextStepPositions = function (positions, by) {
+                var afterEps = function (positions) {
+                    if (_this.epsId === undefined) {
+                        return positions;
+                    }
+                    var acc = [];
+                    var EPStack = new Stack_1.Stack();
+                    EPStack.push(Computer_1.EPS);
+                    positions.forEach(function (position) {
+                        var tmp = _this.epsilonStep(position.stmt.idLogic, Computer_1.EPS, EPStack, []);
+                        if (tmp !== undefined) {
+                            acc.push(tmp);
+                        }
+                    });
+                    var flatted = [];
+                    acc.forEach(function (ps) { return ps.forEach(function (p) { return flatted.push(p); }); });
+                    return flatted;
+                };
+                return afterEps(_nextStepPositions(afterEps(positions), by));
+            };
+            var pop = function () { return stack.shift(); };
+            var push = function (v) {
+                stack.push(v);
+            };
+            var stack = [];
+            var table = [];
+            var set = new ImSet();
+            var startPos = _this.curPosition;
+            _this.restart();
+            push(startPos);
+            var _loop_1 = function () {
+                var head = pop();
+                var acc = [];
+                if (head === undefined || head.length === 0) {
+                    return "break";
+                }
+                if (set.has(head)) {
+                    return "continue";
+                }
+                set.add(head.map(function (v) { return ({
+                    stmt: {
+                        id: v.stmt.id,
+                        idLogic: v.stmt.idLogic,
+                        isAdmit: v.stmt.isAdmit
+                    },
+                    stack: undefined
+                }); }));
+                _this.alphabet.forEach(function (value) {
+                    if (value !== _this.epsId) {
+                        var to = nextStepPositions(head, value);
+                        var _to = to.map(function (v) { return ({
+                            stmt: {
+                                id: v.stmt.id,
+                                idLogic: v.stmt.idLogic,
+                                isAdmit: v.stmt.isAdmit
+                            },
+                            stack: undefined
+                        }); });
+                        acc.push(_to);
+                        if (to.length > 0 && !set.has(to) && !set.has(_to)) {
+                            push(_to);
+                        }
                     }
                 });
-                if (acc.length > 0) {
-                    _edges.push({ from: value.id, to: value1.id, transitions: new Set([acc]) });
-                    // console.log("->>", value.id, value1.id, acc)
-                }
+                table.push(acc);
+            };
+            while (stack.length > 0) {
+                var state_1 = _loop_1();
+                if (state_1 === "break")
+                    break;
+            }
+            var _edges = [];
+            table.forEach(function (ps, from) {
+                _this.alphabet.forEach(function (tr, letter) {
+                    if (tr !== _this.epsId && ps[tr].length !== 0) {
+                        console.log(ps[tr]);
+                        console.log(from, set.getIter(ps[tr]));
+                        _edges.push({
+                            from: from,
+                            to: set.getIter(ps[tr]),
+                            transitions: new Set([[{ title: letter }]])
+                        });
+                    }
+                });
+            });
+            var nodes = set.getStorage().map(function (v) { return ({
+                id: set.getIter(v),
+                isAdmit: _this.haveAdmitting(v)
             }); });
-            return { nodes: nodes, edges: _edges };
+            var edges = [];
+            _edges.sort(function (a, b) { return a.from - b.from || a.to - b.to; });
+            for (var i = 0; i < _edges.length; i++) {
+                var acc = [];
+                var delta = 0;
+                for (var j = i; j < _edges.length; j++) {
+                    if (_edges[i].from === _edges[j].from && _edges[i].to === _edges[j].to) {
+                        acc.push(Array.from(_edges[j].transitions)[0][0]);
+                        delta++;
+                    }
+                }
+                edges.push({
+                    from: _edges[i].from,
+                    to: _edges[i].to,
+                    transitions: new Set([acc])
+                });
+                i += delta - 1;
+            }
+            return { nodes: nodes, edges: edges };
         };
         //https://www.usna.edu/Users/cs/wcbrown/courses/F17SI340/lec/l22/lec.html
-        // move to Dfa
         _this.minimizeDfa = function () {
             _this.restart();
-            var groups = [];
-            groups.push(new ImSet());
-            groups.push(new ImSet());
-            var gTable = _this.matrix.map(function (value) { return value.map(function (value1) { return ({ group: -1, value: value1[0] }); }); });
-            _this.statements.forEach(function (value) {
-                if (value.isAdmit) {
-                    groups[0].add([value.idLogic]);
+            var startId = _this.curPosition[0].stmt.idLogic;
+            var cutBy = function (by) {
+                var acc = [];
+                _this.matrix.forEach(function (_, it) { return acc.push(_this.cellMatrix(it, by)[0]); });
+                return acc;
+            };
+            var _lookUp = function (group) { return function (id) {
+                return group[id];
+            }; };
+            var _getJump = function (table) { return function (by) { return function (id) {
+                return table[by][id];
+            }; }; };
+            var createTableT = function (zero) {
+                var lookUp = _lookUp(zero);
+                var table = [];
+                _this.alphabet.forEach(function (tr) {
+                    var acc = [];
+                    var cutted = cutBy(tr);
+                    cutted.forEach(function (cell) {
+                        acc.push(lookUp(cell.idLogic));
+                    });
+                    table.push(acc);
+                });
+                return table;
+            };
+            var _updateGroups = function (zero) { return function (groups) { return function (getJump) { return function (group) {
+                var jmpGrp = getJump(group[0].node.idLogic).number;
+                var newGrp = [];
+                var newNumber = groups.length + 1;
+                var toRm = [];
+                group.forEach(function (value, index) {
+                    if (getJump(value.node.idLogic).number !== jmpGrp) {
+                        value.number = newNumber;
+                        toRm.push(value.node.idLogic);
+                        newGrp.push(value);
+                    }
+                });
+                for (var i = 0; i < group.length; i++) {
+                    if (toRm.includes(group[i].node.idLogic)) {
+                        group.splice(i, 1);
+                        i--;
+                    }
+                }
+                if (newGrp.length > 0) {
+                    groups.push(newGrp);
+                    return { fst: group, snd: newGrp };
+                }
+                return { fst: [], snd: [] };
+            }; }; }; };
+            var stack = [];
+            var pop = function () { return stack.shift(); };
+            var push = function (v) { return stack.push(v); };
+            var zero = [];
+            var first = [];
+            var second = [];
+            _this.statements.forEach(function (statement) {
+                var element = { number: -1, node: { idLogic: -1, id: -1, isAdmit: false } };
+                if (statement.isAdmit) {
+                    element = { number: 1, node: statement };
+                    first.push(element);
                 }
                 else {
-                    groups[1].add([value.idLogic]);
+                    element = { number: 2, node: statement };
+                    second.push(element);
+                }
+                zero.push(element);
+            });
+            var byEveryLetter = _this.matrix.reduce(function (acc, line) {
+                return acc && line.reduce(function (accLine, cells) { return accLine && cells.length > 0; }, acc);
+            }, true);
+            if (first.length < 1 || !byEveryLetter) {
+                console.log('CATHTHT');
+                throw new Exceptions_1.NonMinimizable();
+            }
+            // плюс если есть пробелы в таблице!
+            var groups = [];
+            groups.push(first);
+            groups.push(second);
+            var table = createTableT(zero);
+            _this.alphabet.forEach(function (tr) {
+                groups.forEach(function (stmt) { return push(stmt); });
+                var getJump = _getJump(table)(tr);
+                var updateGroups = _updateGroups(zero)(groups)(getJump);
+                while (stack.length > 0) {
+                    var head = pop();
+                    if (head === undefined) {
+                        break;
+                    }
+                    var newGrp = updateGroups(head);
+                    if (newGrp.fst.length > 0) {
+                        push(newGrp.fst);
+                        push(newGrp.snd);
+                    }
                 }
             });
-            gTable.forEach(function (value) { return value.forEach(function (value1) {
-                if (value1.value.isAdmit) {
-                    value1.group = 0;
-                    groups[0].add([value1.value.idLogic]);
-                }
-                else {
-                    value1.group = 1;
-                    groups[1].add([value1.value.idLogic]);
-                }
-            }); });
-            var mkGrp = function (i, gTable) {
-                var h = groups[i].getNth(0)[0];
-                var rs = JSON.stringify(gTable[h].map(function (value) { return value.group; }));
-                var newGrp = new ImSet();
-                gTable.forEach(function (value, index) {
-                    if (rs === JSON.stringify(value.map(function (value1) { return value1.group; })) && groups[i].has([index])) {
-                        newGrp.add([index]);
-                    }
-                });
-                return newGrp;
-            };
-            var filter = function (arr, el) {
-                var upd = new ImSet();
-                arr.myForEach(function (value) {
-                    if (value[0] !== el[0]) {
-                        upd.add(value);
-                    }
-                });
-                return upd;
-            };
-            var q = new Queue();
-            groups.forEach(function (value, index) { return q.enqueue(index); });
-            var _loop_1 = function () {
-                var id = q.dequeue();
-                if (id !== undefined) {
-                    var grp = mkGrp(id, gTable);
-                    if (groups[id].size() > grp.size()) {
-                        q.enqueue(groups.length);
-                        q.enqueue(id);
-                        groups.push(grp);
-                        groups[groups.length - 1].myForEach(function (value, index) {
-                            if (id !== undefined) {
-                                groups[id] = filter(groups[id], groups[groups.length - 1].getNth(index));
-                            }
-                        });
-                        groups = groups.filter(function (value) { return value.size() > 0; });
-                        gTable.forEach(function (gtvalue, index) { return gtvalue.forEach(function (gtvalue1) {
-                            if (groups[groups.length - 1].has([gtvalue1.value.idLogic])) {
-                                gtvalue1.group = groups.length - 1;
-                            }
-                        }); });
-                    }
-                }
-            };
-            while (q.size() > 0) {
-                _loop_1();
-            }
-            var gt = groups.map(function (value) { return gTable[value.getNth(0)[0]].map(function (value1) { return ({ g: value1.group, admt: value1.value.isAdmit }); }); });
-            var nodes = groups.map(function (value, index) { return ({ id: index, isAdmit: index === 0 }); });
-            var edges = [];
-            gt.forEach(function (value, index) {
-                _this.alphabet.forEach(function (n, lt) {
-                    edges.push({
-                        from: index,
-                        to: value[n].g,
-                        transitions: new Set([[{ title: lt }]])
+            var toPositions = function (group) { return group.map(function (g) { return ({ stmt: g.node }); }); };
+            var grpAfterJmp = function (group, by) { return _getJump(table)(by)(group[0].node.idLogic).number; };
+            var nodes = groups.map(function (group) { return ({ id: group[0].number, isAdmit: _this.haveAdmitting(toPositions(group)) }); });
+            var edges = groups.reduce(function (acc, g) {
+                _this.alphabet.forEach(function (tr, letter) {
+                    acc.push({
+                        from: g[0].number,
+                        to: grpAfterJmp(g, tr),
+                        transitions: new Set([[{ title: letter }]])
                     });
                 });
+                return acc;
+            }, []);
+            console.log(nodes);
+            var startGrp = groups.filter(function (g) {
+                var gIds = g.map(function (v) { return v.node.idLogic; });
+                return gIds.includes(startId);
             });
-            var _edges = [];
-            nodes.forEach(function (value) { return nodes.forEach(function (value1) {
-                var acc = [];
-                edges.forEach(function (value2) {
-                    if (value.id === value2.from && value1.id === value2.to) {
-                        acc.push(Array.from(value2.transitions)[0][0]);
-                        // console.log("->>", acc)
-                    }
-                });
-                if (acc.length > 0) {
-                    _edges.push({ from: value.id, to: value1.id, transitions: new Set([acc]) });
-                    // console.log("->>", value.id, value1.id, acc)
-                }
-            }); });
-            return { nodes: nodes, edges: _edges };
+            var start = nodes[startGrp[0][0].number - 1];
+            return { graphcore: { nodes: nodes, edges: edges }, start: start };
         };
         _this.admitByEmptyStack = byEmpty;
         _this.epsId = _this.alphabet.get(Computer_1.EPS);
-        _this.createMatrix();
+        // this.createMatrix()
         // this.matrix.forEach(value => {
         //     value.forEach(value1 => value1.forEach(value2 => {
         //         console.log(value2.idLogic)
@@ -325,6 +457,7 @@ var PDA = /** @class */ (function (_super) {
         // })
         _this.stack.push(Computer_1.BOTTOM);
         _this.curPosition = []; //{stack: new Stack<string>(), stmt: startStatements}
+        _this.treeHist = [];
         startStatements.forEach(function (value) {
             var stack = new Stack_1.Stack();
             stack.push(Computer_1.BOTTOM);
@@ -338,7 +471,7 @@ var PDA = /** @class */ (function (_super) {
             _this.curPosition.forEach(function (value) {
                 _this.cycleEps(value.stmt.idLogic, value.stack);
             });
-            // this.cycleEps(this.curPosition[0].stmt.idLogic, this.curPosition[0].stack!)
+            ////// this.cycleEps(this.curPosition[0].stmt.idLogic, this.curPosition[0].stack!)
         } //
         console.log('-------------------------');
         console.log(_this.isDeterministic());
@@ -354,40 +487,6 @@ var PDA = /** @class */ (function (_super) {
         console.log('-------------------------');
         return _this;
     }
-    PDA.prototype.createMatrix = function () {
-        for (var i = 0; i < this.statements.size; i++) {
-            this.matrix[i] = [];
-            for (var j = 0; j < this.alphabet.size; j++) {
-                this.matrix[i][j] = []; //{idLogic: -1, id: -1, isAdmit: false, stackDown: "empty", stackPush: []}
-            }
-        }
-        for (var i = 0; i < this.edges.length; i++) {
-            var statementFrom = this.statements.get(this.edges[i].from);
-            var statementTo = this.statements.get(this.edges[i].to);
-            for (var j = 0; j < this.edges[i].localValue.length; j++) {
-                var letterId = this.alphabet.get(this.edges[i].localValue[j].title);
-                // console.log(letterId)
-                var stDwn = this.edges[i].localValue[j].stackDown;
-                var stPsh = this.edges[i].localValue[j].stackPush;
-                var mv = this.edges[i].localValue[j].move;
-                if (stDwn === undefined || stPsh === undefined || stDwn === "" || stPsh.length === 0) {
-                    stDwn = Computer_1.EPS;
-                    stPsh = [Computer_1.EPS];
-                }
-                // console.log(statementTo.move)
-                this.matrix[statementFrom.idLogic][letterId].push(__assign(__assign({}, statementTo), { stackDown: stDwn, stackPush: stPsh, move: mv }));
-            }
-        }
-        this.alphabet.forEach(function (value, key) { return console.log(value, ' ', key); });
-        this.statements.forEach(function (value) { return console.log(value); });
-        this.matrix.forEach(function (value) {
-            console.log();
-            value.forEach(function (value1) { return console.log(value1); });
-        });
-    };
-    PDA.prototype.cellMatrix = function (i, j) {
-        return this.matrix[i][j];
-    };
     PDA.prototype.copyPushList = function (value) {
         var _a;
         var cpy = [];
@@ -489,7 +588,9 @@ var PDA = /** @class */ (function (_super) {
         var positions = [];
         var visited = [];
         this.cellMatrix(curLId, this.epsId).forEach(function () { return visited.push(false); });
-        var permutes = this.cellMatrix(curLId, this.epsId)[0] !== undefined ? PDA.permute0(this.cellMatrix(curLId, this.epsId)) : [(this.cellMatrix(curLId, this.epsId))];
+        var permutes = this.cellMatrix(curLId, this.epsId)[0] !== undefined
+            ? PDA.permute0(this.cellMatrix(curLId, this.epsId))
+            : [(this.cellMatrix(curLId, this.epsId))];
         // permutes.push(this.cellMatrix(curLId, this.epsId))
         // let permutes: statementCell[][] = PDA.permute(this.cellMatrix(curLId, this.epsId))
         var cycle = function (cell, idx, idLogic, stack) {
@@ -523,7 +624,7 @@ var PDA = /** @class */ (function (_super) {
         });
         return positions;
     };
-    PDA.prototype.epsilonStep = function (curLId, stackDown, stack) {
+    PDA.prototype.epsilonStep = function (curLId, stackDown, stack, hist) {
         var _this = this;
         if (this.epsId === undefined) {
             return;
@@ -564,12 +665,21 @@ var PDA = /** @class */ (function (_super) {
             }
             return elements;
         };
+        var histUnit = [];
         var endsOfEpsWay = dfs(curLId, stack, stackDown, []);
         var positions = [];
         for (var i = 0; i < endsOfEpsWay.length; i++) {
             var stmt = this.statements.get(this.nodes[endsOfEpsWay[i].idLogic].id);
-            positions.push({ stmt: stmt, stack: endsOfEpsWay[i].top });
+            positions.push({
+                stmt: stmt, stack: endsOfEpsWay[i].top,
+                from: this.nodes[curLId],
+                cur: this.nodes[stmt.idLogic],
+                by: Computer_1.EPS
+                //?
+            });
+            hist.push({ by: Computer_1.EPS, from: this.nodes[curLId], value: this.nodes[stmt.idLogic] });
         }
+        // hist.push(histUnit)
         return positions;
     };
     PDA.prototype.matchPushEpsVal = function (value, newStack) {
@@ -589,49 +699,66 @@ var PDA = /** @class */ (function (_super) {
         if (value.stackPush[0] === Computer_1.EPS && value.stackPush.length !== 1) {
             throw Error("pushing list should be consist by [EPS] for 'pop'");
         }
-        else if (value.stackPush[0] !== Computer_1.EPS) { //??
+        else if (value.stackPush[0] !== Computer_1.EPS) {
             var pushVals = this.copyPushList(value);
             this.pushReverse(pushVals, newStack);
         }
     };
-    PDA.prototype.letterStep = function (transformedInput, curLId, stackDown, stack) {
+    PDA.prototype.letterStep = function (transformedInput, curLId, stackDown, stack, hist) {
         var _this = this;
         var positions = [];
+        var histUnit = [];
+        var getLetter = function (id) {
+            var ret;
+            _this.alphabet.forEach(function (v, k) {
+                if (id === v) {
+                    ret = k;
+                }
+            });
+            return ret;
+        };
         this.cellMatrix(curLId, transformedInput).forEach(function (value) {
             switch (value.stackDown) {
                 case stackDown: {
                     var newStack = stack.cpyTo(new Stack_1.Stack());
                     _this.matchPushEpsVal(value, newStack);
-                    positions.push({ stmt: _this.statements.get(value.id), stack: newStack });
+                    positions.push({
+                        stmt: _this.statements.get(value.id), stack: newStack,
+                        from: _this.nodes[curLId],
+                        cur: _this.nodes[value.idLogic],
+                        by: getLetter(transformedInput)
+                        //? 
+                    });
+                    hist.push({ by: getLetter(transformedInput), from: _this.nodes[curLId], value: _this.nodes[value.idLogic] });
                     break;
                 }
                 case Computer_1.EPS: {
                     var newStack = stack.cpyTo(new Stack_1.Stack());
                     _this.matchDownEpsVal(value, newStack);
-                    positions.push({ stmt: _this.statements.get(value.id), stack: newStack });
+                    positions.push({
+                        stmt: _this.statements.get(value.id), stack: newStack,
+                        from: _this.nodes[curLId],
+                        cur: _this.nodes[value.idLogic],
+                        by: getLetter(transformedInput)
+                        //? 
+                    });
+                    hist.push({ by: getLetter(transformedInput), from: _this.nodes[curLId], value: _this.nodes[value.idLogic] });
                     break;
                 }
             }
         });
+        // hist.push(histUnit)
         return positions;
-    };
-    PDA.prototype.haveEpsilon = function () {
-        return this.epsId !== undefined;
     };
     PDA.prototype.isDeterministic = function () {
         var ret = true;
-        this.matrix.forEach(function (value) {
-            value.forEach(function (value1) {
-                if (value1.length > 1) {
-                    var tmp_1 = value1[0];
-                    value1.forEach(function (value2, index) {
-                        if (index !== 0 && tmp_1.stackDown === undefined && value2.stackDown || index !== 0 && tmp_1.stackDown === value2.stackDown) {
-                            ret = false;
-                        }
-                    });
-                }
-            });
-        });
+        this.matrix.forEach(function (line) { return line.forEach(function (cells) {
+            var fstCell = cells[0];
+            var hasDublicates = cells.reduce(function (acc, stmt) { return acc || (stmt.stackDown === fstCell.stackDown); }, false);
+            if (cells.length > 1 && hasDublicates) {
+                ret = false;
+            }
+        }); });
         return ret && (!this.haveEpsilon());
     };
     PDA.prototype.haveAdmitting = function (positions) {
@@ -659,7 +786,7 @@ var PDA = /** @class */ (function (_super) {
         var _this = this;
         var retNodes = [];
         positions.forEach(function (value) {
-            var temp = __assign(__assign({}, _this.nodes[value.stmt.idLogic]), { stack: value.stack.getStorage() });
+            var temp = __assign(__assign({}, _this.nodes[value.stmt.idLogic]), { stack: value.stack.getStorage(), from: value.from, cur: value.cur, by: value.by });
             retNodes.push(temp);
         });
         return retNodes;
@@ -748,23 +875,58 @@ var ImSet = /** @class */ (function () {
         });
         return iter;
     };
+    ImSet.prototype.getStorage = function () {
+        return this.set;
+    };
     return ImSet;
 }());
 exports.ImSet = ImSet;
-// let nfa = new PDA (
-//     {
-//         nodes: [
-//             {id: 0, isAdmit: false},
-//             {id: 1, isAdmit: false}
-//
-//         ],
-//         edges: [
-//             {from: 0, to: 1, transitions: new Set([    [{title:      '0', stackDown: 'Z0', stackPush: [EPS] } ]])},
-//         ]
-//     }, [{id: 0, isAdmit: false}], ["0"],
-// )
-// nfa.byEmptyStackAdmt(true)
+var nfa = new PDA({
+    nodes: [
+        // { id: 9, isAdmit: false },
+        { id: 10, isAdmit: false },
+        { id: 11, isAdmit: false },
+        { id: 12, isAdmit: false },
+        { id: 13, isAdmit: false },
+        { id: 14, isAdmit: false },
+        { id: 15, isAdmit: false },
+        { id: 16, isAdmit: false },
+        { id: 17, isAdmit: false },
+    ],
+    edges: [
+        // { from: 9, to: 10, transitions: new Set([[{ title: EPS }]]) },
+        { from: 10, to: 11, transitions: new Set([[{ title: 'a' }]]) },
+        { from: 11, to: 12, transitions: new Set([[{ title: Computer_1.EPS }]]) },
+        { from: 12, to: 13, transitions: new Set([[{ title: 'b' }]]) },
+        { from: 14, to: 15, transitions: new Set([[{ title: 'a' }]]) },
+        { from: 15, to: 16, transitions: new Set([[{ title: Computer_1.EPS }]]) },
+        { from: 16, to: 17, transitions: new Set([[{ title: 'b' }]]) },
+    ]
+}, [{ id: 10, isAdmit: false }, { id: 14, isAdmit: false }], ['a', 'a']);
+// console.log(nfa.isDeterministic())
 // nfa.step()
+var aa = nfa.step();
+console.log();
+console.log();
+console.log('Letter');
+console.log(aa.byLetter);
+console.log('byEpsPred');
+console.log(aa.byEpsPred);
+console.log('byEpsAfter');
+console.log(aa.byEpsAfter);
+// const a = nfa.step()
+// console.log()
+// console.log()
+// console.log('Letter')
+// console.log(a.byLetter)
+// console.log('byEpsPred')
+// console.log(a.byEpsPred)
+// console.log('byEpsAfter')
+// console.log(a.byEpsAfter)
+// a.tree?.forEach((v) => {
+//     v.forEach((vv) => console.log(vv.by, vv.from, vv.value))
+//     console.log()
+// })
 // let nfa = new PDA(
 //     {
 //         nodes: [

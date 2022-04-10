@@ -1,31 +1,32 @@
-import {History, position, Step} from "./Types";
-import {GraphCore, NodeCore, Move} from "./IGraphTypes";
-import {PDA} from "./PDA";
+import { History, position, Step } from "./Types";
+import { GraphCore, NodeCore, Move } from "./IGraphTypes";
+import { PDA } from "./PDA";
 import { EPS } from "./Computer";
+import { NonDeterministic } from "./Exceptions";
 
 export class TMMemory {
     private storage: string[] = ['_']
     private pointer: number = 0
 
-    getPointer (): number {
+    getPointer(): number {
         return this.pointer
     }
 
-    reset (): void {
+    reset(): void {
         this.storage = ['_']
         this.pointer = 0
     }
 
-    lookUp (): string {
+    lookUp(): string {
         return this.storage[this.pointer]
     }
 
-    initialize (init: string[]): void {
+    initialize(init: string[]): void {
         init.forEach(value => this.mvRight('_', value))
         this.pointer = 0
     }
 
-    mvRight (curr: string, upd: string): void {
+    mvRight(curr: string, upd: string): void {
         if (this.storage[this.pointer] === curr) {
             this.storage[this.pointer] = upd
             this.pointer++
@@ -35,7 +36,7 @@ export class TMMemory {
         }
     }
 
-    mvLeft (curr: string, upd: string): void {
+    mvLeft(curr: string, upd: string): void {
         if (this.pointer === 0) {
             if (this.storage[this.pointer] === curr) {
                 this.storage[this.pointer] = upd
@@ -52,7 +53,7 @@ export class TMMemory {
         }
     }
 
-    getStorage (): string[] {
+    getStorage(): string[] {
         return this.storage
     }
 
@@ -61,7 +62,7 @@ export class TMMemory {
 export class TM extends PDA {
     public mem = new TMMemory()
 
-    private checkMemFormat (graph: GraphCore): void {
+    private checkMemFormat(graph: GraphCore): void {
         let isMtMem = true
         graph.edges.forEach(value => value.transitions.forEach(value1 => {
             value1.forEach(value2 => {
@@ -89,11 +90,11 @@ export class TM extends PDA {
         console.log("MTMTMTMTMTTMMTMTMT::::::::::")
     }
 
-    private curMt (): position {
+    private curMt(): position {
         return this.curPosition[0]
     }
 
-    private assignCurMt (newPos: position): void {
+    private assignCurMt(newPos: position): void {
         this.curPosition[0] = newPos
     }
 
@@ -109,7 +110,7 @@ export class TM extends PDA {
                     this.mem.mvLeft(value.stackDown, value.stackPush![0])
                     by = value.stackDown
                 }
-                this.assignCurMt({stmt: this.statements.get(value.id)})
+                this.assignCurMt({ stmt: this.statements.get(value.id) })
             }
         })
         histori.push({
@@ -132,6 +133,31 @@ export class TM extends PDA {
         }
     }
 
+    isDeterministic(): boolean {
+        let ret = true
+        this.matrix.forEach((line) => line.forEach((cells) => {
+            const fstCell = cells[0]
+            const isEquals = (stPush0: string[] | undefined, stPush1: string[] | undefined) => {
+                if (!stPush0 || !stPush1) {
+                    return false
+                }
+                if (stPush0.length !== stPush1.length) {
+                    return false
+                }
+                return stPush0.reduce((acc, v, index) => acc && stPush0[index] === stPush1[index], true)
+            }
+            const hasDublicates = cells.reduce((acc, stmt, index) =>
+                index !== 0 &&
+                (acc || (stmt.stackDown === fstCell.stackDown && isEquals(stmt.stackPush, fstCell.stackPush)))
+                , false)
+
+            if (cells.length > 1 && hasDublicates) {
+                ret = false
+            }
+        }))
+        return ret
+    }
+
     restart = () => {
         this.counterSteps = 0
         this.historiStep = []
@@ -142,7 +168,7 @@ export class TM extends PDA {
         }]
     }
 
-    run = (): Step => {
+    mtTrun = (): Step => {
         throw Error("TM run")
     }
 
@@ -160,16 +186,19 @@ export class TM extends PDA {
         console.log(this.curPosition)
     }
 
-    step = (): Step => {
+    mtStep = (): Step => {
         console.log("STPMT")
         let ret = this.__step
-        (
-            this.counterSteps,
-            0,
-            this.historiStep
-        )
+            (
+                this.counterSteps,
+                0,
+                this.historiStep
+            )
         this.counterSteps = ret.counter
         this.historiStep = ret.history
+        if (ret.history[ret.history.length - 1].by === "") {
+            ret.nodes = []
+        }
         return {
             ...ret,
             memory: this.mem.getStorage()
@@ -177,9 +206,55 @@ export class TM extends PDA {
     }
 
 
+    step = (): Step => {
+        if (!this.isDeterministic()) {
+            throw new NonDeterministic()
+        }
+        return this.mtStep()
+    }
+
+    run = (): Step => {
+        if (!this.isDeterministic()) {
+            throw new NonDeterministic()
+        }
+        return this.mtTrun()
+    }
+
 
 }
 
+
+let nfa = new TM(
+    {
+        nodes: [
+            { id: 1, isAdmit: false },
+            { id: 2, isAdmit: false },
+            // {id: 3, isAdmit: false},
+            // {id: 4, isAdmit: false},
+
+        ],
+        edges: [
+            { from: 1, to: 2, transitions: new Set([[{ title: EPS, stackDown: '0', stackPush: ['0'], move: Move.R }, { title: EPS, stackDown: '1', stackPush: ['1'], move: Move.R }]]) },
+            // { from: 1, to: 2, transitions: new Set([[{title: EPS, stackDown: '_', stackPush: ['_'], move: Move.L} ]]) },
+            // { from: 2, to: 2, transitions: new Set([[{title: EPS, stackDown: '1', stackPush: ['0'], move: Move.L} ]]) },
+            // { from: 2, to: 3, transitions: new Set([[{title: EPS, stackDown: '0', stackPush: ['1'], move: Move.L} ]]) },
+            // { from: 2, to: 4, transitions: new Set([[{title: EPS, stackDown: '_', stackPush: ['1'], move: Move.L} ]]) },
+
+            // { from: 1, to: 2, transitions: new Set([[ {title: EPS, stackDown: '_', stackPush: ['V'], move: Move.R} ]]) },
+            // { from: 2, to: 2, transitions: new Set([[ {title: EPS, stackDown: '_', stackPush: ['B'], move: Move.R} ]]) },
+            // { from: 2, to: 1, transitions: new Set([[ { title: 'b', stackDown: 'b', stackPush: ['6'], move: Move.R } ]]) },
+            // { from: 3, to: 3, transitions: new Set([[ { title: 'c', stackDown: 'с', stackPush: ['['], move: Move.R } ]]) },
+            // { from: 3, to: 3, transitions: new Set([[ { title: 'c', stackDown: '_', stackPush: [']'], move: Move.R } ]]) },
+
+            // {from: 1, to: 1, transitions: new Set([{title: 'a', stackDown: 'a', stackPush: ['A'], move: Move.R}])},
+            // {from: 1, to: 2, transitions: new Set([{title: 'c', stackDown: 'b', stackPush: ['V'], move: Move.R}])},
+            // {from: 2, to: 2, transitions: new Set([{title: 'c', stackDown: '_', stackPush: ['V'], move: Move.R}])},
+
+
+
+        ]
+    }, [{ id: 1, isAdmit: false }], ['1'])
+console.log(nfa.isDeterministic())
 // let nfa = new TM(
 //     {
 //         nodes: [

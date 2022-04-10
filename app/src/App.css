@@ -15,10 +15,29 @@
 
 .field__container {
     position: fixed;
-    width: 80%;
     height: 100%;
-
+    width: 100%;
+    z-index: 0;
     background-color: #fff;
+}
+
+.eval-tree {
+    /* padding-top: 100px; */
+    position:fixed ;
+    border-style: solid;
+    border-width: thin;
+    border-color: #0041d0;
+    /* justify-content: left; */
+    right: 0%;
+    /* margin-left: auto; */
+    /* margin-right: 0em; */
+
+    height: 55%;
+    width: 30%;
+    z-index: 1;
+    background-color: #fff;
+    	
+    /* display:none; */
 }
 
 .hint-container {
@@ -83,3 +102,18 @@
 }
 
 
+.button-context-menu {
+    display: block;
+    width: 100%;
+    border: none;
+    background-color: #ffffff;
+    padding: 14px 28px;
+    font-size: 16px;
+    cursor: pointer;
+    text-align: center;
+}
+
+.button-context-menu:hover{
+    background-color: rgba(0, 0, 0, 0.03);
+
+}

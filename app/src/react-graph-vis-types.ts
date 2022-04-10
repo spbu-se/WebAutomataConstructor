@@ -1,6 +1,16 @@
-import {EdgeCore, GraphCore, NodeCore} from "./Logic/IGraphTypes";
+import { EdgeCore, GraphCore, NodeCore } from "./Logic/IGraphTypes";
 
-export type ComputerType = "dfa" | "nfa" | "nfa-eps" | "pda" | "tm";
+export type ComputerType
+    = "dfa"
+    | "nfa"
+    | "nfa-eps"
+    | "pda"
+    | "tm"
+    | "moore"
+    | "mealy"
+    | "dpda"
+    | "dmealy"
+    | "dmoore"
 
 export type ComputerInfo = {
     name: string
@@ -9,13 +19,27 @@ export type ComputerInfo = {
     defaultGraph: graph
 }
 
-export interface node extends NodeCore{
+export interface node extends NodeCore {
     id: number,
     label: string,
     x?: number,
     y?: number,
     color?: object,
-   // isAdmit: boolean,
+    isAdmit: boolean,
+    isInitial: boolean,
+    isCurrent: boolean,
+    borderWidth?: number,
+    borderWidthSelected?: number,
+}
+
+export interface histNode extends NodeCore {
+    id: number,
+    idd: number,
+    label: string,
+    x?: number,
+    y?: number,
+    color?: object,
+    isAdmit: boolean,
     isInitial: boolean,
     isCurrent: boolean,
     borderWidth?: number,
@@ -24,8 +48,8 @@ export interface node extends NodeCore{
 
 export interface edge extends EdgeCore {
     id?: string,
-    //from: number,
-   // to: number,
+    from: number,
+    to: number,
     label?: string,
     //transitions: Set<string>//////
 }
