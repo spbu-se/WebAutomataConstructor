@@ -81,7 +81,7 @@ export const VisNetwork = (props: PropsVisNet) => {
             length: 200
         },
         manipulation: {
-            enabled: true,
+            enabled: false,
             addEdge: function (data: { from: any; to: any; }, callback: (arg0: any) => void) {
                 console.log('add edge', data);
                 callback(data);
