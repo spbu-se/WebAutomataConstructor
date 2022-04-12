@@ -1,4 +1,4 @@
-import { History, HistUnit, position, statement, Step } from "./Types";
+import { History, HistTrace, HistUnit, position, statement, Step } from "./Types";
 import { EdgeCore, GraphCore, GraphEval, Move, NodeCore, TransitionParams } from "./IGraphTypes";
 import { BOTTOM, Computer, EPS, statementCell } from "./Computer";
 import { Stack } from "./Stack";
@@ -13,6 +13,8 @@ type element = {
 }
 
 
+
+type NewType = HistTrace;
 
 export class PDA extends Computer {
 
@@ -472,7 +474,8 @@ export class PDA extends Computer {
                 this.counterSteps,
                 this.alphabet.get(this.input[this.counterSteps]?.value),
                 this.historiStep,
-                histUnit
+                histUnit, 
+                []
             )
         this.counterSteps = ret.counter
         this.historiStep = ret.history
@@ -491,14 +494,17 @@ export class PDA extends Computer {
     protected pdaRun = (): Step => {
         this.historiRun = []
         this.counterStepsForResult = 0
+        
         const histUnit: HistUnit[] = []
+        const histTrace: HistTrace[] = []
 
         for (let i = 0; i < this.input.length - 1; i++) {
             let tmp = this._step(
                 this.counterStepsForResult,
                 this.alphabet.get(this.input[this.counterStepsForResult].value),
                 this.historiRun,
-                histUnit
+                histUnit,
+                histTrace
             )
             this.counterStepsForResult = tmp.counter
             this.historiRun = tmp.history
@@ -508,7 +514,8 @@ export class PDA extends Computer {
             this.counterStepsForResult,
             this.alphabet.get(this.input[this.counterStepsForResult].value),
             this.historiRun,
-            histUnit
+            histUnit,
+            histTrace
         )
     }
 
@@ -520,7 +527,9 @@ export class PDA extends Computer {
     // }
     // this.pdaRun
 
-    protected _step = (counter: number, tr: number, histori: History[], unitHsit: HistUnit[]): Step => {
+    protected _step = (counter: number, tr: number, histori: History[], unitHsit: HistUnit[]
+        , histTrace: HistTrace[]
+        ): Step => {
         const byEpsPred: NodeCore[] = []
         const byEpsAfter: NodeCore[] = []
         const byLetter: NodeCore[] = []
@@ -589,6 +598,8 @@ export class PDA extends Computer {
             // console.log(":::::::::::::::::::")
 
             this.treeHist.push(unitHsit)
+            
+            histTrace.push({byEpsPred, byEpsAfter, byLetter})
 
             return {
                 nodes: this.toNodes(this.curPosition),
@@ -598,7 +609,7 @@ export class PDA extends Computer {
                 tree: this.treeHist,
 
                 byEpsPred, byEpsAfter, byLetter
-
+                , histTrace
             };
         }
         rmRepeations()
@@ -615,6 +626,8 @@ export class PDA extends Computer {
 
         this.treeHist.push(unitHsit)
 
+        histTrace.push({byEpsPred, byEpsAfter, byLetter})
+
         return {
             nodes: this.toNodes(this.curPosition),
             counter: counter,
@@ -623,7 +636,7 @@ export class PDA extends Computer {
             tree: this.treeHist,
 
             byEpsPred, byEpsAfter, byLetter
-
+            , histTrace
         };
     }
 
@@ -1105,19 +1118,18 @@ let nfa = new PDA(
             // {from: 2, to: 3, transitions: new Set([[{title: EPS, stackDown: 'Z0', stackPush: [EPS]}]])},
 
         ]
-    }, [{ id: 10, isAdmit: false }, { id: 14, isAdmit: false }], ['a', 'a'],
+    }, [{ id: 10, isAdmit: false }, { id: 14, isAdmit: false }], ['a', 'b'],
 )
 // console.log(nfa.isDeterministic())
 // nfa.step()
-const aa = nfa.step()
-console.log()
-console.log()
-console.log('Letter')
-console.log(aa.byLetter)
-console.log('byEpsPred')
-console.log(aa.byEpsPred)
-console.log('byEpsAfter')
-console.log(aa.byEpsAfter)
+const aa = nfa.run()
+
+console.log('_____-_--')
+
+aa.histTrace!.forEach(v => {
+    console.log(v.byLetter)
+    console.log()
+})
 
 // const a = nfa.step()
 // console.log()

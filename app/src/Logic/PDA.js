@@ -67,7 +67,7 @@ var PDA = /** @class */ (function (_super) {
         _this.pdaStep = function () {
             var _a;
             var histUnit = [];
-            var ret = _this._step(_this.counterSteps, _this.alphabet.get((_a = _this.input[_this.counterSteps]) === null || _a === void 0 ? void 0 : _a.value), _this.historiStep, histUnit);
+            var ret = _this._step(_this.counterSteps, _this.alphabet.get((_a = _this.input[_this.counterSteps]) === null || _a === void 0 ? void 0 : _a.value), _this.historiStep, histUnit, []);
             _this.counterSteps = ret.counter;
             _this.historiStep = ret.history;
             _this.treeHist = ret.tree ? ret.tree : [];
@@ -81,12 +81,13 @@ var PDA = /** @class */ (function (_super) {
             _this.historiRun = [];
             _this.counterStepsForResult = 0;
             var histUnit = [];
+            var histTrace = [];
             for (var i = 0; i < _this.input.length - 1; i++) {
-                var tmp = _this._step(_this.counterStepsForResult, _this.alphabet.get(_this.input[_this.counterStepsForResult].value), _this.historiRun, histUnit);
+                var tmp = _this._step(_this.counterStepsForResult, _this.alphabet.get(_this.input[_this.counterStepsForResult].value), _this.historiRun, histUnit, histTrace);
                 _this.counterStepsForResult = tmp.counter;
                 _this.historiRun = tmp.history;
             }
-            return _this._step(_this.counterStepsForResult, _this.alphabet.get(_this.input[_this.counterStepsForResult].value), _this.historiRun, histUnit);
+            return _this._step(_this.counterStepsForResult, _this.alphabet.get(_this.input[_this.counterStepsForResult].value), _this.historiRun, histUnit, histTrace);
         };
         _this.step = _this.pdaStep;
         _this.run = _this.pdaRun;
@@ -94,7 +95,7 @@ var PDA = /** @class */ (function (_super) {
         //     return { counter: 0, history: [], isAdmit: false, nodes: [] }
         // }
         // this.pdaRun
-        _this._step = function (counter, tr, histori, unitHsit) {
+        _this._step = function (counter, tr, histori, unitHsit, histTrace) {
             var byEpsPred = [];
             var byEpsAfter = [];
             var byLetter = [];
@@ -159,13 +160,15 @@ var PDA = /** @class */ (function (_super) {
                 // })
                 // console.log(":::::::::::::::::::")
                 _this.treeHist.push(unitHsit);
+                histTrace.push({ byEpsPred: byEpsPred, byEpsAfter: byEpsAfter, byLetter: byLetter });
                 return {
                     nodes: _this.toNodes(_this.curPosition),
                     counter: counter,
                     isAdmit: _this.haveAdmitting(_this.curPosition),
                     history: histori,
                     tree: _this.treeHist,
-                    byEpsPred: byEpsPred, byEpsAfter: byEpsAfter, byLetter: byLetter
+                    byEpsPred: byEpsPred, byEpsAfter: byEpsAfter, byLetter: byLetter,
+                    histTrace: histTrace
                 };
             }
             rmRepeations();
@@ -178,13 +181,15 @@ var PDA = /** @class */ (function (_super) {
             histori.push({ nodes: _this.toNodes(_this.curPosition), by: _this.input[counter].value });
             counter++;
             _this.treeHist.push(unitHsit);
+            histTrace.push({ byEpsPred: byEpsPred, byEpsAfter: byEpsAfter, byLetter: byLetter });
             return {
                 nodes: _this.toNodes(_this.curPosition),
                 counter: counter,
                 isAdmit: _this.haveAdmitting(_this.curPosition),
                 history: histori,
                 tree: _this.treeHist,
-                byEpsPred: byEpsPred, byEpsAfter: byEpsAfter, byLetter: byLetter
+                byEpsPred: byEpsPred, byEpsAfter: byEpsAfter, byLetter: byLetter,
+                histTrace: histTrace
             };
         };
         _this.restart = function () {
@@ -902,18 +907,15 @@ var nfa = new PDA({
         { from: 15, to: 16, transitions: new Set([[{ title: Computer_1.EPS }]]) },
         { from: 16, to: 17, transitions: new Set([[{ title: 'b' }]]) },
     ]
-}, [{ id: 10, isAdmit: false }, { id: 14, isAdmit: false }], ['a', 'a']);
+}, [{ id: 10, isAdmit: false }, { id: 14, isAdmit: false }], ['a', 'b']);
 // console.log(nfa.isDeterministic())
 // nfa.step()
-var aa = nfa.step();
-console.log();
-console.log();
-console.log('Letter');
-console.log(aa.byLetter);
-console.log('byEpsPred');
-console.log(aa.byEpsPred);
-console.log('byEpsAfter');
-console.log(aa.byEpsAfter);
+var aa = nfa.run();
+console.log('_____-_--');
+aa.histTrace.forEach(function (v) {
+    console.log(v.byLetter);
+    console.log();
+});
 // const a = nfa.step()
 // console.log()
 // console.log()
