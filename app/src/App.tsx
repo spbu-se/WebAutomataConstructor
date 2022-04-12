@@ -490,7 +490,7 @@ class App extends React.Component<appProps, appState> {
         return !this.state.showTree
     }
 
-    treeContextInfo = () => (this.state.showTree ? "закрыть" : "открыть") + " дерево вычислений" 
+    treeContextInfo = () => (this.state.showTree ? "Закрыть" : "Открыть") + " дерево вычислений" 
 
     DFAContextMenu = (handleContextMenu: any, handleClose: any) => {
         return (
@@ -525,6 +525,14 @@ class App extends React.Component<appProps, appState> {
                         onClick={computerAction.minimizeDfa}
                     >
                         {"Минимизровать"}
+                    </button>
+                </div>
+                <div onClick={handleClose}>
+                    <button
+                        className={"button-context-menu"}
+                        onClick={this.treeVisible}
+                    >
+                        {this.treeContextInfo()}
                     </button>
                 </div>
             </div>

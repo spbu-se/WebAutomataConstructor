@@ -326,187 +326,108 @@ class RunControl extends React.Component<runControlProps, runControlState> {
 
             const byEpsAfter = stepResult.byEpsAfter ? stepResult.byEpsAfter : []
 
-            const tstst: Map<number, string> = new Map()
-
             const treeNonDet = async () => {
-            // console.log('wwwww')
-            // this.state.lastHistUnits.map((v) => this.state.gElements.nodes.find((elem) => elem.id === v.idd))
-            //     .filter((node): node is node => node !== undefined)
-            //     .forEach((v) => console.log(v.label))
-            // // this.state.lastHistUnits.forEach((v) => console.log(v.id, tstst.get(v.id)))
-            // console.log('wwwww')
-            // console.log(byEpsPred)
+                byEpsPred.map((node) =>
+                    this.state.gElements.nodes.find((elem) => elem.id === node.id))
+                    .filter((node): node is node => node !== undefined)
+                    .forEach((v) => {
+                        this.props.createHistNode(v.id, v.label, v.isAdmit, v.isInitial, v.isCurrent)
+                        tmp.push({ id: this.props.getLastHistNodeId(), idd: v.id })
+                    })
 
-            byEpsPred.map((node) =>
-                // {
-                this.state.gElements.nodes.find((elem) => elem.id === node.id)
-                // a.from = node.from
-                // a.id = node.id
-                // a.cur = node.cur
-                // return a 
-                // }
-            )
-                .filter((node): node is node => node !== undefined)
-                .forEach((v) => {
-                    console.log('v.from?.id, v.id')
-                    console.log(v.from?.id, v.id)
-                    // if (v.from && v.from.id !== v.id) {
-                    this.props.createHistNode(v.id, v.label, v.isAdmit, v.isInitial, v.isCurrent)
-                    tmp.push({ id: this.props.getLastHistNodeId(), idd: v.id })
-                    tstst.set(v.id, v.label)
-                    console.log('---------->' + v.label)
-                    // } 
-                    // else {
-                    // console.log('LLKLKL')
-                    // console.log(this.state.lastHistUnits)
+                const byEpsPredRules = byEpsPred.reduce((acc: { from: number, to: number[], by: any }[], v) => {
+                    const a = this.state.lastHistUnits.filter((l) => v.from && (v.from.id === l.idd))
+                    if (a.length > 0) {
+                        const from = this.state.lastHistUnits.filter((l) => v.from && (v.from.id === l.idd))[0].id
+                        const to = tmp.filter((t) => v.id === t.idd).map((v) => v.id)
+                        if (!to.includes(from)) {
+                            acc.push({ from, to, by: v.by })
+                        }
+                    }
+                    return acc
+                }, [])
 
-                    //                         tmp.push(this.state.lastHistUnits.filter(((t) => t && t.idd === v.id))[0])
+                byEpsPredRules.forEach((rule) => rule.to.forEach((to) => this.props.createHistEdge(rule.from, to, rule.by)))
 
-                    //                     }
-                })
+                this.setState({ lastHistUnits: tmp })
 
-            const byEpsPredRules = byEpsPred.reduce((acc: { from: number, to: number[], by: any }[], v) => {
-                const a = this.state.lastHistUnits.filter((l) => v.from && (v.from.id === l.idd))
-                if (a.length > 0) {
-                    const from = this.state.lastHistUnits.filter((l) => v.from && (v.from.id === l.idd))[0].id
-                    const to = tmp.filter((t) => v.id === t.idd).map((v) => v.id)
-                    if (!to.includes(from)) {
+                const tmp1: { id: number, idd: number }[] = []
+
+                byLetter.map((node) => this.state.gElements.nodes.find((elem) => elem.id === node.id))
+                    .filter((node): node is node => node !== undefined)
+                    .forEach((v) => {
+                        this.props.createHistNode(v.id, v.label, v.isAdmit, v.isInitial, v.isCurrent)
+                        tmp1.push({ id: this.props.getLastHistNodeId(), idd: v.id })
+                    })
+
+                const byLetterRules = byLetter.reduce((acc: { from: number, to: number[], by: any }[], v) => {
+                    const a = tmp.filter((l) => v.from && (v.from.id === l.idd))
+                    if (a.length > 0) {
+                        const from = tmp.filter((l) => v.from && v.from.id === l.idd)[0].id
+                        const to = tmp1.filter((t) => v.id === t.idd).map((v) => v.id)
                         acc.push({ from, to, by: v.by })
                     }
-                }
-                return acc
-            }, [])
+                    return acc
+                }, [])
 
-            byEpsPredRules.forEach((rule) => rule.to.forEach((to) => this.props.createHistEdge(rule.from, to, rule.by)))
+                byLetterRules.forEach((rule) => rule.to.forEach((to) => this.props.createHistEdge(rule.from, to, rule.by)))
 
-            // if (tmp.length > 0) 
-            // tmp.forEach((v) => console.log(tstst.get(v.id)))
+                await this.setState({ lastHistUnits: tmp1 })
 
-            this.setState({ lastHistUnits: tmp })
+                const tmp2: { id: number, idd: number }[] = []
 
-            console.log('*')
-            tmp.forEach((v) => console.log(v.id, tstst.get(v.idd)))
-            console.log('*')
+                byEpsAfter.map((node) => this.state.gElements.nodes.find((elem) => elem.id === node.id))
+                    .filter((node): node is node => node !== undefined)
+                    .forEach((v) => {
+                        this.props.createHistNode(v.id, v.label, v.isAdmit, v.isInitial, v.isCurrent)
+                        tmp2.push({ id: this.props.getLastHistNodeId(), idd: v.id })
+                    })
 
-            console.log('byLetter')
-            this.state.lastHistUnits.forEach((v) =>
-                console.log(v.id, tstst.get(v.idd)))
-            console.log('byLetter')
+                const byEpsAfterRules = byEpsAfter.reduce((acc: { from: number, to: number[], by: any }[], v) => {
+                    const a = tmp1.filter((l) => v.from && v.from.id === l.idd)
+                    if (a.length > 0) {
+                        const from = tmp1.filter((l) => v.from && v.from.id === l.idd)[0].id
+                        const to = tmp2.filter((t) => v.id === t.idd).map((v) => v.id)
+                        acc.push({ from, to, by: v.by })
+                    }
+                    return acc
+                }, [])
 
-
-            const tmp1: { id: number, idd: number }[] = []
-
-            byLetter.map((node) => this.state.gElements.nodes.find((elem) => elem.id === node.id))
-                .filter((node): node is node => node !== undefined)
-                .forEach((v) => {
-                    this.props.createHistNode(v.id, v.label, v.isAdmit, v.isInitial, v.isCurrent)
-                    tmp1.push({ id: this.props.getLastHistNodeId(), idd: v.id })
-                    tstst.set(v.id, v.label)
-                })
-
-            const byLetterRules = byLetter.reduce((acc: { from: number, to: number[], by: any }[], v) => {
-                const a = tmp.filter((l) => v.from && (v.from.id === l.idd))
-                if (a.length > 0) {
-                    const from = tmp.filter((l) => v.from && v.from.id === l.idd)[0].id
-                    const to = tmp1.filter((t) => v.id === t.idd).map((v) => v.id)
-                    acc.push({ from, to, by: v.by })
-                }
-                return acc
-            }, [])
-
-            byLetterRules.forEach((rule) => rule.to.forEach((to) => this.props.createHistEdge(rule.from, to, rule.by)))
-
-            // if (tmp1.length > 0) 
-            await this.setState({ lastHistUnits: tmp1 })
-
-            console.log('byEpsAfter')
-            this.state.lastHistUnits.forEach((v) => console.log(v.id, tstst.get(v.idd)))
-            console.log('byEpsAfter')
-
-            const tmp2: { id: number, idd: number }[] = []
-
-            // console.log(byEpsAfter)
-            byEpsAfter.map((node) => this.state.gElements.nodes.find((elem) => elem.id === node.id)
-                // !.from = node.from
-            )
-                .filter((node): node is node => node !== undefined)
-                .forEach((v) => {
-                    // if (v.from && v.id !== v.from.id) {
-                    this.props.createHistNode(v.id, v.label, v.isAdmit, v.isInitial, v.isCurrent)
-                    tmp2.push({ id: this.props.getLastHistNodeId(), idd: v.id })
-                    tstst.set(v.id, v.label)
-                    // } else {
-                    //     console.log('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
-                    //     console.log(v.id)
-                    //     console.log(tstst.get(v.id))
-                    //     console.log(tmp1)
-                    //     tmp2.push(tmp1.filter(((t) => t && t.idd === v.id))[0])
-                    // }
-
-                })
-
-            const byEpsAfterRules = byEpsAfter.reduce((acc: { from: number, to: number[], by: any }[], v) => {
-                const a = tmp1.filter((l) => v.from && v.from.id === l.idd)
-                if (a.length > 0) {
-                    const from = tmp1.filter((l) => v.from && v.from.id === l.idd)[0].id
-                    const to = tmp2.filter((t) => v.id === t.idd).map((v) => v.id)
-                    // if (!to.includes(from)) {
-                    acc.push({ from, to, by: v.by })
-                    // }
-                }
-                return acc
-            }, [])
-
-            byEpsAfterRules.forEach((rule) => rule.to.forEach((to) => this.props.createHistEdge(rule.from, to, rule.by)))
-
-            // if (tmp2.length > 0) await 
-
-            await this.setState({ lastHistUnits: tmp2 })
-
-            console.log('___')
-            this.state.lastHistUnits.forEach((v) => console.log(v.id, tstst.get(v.idd)))
-            console.log('___')
-
-}
-
-           const treeDet = async () => {
-            console.log('*')
-            this.state.lastHistUnits.forEach((v) => console.log(v.id, tstst.get(v.idd)))
-            console.log('*')
-
-            console.log('byLetter')
-            this.state.lastHistUnits.forEach((v) =>
-                console.log(v.id, tstst.get(v.idd)))
-            console.log('byLetter')
+                byEpsAfterRules.forEach((rule) => rule.to.forEach((to) => this.props.createHistEdge(rule.from, to, rule.by)))
 
 
-            const tmp1: { id: number, idd: number }[] = []
+                await this.setState({ lastHistUnits: tmp2 })
 
-            byLetter.map((node) => this.state.gElements.nodes.find((elem) => elem.id === node.id))
-                .filter((node): node is node => node !== undefined)
-                .forEach((v) => {
-                    this.props.createHistNode(v.id, v.label, v.isAdmit, v.isInitial, v.isCurrent)
-                    tmp1.push({ id: this.props.getLastHistNodeId(), idd: v.id })
-                    tstst.set(v.id, v.label)
-                })
+            }
 
-            const byLetterRules = byLetter.reduce((acc: { from: number, to: number[], by: any }[], v) => {
-                const a = this.state.lastHistUnits.filter((l) => v.from && (v.from.id === l.idd))
-                if (a.length > 0) {
-                    const from = this.state.lastHistUnits.filter((l) => v.from && v.from.id === l.idd)[0].id
-                    const to = tmp1.filter((t) => v.id === t.idd).map((v) => v.id)
-                    acc.push({ from, to, by: v.by })
-                }
-                return acc
-            }, [])
+            const treeDet = async () => {
 
-            byLetterRules.forEach((rule) => rule.to.forEach((to) => this.props.createHistEdge(rule.from, to, rule.by)))
+                const tmp1: { id: number, idd: number }[] = []
 
-            // if (tmp1.length > 0) 
-            await this.setState({ lastHistUnits: tmp1 })
+                byLetter.map((node) => this.state.gElements.nodes.find((elem) => elem.id === node.id))
+                    .filter((node): node is node => node !== undefined)
+                    .forEach((v) => {
+                        this.props.createHistNode(v.id, v.label, v.isAdmit, v.isInitial, v.isCurrent)
+                        tmp1.push({ id: this.props.getLastHistNodeId(), idd: v.id })
+                    })
 
-            
-}
+                const byLetterRules = byLetter.reduce((acc: { from: number, to: number[], by: any }[], v) => {
+                    const a = this.state.lastHistUnits.filter((l) => v.from && (v.from.id === l.idd))
+                    if (a.length > 0) {
+                        const from = this.state.lastHistUnits.filter((l) => v.from && v.from.id === l.idd)[0].id
+                        const to = tmp1.filter((t) => v.id === t.idd).map((v) => v.id)
+                        acc.push({ from, to, by: v.by })
+                    }
+                    return acc
+                }, [])
+
+                byLetterRules.forEach((rule) => rule.to.forEach((to) => this.props.createHistEdge(rule.from, to, rule.by)))
+
+                // if (tmp1.length > 0) 
+                await this.setState({ lastHistUnits: tmp1 })
+
+
+            }
 
             if (this.state.computer.haveEpsilon()) {
                 treeNonDet()
@@ -590,6 +511,36 @@ class RunControl extends React.Component<runControlProps, runControlState> {
 
         try {
             const result = this.state.computer.run();
+
+            const histTrace = result.histTrace ? result.histTrace : []
+            
+            histTrace.forEach(async (histStep) => {
+                
+                // histStep.byLetter
+                const tmp1: { id: number, idd: number }[] = []
+
+                histStep.byLetter!.map((node) => this.state.gElements.nodes.find((elem) => elem.id === node.id))
+                    .filter((node): node is node => node !== undefined)
+                    .forEach((v) => {
+                        this.props.createHistNode(v.id, v.label, v.isAdmit, v.isInitial, v.isCurrent)
+                        tmp1.push({ id: this.props.getLastHistNodeId(), idd: v.id })
+                    })
+
+                const byLetterRules = histStep.byLetter!.reduce((acc: { from: number, to: number[], by: any }[], v) => {
+                    const a = this.state.lastHistUnits.filter((l) => v.from && (v.from.id === l.idd))
+                    if (a.length > 0) {
+                        const from = this.state.lastHistUnits.filter((l) => v.from && v.from.id === l.idd)[0].id
+                        const to = tmp1.filter((t) => v.id === t.idd).map((v) => v.id)
+                        acc.push({ from, to, by: v.by })
+                    }
+                    return acc
+                }, [])
+
+                byLetterRules.forEach((rule) => rule.to.forEach((to) => this.props.createHistEdge(rule.from, to, rule.by)))
+
+                await this.setState({ lastHistUnits: tmp1 })
+
+            })
 
             this.setState({ result: result.isAdmit, currentInputIndex: -1, history: [] });
             this.setState({ wasRuned: true })

@@ -28,6 +28,13 @@ export interface HistUnit {
     value: NodeCore // number //NodeCore
     
 }
+
+export type HistTrace = {
+    byEpsPred?: NodeCore[], 
+    byEpsAfter?: NodeCore[], 
+    byLetter?: NodeCore[]
+}
+
 export type Step = {
     nodes: NodeCore[]
     counter: number
@@ -36,10 +43,11 @@ export type Step = {
     memory?: string[]
     pointer?: number
     output?: Output[]
-    tree?: HistUnit[][]
+    tree?: HistUnit[][],
     byEpsPred?: NodeCore[], 
     byEpsAfter?: NodeCore[], 
-    byLetter?: NodeCore[]
+    byLetter?: NodeCore[],
+    histTrace?: HistTrace[]
 }
 
 
