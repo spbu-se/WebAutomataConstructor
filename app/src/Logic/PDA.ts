@@ -504,19 +504,31 @@ export class PDA extends Computer {
                 this.alphabet.get(this.input[this.counterStepsForResult].value),
                 this.historiRun,
                 histUnit,
-                histTrace
+                []
             )
             this.counterStepsForResult = tmp.counter
             this.historiRun = tmp.history
+            histTrace.push({byEpsPred: tmp.byEpsPred, byLetter: tmp.byLetter, byEpsAfter: tmp.byEpsAfter})
         }
-
-        return this._step(
+        const last = this._step(
             this.counterStepsForResult,
             this.alphabet.get(this.input[this.counterStepsForResult].value),
             this.historiRun,
             histUnit,
-            histTrace
+            [],
         )
+        histTrace.push({byEpsPred: last.byEpsPred, byLetter: last.byLetter, byEpsAfter: last.byEpsAfter})
+
+        const ret: Step ={
+
+            nodes: last.nodes,
+            counter: last.counter,
+            isAdmit: last.isAdmit,
+            history: last.history,
+
+            histTrace: histTrace        }
+
+        return ret 
     }
 
     step = this.pdaStep
@@ -609,7 +621,7 @@ export class PDA extends Computer {
                 tree: this.treeHist,
 
                 byEpsPred, byEpsAfter, byLetter
-                , histTrace
+                , histTrace: []
             };
         }
         rmRepeations()
@@ -636,7 +648,7 @@ export class PDA extends Computer {
             tree: this.treeHist,
 
             byEpsPred, byEpsAfter, byLetter
-            , histTrace
+            , histTrace: []
         };
     }
 
@@ -1127,7 +1139,9 @@ const aa = nfa.run()
 console.log('_____-_--')
 
 aa.histTrace!.forEach(v => {
-    console.log(v.byLetter)
+    // console.log(v.byEpsPred)
+    console.log(v.byEpsAfter)
+    // console.log(v.byLetter)
     console.log()
 })
 

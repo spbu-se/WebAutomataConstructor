@@ -72,8 +72,9 @@ interface appState {
     wasComputerResetted: boolean,
     byEmptyStack: boolean,
     errIsNonDetermenistic: boolean,
-    errIsNonMinimizable: boolean
-    showTree: boolean
+    errIsNonMinimizable: boolean,
+    showTree: boolean,
+    History: (() => JSX.Element)
 }
 
 export const ComputerTypeContext = React.createContext<null | ComputerType>(null);
@@ -187,7 +188,8 @@ class App extends React.Component<appProps, appState> {
             errIsNonDetermenistic: false,
             errIsNonMinimizable: false,
 
-            showTree: false
+            showTree: false,
+            History: () => ( <div>sdf</div> )
             // errorAction: {
             //     isNonDetermenistic: false, 
             //     setIsNonDetermenistic: (v: boolean): void => { this.setState({ errorAction.isNonDetermenistic = v}) }
@@ -486,11 +488,11 @@ class App extends React.Component<appProps, appState> {
     }
 
     treeVisible = () => {
-        this.setState({showTree: !this.state.showTree})
+        this.setState({ showTree: !this.state.showTree })
         return !this.state.showTree
     }
 
-    treeContextInfo = () => (this.state.showTree ? "Закрыть" : "Открыть") + " дерево вычислений" 
+    treeContextInfo = () => (this.state.showTree ? "Закрыть" : "Открыть") + " дерево вычислений"
 
     DFAContextMenu = (handleContextMenu: any, handleClose: any) => {
         return (
@@ -722,6 +724,8 @@ class App extends React.Component<appProps, appState> {
         }
     }
 
+
+
     render() {
         return (
             <HashRouter>
@@ -771,7 +775,9 @@ class App extends React.Component<appProps, appState> {
                                     onAuthFailed={this.logout}
                                     graph={elementsToGraph(this.state.elements)}
                                     computerType={this.state.computerType!} />
-
+                                <div className="history-container">
+                                    {this.state.History()}
+                                </div>
                                 <div className="hint-container">
                                     <Paper className="hint" variant="outlined">
                                         Ctrl+S — сохранить автомат
@@ -857,6 +863,7 @@ class App extends React.Component<appProps, appState> {
                                         computerType={this.state.computerType}
                                         reinitComputer={computerAction.init}
                                     />
+                                     
                                     <RunControl
                                         updMem={this.updMem}
                                         elements={this.state.elements}
@@ -880,11 +887,14 @@ class App extends React.Component<appProps, appState> {
                                         setRun={(f: () => void) => controlAction.run = f}
                                         setStep={(f: () => void) => controlAction.step = f}
                                         setReset={(f: () => void) => controlAction.reset = f}
+                                        setHistory={(jsx: () => JSX.Element) => this.setState({ History: jsx })}
+
                                         setIsNonDetermenistic={this.setIsNonDetermenistic}
                                         setIsNonMinimizable={this.setIsNonMinimizable}
                                     />
+                                     
                                 </div>
-
+                                
                             </div>
                         </ComputerTypeContext.Provider>
                     </Route>

@@ -39,6 +39,15 @@
     /* display:none; */
 }
 
+.history-container {
+    position: absolute;
+    
+    left: 16px;
+    top: 40px;
+
+    z-index: 1;
+}
+
 .hint-container {
     position: absolute;
     left: 16px;

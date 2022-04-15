@@ -83,11 +83,20 @@ var PDA = /** @class */ (function (_super) {
             var histUnit = [];
             var histTrace = [];
             for (var i = 0; i < _this.input.length - 1; i++) {
-                var tmp = _this._step(_this.counterStepsForResult, _this.alphabet.get(_this.input[_this.counterStepsForResult].value), _this.historiRun, histUnit, histTrace);
+                var tmp = _this._step(_this.counterStepsForResult, _this.alphabet.get(_this.input[_this.counterStepsForResult].value), _this.historiRun, histUnit, []);
                 _this.counterStepsForResult = tmp.counter;
                 _this.historiRun = tmp.history;
+                histTrace.push({ byEpsPred: tmp.byEpsPred, byLetter: tmp.byLetter, byEpsAfter: tmp.byEpsAfter });
             }
-            return _this._step(_this.counterStepsForResult, _this.alphabet.get(_this.input[_this.counterStepsForResult].value), _this.historiRun, histUnit, histTrace);
+            var last = _this._step(_this.counterStepsForResult, _this.alphabet.get(_this.input[_this.counterStepsForResult].value), _this.historiRun, histUnit, []);
+            var ret = {
+                nodes: last.nodes,
+                counter: last.counter,
+                isAdmit: last.isAdmit,
+                history: last.history,
+                histTrace: histTrace
+            };
+            return ret;
         };
         _this.step = _this.pdaStep;
         _this.run = _this.pdaRun;
@@ -168,7 +177,7 @@ var PDA = /** @class */ (function (_super) {
                     history: histori,
                     tree: _this.treeHist,
                     byEpsPred: byEpsPred, byEpsAfter: byEpsAfter, byLetter: byLetter,
-                    histTrace: histTrace
+                    histTrace: []
                 };
             }
             rmRepeations();
@@ -189,7 +198,7 @@ var PDA = /** @class */ (function (_super) {
                 history: histori,
                 tree: _this.treeHist,
                 byEpsPred: byEpsPred, byEpsAfter: byEpsAfter, byLetter: byLetter,
-                histTrace: histTrace
+                histTrace: []
             };
         };
         _this.restart = function () {
@@ -913,7 +922,9 @@ var nfa = new PDA({
 var aa = nfa.run();
 console.log('_____-_--');
 aa.histTrace.forEach(function (v) {
-    console.log(v.byLetter);
+    // console.log(v.byEpsPred)
+    console.log(v.byEpsAfter);
+    // console.log(v.byLetter)
     console.log();
 });
 // const a = nfa.step()

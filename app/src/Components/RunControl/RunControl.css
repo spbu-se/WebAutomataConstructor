@@ -41,12 +41,15 @@
 }
 
 .run-control__history__scroll {
+    position: fixed;
+    margin: 8px auto 48px;
+
     height: 100px;
 
-    margin-top: 12px;
-    margin-bottom: 12px;
+    /* margin-top: 12px;
+    margin-bottom: 12px;*/
 
-    overflow-y: auto;
+    overflow-y: auto;  
 }
 
 .run-control__history__row {
@@ -84,13 +87,14 @@
 }
 
 .run-control__history__placeholder {
-    margin: 36px auto 48px;
+    /* margin:  */
+    /* 36px auto 48px; */
     width: 60%;
     /* height: 0%; */
     /* padding-bottom: 1em; */
 
     color: var(--secondary);
-    text-align: center;
+    text-align: left;
 
 }
 
