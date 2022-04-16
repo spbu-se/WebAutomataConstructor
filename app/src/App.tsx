@@ -189,7 +189,7 @@ class App extends React.Component<appProps, appState> {
             errIsNonMinimizable: false,
 
             showTree: false,
-            History: () => ( <div>sdf</div> )
+            History: () => ( <div></div> ),
             // errorAction: {
             //     isNonDetermenistic: false, 
             //     setIsNonDetermenistic: (v: boolean): void => { this.setState({ errorAction.isNonDetermenistic = v}) }
@@ -488,7 +488,7 @@ class App extends React.Component<appProps, appState> {
     }
 
     treeVisible = () => {
-        this.setState({ showTree: !this.state.showTree })
+        this.setState({ showTree: !this.state.showTree})
         return !this.state.showTree
     }
 
@@ -888,9 +888,10 @@ class App extends React.Component<appProps, appState> {
                                         setStep={(f: () => void) => controlAction.step = f}
                                         setReset={(f: () => void) => controlAction.reset = f}
                                         setHistory={(jsx: () => JSX.Element) => this.setState({ History: jsx })}
-
                                         setIsNonDetermenistic={this.setIsNonDetermenistic}
                                         setIsNonMinimizable={this.setIsNonMinimizable}
+                                        treeContextInfo={this.treeContextInfo}
+                                        treeVisible={this.treeVisible}
                                     />
                                      
                                 </div>

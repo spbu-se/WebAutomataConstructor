@@ -37,7 +37,7 @@ import { DPDA } from "../../Logic/DPDA";
 import { DMealy } from "../../Logic/DMealy";
 import { DMoore } from "../../Logic/DMoore";
 import { isAbsolute } from "path";
-
+import { History } from "./History"
 
 interface runControlProps {
     computerType: ComputerType,
@@ -66,6 +66,8 @@ interface runControlProps {
     setByEmptyStack: (byEmptyStack: boolean) => void
     setIsNonDetermenistic: (v: boolean) => void
     setIsNonMinimizable: (v: boolean) => void
+    treeContextInfo: () => string
+    treeVisible: () => boolean
 }
 
 interface runControlState {
@@ -84,71 +86,44 @@ interface runControlState {
     startStatements: NodeCore[]
 }
 
-export const History = (props: {
-    startNode: node, history: {
-        a: node;
-        b: string[] | undefined;
-    }[][], historyEndRef: any
-}) => {
-    return (
-        <div className="run-control__item run-control__history">
-            <div className="run-control__history__header">
-                <Typography variant="h6">История</Typography>
+type ButtonSource = { name: () => string, onClick: () => void }
+
+const creatButtons = (buttons: ButtonSource[][]) => {
+    const buttonsComp = buttons.reduce((acc: any[], buttons) => {
+        acc.push(
+            <div className="run-control__item run-control__buttons">
+                {
+                    buttons.map((button) =>
+                        <div className="run-control__button">
+                            <Button
+                                variant="outlined"
+                                onClick={
+                                    () => {
+                                        console.log('NNNNNNNNNN')
+                                        button.onClick()
+                                        console.log('KKKKKKKKKK')
+
+                                    }
+                                }
+                            >
+                                {button.name()}
+                            </Button>
+                        </div>
+                    )
+
+                }
             </div>
-            {
-                props.history.length !== 0 ?
-                    <div className="run-control__history__scroll">
+        )
 
-
-                        {
-                            props.startNode !== undefined
-                                ?
-                                <div className="run-control__history__row" key={0}>
-                                    <span className="run-control__history__index">{0}</span>
-                                    {
-                                        <Tooltip
-                                            title={<Typography className="display-linebreak">{"~"}</Typography>}>
-                                            <div
-                                                className="run-control__history__node"
-                                                style={{ border: `${props.startNode.isInitial ? "#0041d0" : props.startNode.isAdmit ? "#ff0072" : "#000000"} 2px solid` }}
-                                            >
-                                                {props.startNode!.label}
-                                            </div>
-                                        </Tooltip>
-                                    }
-                                </div>
-                                : <div />
-                        }
-
-                        {
-                            props.history.map((nodes, index) => (
-                                <div className="run-control__history__row" key={index}>
-                                    <span className="run-control__history__index">{index + 1}</span>
-                                    {
-                                        nodes.map((node, index) => (
-                                            <Tooltip
-                                                title={<Typography className="display-linebreak">{node.b !== undefined ? node.b.join('\n') : ''}</Typography>}>
-                                                <div
-                                                    className="run-control__history__node"
-                                                    style={{ border: `${node.a.isInitial ? "#0041d0" : node.a.isAdmit ? "#ff0072" : "#000000"} 2px solid` }}
-                                                >
-                                                    {node.a.label}
-                                                </div>
-                                            </Tooltip>
-                                        ))
-                                    }
-                                </div>
-                            ))
-                        }
-                        <div ref={props.historyEndRef} />
-                    </div>
-                    :
-                    <div className="run-control__history__placeholder">
-                        Используйте пошаговый запуск, чтобы наблюдать за историей
-                    </div>
-            }
-        </div>)
+        return acc
+    }, [])
+    return (
+        <div>
+            {buttonsComp}
+        </div>
+    )
 }
+
 
 class RunControl extends React.Component<runControlProps, runControlState> {
 
@@ -764,6 +739,37 @@ class RunControl extends React.Component<runControlProps, runControlState> {
         })
     }
 
+    private defaultButtonsLine: ButtonSource[] = [
+        { name: () => 'Шаг', onClick: () => this.step() },
+        { name: () => 'Запуск', onClick: () => this.run() },
+        { name: () => 'Сбросить', onClick: () => this.reset() },
+    ]
+
+    private defaultButtons: ButtonSource[][] = [this.defaultButtonsLine]
+
+    private buttonsTree: ButtonSource[][] = [
+        this.defaultButtonsLine,
+        [{ name: this.props.treeContextInfo, onClick: this.props.treeVisible }]
+    ]
+
+    private buttonsNoRun: ButtonSource[][] = [
+        [
+            { name: () => 'Шаг', onClick: () => this.step() },
+            { name: () => 'Сбросить', onClick: () => this.reset() }
+        ],
+        // [{ name: this.props.treeContextInfo, onClick: this.props.treeVisible }]
+    ]
+
+    private getButtons = () => {
+
+        switch (this.props.computerType) {
+            case "dfa":
+            case "nfa":
+            case "nfa-eps": return creatButtons(this.buttonsTree)
+            case "tm": return creatButtons(this.buttonsNoRun)
+            default: return creatButtons(this.defaultButtons)
+        }
+    }
 
     render() {
         return (
@@ -813,195 +819,8 @@ class RunControl extends React.Component<runControlProps, runControlState> {
                         </div>
 
                     </div>
-                    {/* <Box
-      sx={{ width: '100%', height: '5%', maxWidth: 500, bgcolor: 'background.paper' }}
-    >
-    <List
-      sx={{
-        width: '100%',
-        height: '5%',
-        maxWidth: 360,
-        bgcolor: 'background.paper',
-        position: 'relative',
-        overflow: 'auto',
-        maxHeight: 100,
-        '& ul': { padding: 0 },
-      }}
-      subheader={<li />}
-    >
-      {[0, 1, 2, 3, 4].map((sectionId) => (
-        <li key={`section-${sectionId}`}>
-          <ul>
-            {[0, 1, 2].map((item) => (
-              <ListItem key={`item-${sectionId}-${item}`}>
-                <ListItemText primary={`Item ${item}`} />
-              </ListItem>
-            ))}
-          </ul>
-        </li>
-      ))}
-    </List>
-    </Box> */}
+                    {this.getButtons()}
 
-                    <div className="run-control__item run-control__buttons">
-                        <div className="run-control__button">
-                            <Button
-                                variant="outlined"
-                                onClick={this.step}
-                            >
-                                Шаг
-                            </Button>
-                        </div>
-
-                        {
-                            this.props.computerType !== "tm"
-                                ?
-                                <div className="run-control__button">
-                                    <Button
-                                        variant="outlined"
-                                        onClick={this.run}
-                                    >
-                                        Запуск
-                                    </Button>
-                                </div>
-                                : <></>
-                        }
-
-                        <div className="run-control__button">
-                            <Button
-                                variant="outlined"
-                                onClick={this.reset}
-                            >
-                                Сбросить
-                            </Button>
-                        </div>
-
-                        {/* {
-                            this.props.computerType === "pda"
-                                ?
-                                    <div className="run-control__button">
-                                        <Button
-                                            variant="outlined"
-                                            color="secondary"
-                                            // onClick={this.run}
-                                            onClick={() => {
-                                                this.admitByStack()
-                                                // const curStbyEmp = this.state.byEmptyStack;
-                                                // this.setState({ byEmptyStack: !curStbyEmp});
-                                                // this.state.computer!.byEmptyStackAdmt(!curStbyEmp)
-                                                // this.reset();
-                                            }}
-                                        >
-                                            {this.state.byEmptyStack ?  "По стеку" : "По состоянию"}
-                                        </Button>
-                                    </div>
-                                : <div/>
-                        } */}
-
-                        {/* {
-                           this.props.computerType === "moore" ?
-                               <div className="run-control__button">
-                                   <Button
-                                       variant="outlined"
-                                       onClick={this.mooreToMealy}
-                                   >
-                                       mealy
-                                   </Button>
-                               </div>
-                               : <></>
-                        }
-
-{
-                           this.props.computerType === "mealy" ?
-                               <div className="run-control__button">
-                                   <Button
-                                       variant="outlined"
-                                       onClick={this.mealyToMoore}
-                                   >
-                                       moore
-                                   </Button>
-                               </div>
-                               : <></>
-                        } */}
-
-
-                    </div>
-
-                    {/* <div className="run-control__item run-control__buttons">
-                        <div className="run-control__button">
-                            <Button
-                                variant="outlined"
-                                onClick={this.step}
-                            >
-                                Шаг
-                            </Button>
-                        </div>
-                    </div> */}
-
-                    {/* <History
-                startNode={this.state.startNode!}
-                history={this.state.history!}
-                historyEndRef={this.historyEndRef}
-            /> */}
-
-
-                    {/* <div className="run-control__item run-control__history">
-                        <div className="run-control__history__header">
-                            <Typography variant="h6">История</Typography>
-                        </div>
-                        {
-                            this.state.history.length !== 0 ?
-                                <div className="run-control__history__scroll">
-
-
-                                    {
-                                        this.state.startNode !== undefined
-                                            ?
-                                            <div className="run-control__history__row" key={0}>
-                                                <span className="run-control__history__index">{0}</span>
-                                                {
-                                                    <Tooltip
-                                                        title={<Typography className="display-linebreak">{"~"}</Typography>}>
-                                                        <div
-                                                            className="run-control__history__node"
-                                                            style={{ border: `${this.state.startNode!.isInitial ? "#0041d0" : this.state.startNode!.isAdmit ? "#ff0072" : "#000000"} 2px solid` }}
-                                                        >
-                                                            {this.state.startNode!.label}
-                                                        </div>
-                                                    </Tooltip>
-                                                }
-                                            </div>
-                                            : <div />
-                                    }
-
-                                    {
-                                        this.state.history.map((nodes, index) => (
-                                            <div className="run-control__history__row" key={index}>
-                                                <span className="run-control__history__index">{index + 1}</span>
-                                                {
-                                                    nodes.map((node, index) => (
-                                                        <Tooltip
-                                                            title={<Typography className="display-linebreak">{node.b !== undefined ? node.b.join('\n') : ''}</Typography>}>
-                                                            <div
-                                                                className="run-control__history__node"
-                                                                style={{ border: `${node.a.isInitial ? "#0041d0" : node.a.isAdmit ? "#ff0072" : "#000000"} 2px solid` }}
-                                                            >
-                                                                {node.a.label}
-                                                            </div>
-                                                        </Tooltip>
-                                                    ))
-                                                }
-                                            </div>
-                                        ))
-                                    }
-                                    <div ref={this.historyEndRef} />
-                                </div>
-                                :
-                                <div className="run-control__history__placeholder">
-                                    Используйте пошаговый запуск, чтобы наблюдать за историей
-                                </div>
-                        }
-                    </div> */}
 
                 </div>
             </ControlWrapper>
