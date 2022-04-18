@@ -1,6 +1,6 @@
 import { Computer, EPS } from "./Computer";
 import { GraphCore, NodeCore } from "./IGraphTypes";
-import { Output, position, Step, History } from "./Types";
+import { Output, position, Step, History, HistTrace } from "./Types";
 
 export abstract class OutputAutomata extends Computer {
     protected curPosition: position[]
@@ -74,8 +74,11 @@ export abstract class OutputAutomata extends Computer {
     }
 
     oaRun = (): Step => {
+        const histTrace: HistTrace[] = []
+        
         this.historiRun = []
         this.counterStepsForResult = 0
+
         let output
         for (let i = 0; i < this.input.length; i++) {
             const ref = { 
@@ -83,8 +86,9 @@ export abstract class OutputAutomata extends Computer {
                 curPosition: this.curPosition, 
                 historiStep: this.historiRun 
             }
-            const after = this._step(ref)
+            const after = this._step(ref, histTrace)
             this.counterStepsForResult = ref.counterSteps
+            console.log(this.counterStepsForResult)
             this.curPosition = ref.curPosition
             this.historiRun = ref.historiStep
             output = after.output
@@ -95,7 +99,8 @@ export abstract class OutputAutomata extends Computer {
             history: this.historiRun, 
             isAdmit: this.haveAdmitting(this.curPosition), 
             nodes: this.toNodes(this.curPosition),
-            output: output 
+            output: output,
+            histTrace
         }
     }
 
@@ -160,7 +165,7 @@ export abstract class OutputAutomata extends Computer {
         return { positions: nextPs, outputs: nextOs }
     }
 
-    protected _step = (ref: { counterSteps: number, curPosition: position[], historiStep: History[] }) => {
+    protected _step = (ref: { counterSteps: number, curPosition: position[], historiStep: History[] }, histTrace: HistTrace[]) => {
         const byLetter: NodeCore[] = []
         
         const trNum = this.alphabet.get(this.input[ref.counterSteps]?.value)
@@ -180,13 +185,17 @@ export abstract class OutputAutomata extends Computer {
         console.log(byLetter)
         console.log('--->byLetter')
         
+        histTrace.push({ byLetter })
+
+
         return {
             counter: ref.counterSteps,
             history: ref.historiStep,
             isAdmit: this.haveAdmitting(ref.curPosition),
             nodes: nodesOfCurPos,
             output: nextPositions.outputs,
-            byLetter
+            byLetter,
+            histTrace
         }
     }
 
@@ -196,7 +205,7 @@ export abstract class OutputAutomata extends Computer {
             curPosition: this.curPosition, 
             historiStep: this.historiStep 
         }
-        const after = this._step(ref)
+        const after = this._step(ref, [])
         this.counterSteps = ref.counterSteps
         this.curPosition = ref.curPosition
         this.historiStep = ref.historiStep

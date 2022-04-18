@@ -60,6 +60,7 @@ var OutputAutomata = /** @class */ (function (_super) {
             });
         };
         _this.oaRun = function () {
+            var histTrace = [];
             _this.historiRun = [];
             _this.counterStepsForResult = 0;
             var output;
@@ -69,8 +70,9 @@ var OutputAutomata = /** @class */ (function (_super) {
                     curPosition: _this.curPosition,
                     historiStep: _this.historiRun
                 };
-                var after = _this._step(ref);
+                var after = _this._step(ref, histTrace);
                 _this.counterStepsForResult = ref.counterSteps;
+                console.log(_this.counterStepsForResult);
                 _this.curPosition = ref.curPosition;
                 _this.historiRun = ref.historiStep;
                 output = after.output;
@@ -80,7 +82,8 @@ var OutputAutomata = /** @class */ (function (_super) {
                 history: _this.historiRun,
                 isAdmit: _this.haveAdmitting(_this.curPosition),
                 nodes: _this.toNodes(_this.curPosition),
-                output: output
+                output: output,
+                histTrace: histTrace
             };
         };
         _this.nextStepPosition = function (position, by) {
@@ -121,7 +124,7 @@ var OutputAutomata = /** @class */ (function (_super) {
             }, []);
             return { positions: nextPs, outputs: nextOs };
         };
-        _this._step = function (ref) {
+        _this._step = function (ref, histTrace) {
             var _a;
             var byLetter = [];
             var trNum = _this.alphabet.get((_a = _this.input[ref.counterSteps]) === null || _a === void 0 ? void 0 : _a.value);
@@ -136,13 +139,15 @@ var OutputAutomata = /** @class */ (function (_super) {
             console.log('--->byLetter');
             console.log(byLetter);
             console.log('--->byLetter');
+            histTrace.push({ byLetter: byLetter });
             return {
                 counter: ref.counterSteps,
                 history: ref.historiStep,
                 isAdmit: _this.haveAdmitting(ref.curPosition),
                 nodes: nodesOfCurPos,
                 output: nextPositions.outputs,
-                byLetter: byLetter
+                byLetter: byLetter,
+                histTrace: histTrace
             };
         };
         _this.oaStep = function () {
@@ -151,7 +156,7 @@ var OutputAutomata = /** @class */ (function (_super) {
                 curPosition: _this.curPosition,
                 historiStep: _this.historiStep
             };
-            var after = _this._step(ref);
+            var after = _this._step(ref, []);
             _this.counterSteps = ref.counterSteps;
             _this.curPosition = ref.curPosition;
             _this.historiStep = ref.historiStep;
