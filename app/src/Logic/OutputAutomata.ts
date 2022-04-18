@@ -104,6 +104,10 @@ export abstract class OutputAutomata extends Computer {
         positions.forEach(value => {
             let temp: NodeCore = {
                 ...this.nodes[value.stmt.idLogic],
+                from: value.from,
+                cur: value.cur,
+                by: value.by,
+                
                 stack: value.stack === undefined ? undefined : value.stack.getStorage()
             }
             retNodes.push(temp)
@@ -116,7 +120,26 @@ export abstract class OutputAutomata extends Computer {
     }
 
     protected nextStepPosition = (position: position, by: number): { position: position, output: Output | undefined }[] => {
-        return this.cellMatrix(position.stmt.idLogic, by).map(v => ({ position: { stmt: v }, output: v.output }))
+        return this.cellMatrix(position.stmt.idLogic, by).map(v => {
+            const getLetter = (id: number): any => {
+                let ret
+                this.alphabet.forEach((v, k) => {
+                    if (id === v) {
+                        ret = k
+                    }
+                })
+                return ret
+            }
+    
+            const ret: position = { 
+                stmt: v, 
+                by: getLetter(by), 
+                cur: this.nodes[v.idLogic], 
+                from: this.nodes[position.stmt.idLogic]
+            }
+            // return ({ position: { stmt: v }, output: v.output })
+            return ({ position: ret, output: v.output })
+        })
     }
 
     protected nextStepPositions = (positions: position[], by: number): { positions: position[], outputs: Output[] } => {
@@ -138,22 +161,32 @@ export abstract class OutputAutomata extends Computer {
     }
 
     protected _step = (ref: { counterSteps: number, curPosition: position[], historiStep: History[] }) => {
+        const byLetter: NodeCore[] = []
+        
         const trNum = this.alphabet.get(this.input[ref.counterSteps]?.value)
         const nextPositions = this.nextStepPositions(ref.curPosition, trNum)
-
+        
         ref.curPosition = nextPositions.positions
+        
         const nodesOfCurPos: NodeCore[] = this.toNodes(ref.curPosition)
+        nodesOfCurPos.forEach((node) => byLetter.push(node))
+        
         ref.historiStep.push({ nodes: nodesOfCurPos, by: trNum })
         if (ref.curPosition.length > 0) {
             ref.counterSteps++
         }
 
+        console.log('--->byLetter')
+        console.log(byLetter)
+        console.log('--->byLetter')
+        
         return {
             counter: ref.counterSteps,
             history: ref.historiStep,
             isAdmit: this.haveAdmitting(ref.curPosition),
             nodes: nodesOfCurPos,
-            output: nextPositions.outputs
+            output: nextPositions.outputs,
+            byLetter
         }
     }
 
@@ -173,7 +206,8 @@ export abstract class OutputAutomata extends Computer {
             history: after.history,
             isAdmit: after.isAdmit,
             nodes: after.nodes,
-            output: after.output
+            output: after.output,
+            byLetter: after.byLetter
         }
     }
 

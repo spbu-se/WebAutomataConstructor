@@ -48,7 +48,6 @@ var PDA = /** @class */ (function (_super) {
     // }
     function PDA(graph, startStatements, input, byEmpty) {
         var _this = _super.call(this, graph, startStatements) || this;
-        // protected matrix: statementCells[][] = []
         _this.stack = new Stack_1.Stack();
         _this.setInput = function (input) {
             _this.input = [];
@@ -89,6 +88,7 @@ var PDA = /** @class */ (function (_super) {
                 histTrace.push({ byEpsPred: tmp.byEpsPred, byLetter: tmp.byLetter, byEpsAfter: tmp.byEpsAfter });
             }
             var last = _this._step(_this.counterStepsForResult, _this.alphabet.get(_this.input[_this.counterStepsForResult].value), _this.historiRun, histUnit, []);
+            histTrace.push({ byEpsPred: last.byEpsPred, byLetter: last.byLetter, byEpsAfter: last.byEpsAfter });
             var ret = {
                 nodes: last.nodes,
                 counter: last.counter,
@@ -761,7 +761,6 @@ var PDA = /** @class */ (function (_super) {
                 }
             }
         });
-        // hist.push(histUnit)
         return positions;
     };
     PDA.prototype.isDeterministic = function () {
@@ -791,8 +790,6 @@ var PDA = /** @class */ (function (_super) {
                     ret = true;
                 }
             });
-            // console.log("ADMT")
-            // console.log(ret)
             return ret;
         }
     };

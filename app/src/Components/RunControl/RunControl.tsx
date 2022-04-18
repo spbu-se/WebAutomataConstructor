@@ -11,15 +11,6 @@ import Button from "@mui/material/Button";
 import TextField from "@mui/material/TextField";
 import DoneIcon from '@mui/icons-material/Done';
 import CloseIcon from '@mui/icons-material/Close';
-import Typography from "@mui/material/Typography";
-
-import Tooltip from '@mui/material/Tooltip';
-
-import Box from '@mui/material/Box';
-import List from '@mui/material/List';
-import ListItem from '@mui/material/ListItem';
-import ListItemText from '@mui/material/ListItemText';
-import ListSubheader from '@mui/material/ListSubheader';
 
 import { EpsilonNFA } from "../../Logic/EpsilonNFA";
 import { PDA } from "../../Logic/PDA";
@@ -98,12 +89,7 @@ const creatButtons = (buttons: ButtonSource[][]) => {
                             <Button
                                 variant="outlined"
                                 onClick={
-                                    () => {
-                                        console.log('NNNNNNNNNN')
-                                        button.onClick()
-                                        console.log('KKKKKKKKKK')
-
-                                    }
+                                    () => { button.onClick() }
                                 }
                             >
                                 {button.name()}
@@ -420,25 +406,45 @@ class RunControl extends React.Component<runControlProps, runControlState> {
                 tmp1.push({ id: this.props.getLastHistNodeId(), idd: v.id })
             })
 
+        console.log('--->tmp1')
+        console.log(this.state.lastHistUnits)
+        console.log(tmp1)
+        console.log('--->tmp1')
+
         const byLetterRules = byLetter.reduce((acc: { from: number, to: number[], by: any }[], v) => {
+            // console.log('<<<<<<<<<<<<>>>>>>>>>>>>')
+            // console.log(this.state.lastHistUnits)
+            // console.log(v)
+            // console.log('<<<<<<<<<<<<>>>>>>>>>>>>>')
+            
             const a = this.state.lastHistUnits.filter((l) => v.from && (v.from.id === l.idd))
+            
+            console.log(';;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;>>>>')
+            console.log(a)
+            console.log('----->>>>>>>>>>>>>>>>>')
+            console.log(v)
+            console.log(this.state.lastHistUnits)
+            console.log(';;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;>>>>')
             if (a.length > 0) {
                 const from = this.state.lastHistUnits.filter((l) => v.from && v.from.id === l.idd)[0].id
                 const to = tmp1.filter((t) => v.id === t.idd).map((v) => v.id)
+                console.log('from', from, to, v.by)
                 acc.push({ from, to, by: v.by })
             }
             return acc
         }, [])
 
+        console.log(byLetterRules)
+
         byLetterRules.forEach((rule) => rule.to.forEach((to) => this.props.createHistEdge(rule.from, to, rule.by)))
 
+        
         // if (tmp1.length > 0) 
         this.setState({ lastHistUnits: tmp1 })
 
-
     }
 
-    step = async (): Promise<void> => {
+    step = () => {
         if (this.state.computer === undefined) {
             console.error("Computer is not initialized yet");
             return;
@@ -450,15 +456,13 @@ class RunControl extends React.Component<runControlProps, runControlState> {
         if (this.state.wasRuned) {
             this.setState({ wasRuned: false });
             this.reset();
-            await this.props.resetHistTree()
-
+            this.props.resetHistTree()
         }
 
         if (this.state.currentInputIndex === this.state.input.length - 1 && this.props.computerType !== "tm") return;
         if (this.state.result !== undefined && this.state.currentInputIndex !== -1 && this.props.computerType !== "tm") return;
 
         try {
-
             const stepResult: Step = this.state.computer.step()
 
             if (stepResult.nodes.length === 0) return;
@@ -477,15 +481,11 @@ class RunControl extends React.Component<runControlProps, runControlState> {
                 .map(nodeCore => this.state.gElements.nodes.find(node => node.id === nodeCore.id))
                 .filter((node): node is node => node !== undefined);
 
-
             const byEpsPred = stepResult.byEpsPred ? stepResult.byEpsPred : []
 
             const byLetter = stepResult.byLetter ? stepResult.byLetter : []
 
             const byEpsAfter = stepResult.byEpsAfter ? stepResult.byEpsAfter : []
-
-
-
 
             if (this.state.computer.haveEpsilon()) {
                 this.treeNonDet(byEpsPred, byLetter, byEpsAfter)
@@ -523,15 +523,14 @@ class RunControl extends React.Component<runControlProps, runControlState> {
                 history: [...this.state.history, _nodes],
                 memory: stepResult.memory,
                 // lastHistUnits: tmp
-
-            }, async () => {
-                await this.props.setHistory(() =>
+            }, () => {
+                this.props.setHistory(() =>
                     <History
                         startNode={this.state.startNode!}
                         history={this.state.history!}
                         historyEndRef={this.historyEndRef}
                     />)
-                await this.historyEndRef?.current?.scrollIntoView({ behavior: 'smooth' })
+                this.historyEndRef?.current?.scrollIntoView({ behavior: 'smooth' })
             });
 
         } catch (e) {
@@ -761,7 +760,6 @@ class RunControl extends React.Component<runControlProps, runControlState> {
     ]
 
     private getButtons = () => {
-
         switch (this.props.computerType) {
             case "dfa":
             case "nfa":

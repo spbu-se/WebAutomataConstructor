@@ -3,15 +3,11 @@ import "./App.css"
 // import Graph from "react-graph-vis";
 import {
     ComputerType,
-    controlNodeDraggingEventArgs, deselectEdgeEventArgs,
-    deselectNodeEventArgs,
-    doubleClickEventArgs, dragEndEventArgs, edge,
+    edge,
     graph,
     histNode,
-    node, selectEdgeEventArgs,
-    selectNodeEventArgs
+    node
 } from "./react-graph-vis-types";
-import { cloneDeep } from "lodash";
 import NodeControl from "./Components/NodeControl/NodeControl";
 import EdgeControl from "./Components/EdgeControl/EdgeControl";
 import {
@@ -38,7 +34,7 @@ import {
 } from "vis-network/standalone/esm/vis-network";
 import { Output } from './Logic/Types';
 import { NonDetermenisticModal, NonMinimizableModal } from './ErrorModal';
-import { VNC } from './VNC';
+import { TreeHistory } from './TreeHistory';
 // import {ContextMenu, MenuItem as CotextMenuItem, ContextMenuTrigger} from "react-contextmenu";
 
 interface appProps {
@@ -364,7 +360,10 @@ class App extends React.Component<appProps, appState> {
             from: from,
             to: to,
             transitions: transitions,
-            label: transitionsToLabel(transitions, this.state.computerType)
+            label: this.state.computerType !== 'mealy' && this.state.computerType !== 'dmealy' 
+                ? transitionsToLabel(transitions, this.state.computerType)
+                : by
+                // transitionsToLabel(transitions, this.state.computerType)
         })
     }
 
@@ -832,7 +831,7 @@ class App extends React.Component<appProps, appState> {
 
                                 {this.state.showTree ?
                                     <div className="eval-tree">
-                                        <VNC
+                                        <TreeHistory
                                             nodes={this.state.treeElems.nodes}
                                             edges={this.state.treeElems.edges}
                                             data={this.state.treeElems}

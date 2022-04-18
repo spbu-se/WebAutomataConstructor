@@ -84,7 +84,25 @@ var OutputAutomata = /** @class */ (function (_super) {
             };
         };
         _this.nextStepPosition = function (position, by) {
-            return _this.cellMatrix(position.stmt.idLogic, by).map(function (v) { return ({ position: { stmt: v }, output: v.output }); });
+            return _this.cellMatrix(position.stmt.idLogic, by).map(function (v) {
+                var getLetter = function (id) {
+                    var ret;
+                    _this.alphabet.forEach(function (v, k) {
+                        if (id === v) {
+                            ret = k;
+                        }
+                    });
+                    return ret;
+                };
+                var ret = {
+                    stmt: v,
+                    by: getLetter(by),
+                    cur: _this.nodes[v.idLogic],
+                    from: _this.nodes[position.stmt.idLogic]
+                };
+                // return ({ position: { stmt: v }, output: v.output })
+                return ({ position: ret, output: v.output });
+            });
         };
         _this.nextStepPositions = function (positions, by) {
             var nextPOs = positions.map(function (v) { return _this.nextStepPosition(v, by); });
@@ -105,20 +123,26 @@ var OutputAutomata = /** @class */ (function (_super) {
         };
         _this._step = function (ref) {
             var _a;
+            var byLetter = [];
             var trNum = _this.alphabet.get((_a = _this.input[ref.counterSteps]) === null || _a === void 0 ? void 0 : _a.value);
             var nextPositions = _this.nextStepPositions(ref.curPosition, trNum);
             ref.curPosition = nextPositions.positions;
             var nodesOfCurPos = _this.toNodes(ref.curPosition);
+            nodesOfCurPos.forEach(function (node) { return byLetter.push(node); });
             ref.historiStep.push({ nodes: nodesOfCurPos, by: trNum });
             if (ref.curPosition.length > 0) {
                 ref.counterSteps++;
             }
+            console.log('--->byLetter');
+            console.log(byLetter);
+            console.log('--->byLetter');
             return {
                 counter: ref.counterSteps,
                 history: ref.historiStep,
                 isAdmit: _this.haveAdmitting(ref.curPosition),
                 nodes: nodesOfCurPos,
-                output: nextPositions.outputs
+                output: nextPositions.outputs,
+                byLetter: byLetter
             };
         };
         _this.oaStep = function () {
@@ -136,7 +160,8 @@ var OutputAutomata = /** @class */ (function (_super) {
                 history: after.history,
                 isAdmit: after.isAdmit,
                 nodes: after.nodes,
-                output: after.output
+                output: after.output,
+                byLetter: after.byLetter
             };
         };
         _this.setInput = function (input) {
@@ -180,7 +205,7 @@ var OutputAutomata = /** @class */ (function (_super) {
         var _this = this;
         var retNodes = [];
         positions.forEach(function (value) {
-            var temp = __assign(__assign({}, _this.nodes[value.stmt.idLogic]), { stack: value.stack === undefined ? undefined : value.stack.getStorage() });
+            var temp = __assign(__assign({}, _this.nodes[value.stmt.idLogic]), { from: value.from, cur: value.cur, by: value.by, stack: value.stack === undefined ? undefined : value.stack.getStorage() });
             retNodes.push(temp);
         });
         return retNodes;

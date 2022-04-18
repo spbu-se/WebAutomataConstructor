@@ -49,7 +49,7 @@ export const MyUseKey = (key: any, condition: boolean) => {
     return isKeyPressed
 }
 
-export const VNC = (props: PropsVisNet) => {
+export const TreeHistory = (props: PropsVisNet) => {
     // A reference to the div rendered by this component
     const [domNode, setdomNode] = useState(useRef<HTMLDivElement>(null));
 
