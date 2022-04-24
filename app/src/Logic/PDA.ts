@@ -240,6 +240,9 @@ export class PDA extends Computer {
                 , from: this.nodes[curLId]
                 , cur: this.nodes[stmt.idLogic]
                 , by: EPS
+                , oldStack: stack
+                , stackDown: stackDown
+                /////////
                 //?
             })
             hist.push({ by: EPS, from: this.nodes[curLId], value: this.nodes[stmt.idLogic] })
@@ -297,6 +300,8 @@ export class PDA extends Computer {
                         , from: this.nodes[curLId]
                         , cur: this.nodes[value.idLogic]
                         , by: getLetter(transformedInput)
+                        , oldStack: stack
+                        , stackDown  
                         //? 
                     })
                     hist.push({ by: getLetter(transformedInput), from: this.nodes[curLId], value: this.nodes[value.idLogic] })
@@ -310,6 +315,8 @@ export class PDA extends Computer {
                         , from: this.nodes[curLId]
                         , cur: this.nodes[value.idLogic]
                         , by: getLetter(transformedInput)
+                        , oldStack: stack 
+                        , stackDown: EPS
                         //? 
                     })
                     hist.push({ by: getLetter(transformedInput), from: this.nodes[curLId], value: this.nodes[value.idLogic] })
@@ -365,6 +372,22 @@ export class PDA extends Computer {
     //     return ret && (!this.haveEpsilon())
     // }
 
+
+
+    public getStartStatements = (): NodeCore[] => {
+        console.log('this.startStatements')
+        console.log(this.curPosition)
+        console.log('this.startStatements')
+
+        const curs = this.curPosition.map((v) => {
+            const stmt = v.stmt
+            stmt.stack = v.stack?.getStorage()
+            return stmt
+        }) 
+
+        return curs
+    }
+
     constructor(graph: GraphCore, startStatements: NodeCore[], input: string[], byEmpty?: boolean) {
         super(graph, startStatements)
 
@@ -402,6 +425,13 @@ export class PDA extends Computer {
             })
             ////// this.cycleEps(this.curPosition[0].stmt.idLogic, this.curPosition[0].stack!)
         }//
+        
+
+        console.log('{{{{{{{{{{}}}}}}}}}}')
+        console.log(this.curPosition)
+        console.log(this.startStatements)
+        console.log('{{{{{{{{{{}}}}}}}}}}')
+
         console.log('-------------------------')
         console.log(this.isDeterministic())
         console.log("ALPHBT")
@@ -439,11 +469,21 @@ export class PDA extends Computer {
     private toNodes(positions: position[]): NodeCore[] {
         let retNodes: NodeCore[] = []
         positions.forEach(value => {
+            const from: NodeCore = {
+                id: value.from!.id,
+                isAdmit: value.from!.isAdmit,
+                stack: value.oldStack ? value.oldStack.getStorage() : undefined,
+                move: value.from?.move,
+                output: value.from?.output,
+            } 
+
             let temp: NodeCore = {
                 ...this.nodes[value.stmt.idLogic], stack: value.stack!.getStorage(),
-                from: value.from,
+                from,
                 cur: value.cur,
-                by: value.by
+                by: value.by,
+                oldStack: value.oldStack!.getStorage(),
+                stackDown: value.stackDown
             }
             retNodes.push(temp)
         })

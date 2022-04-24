@@ -57,4 +57,6 @@ export type position = {
     cur?: NodeCore,
     by?: any,
     stack?: Stack<string>
+    oldStack?: Stack<string>
+    stackDown?: string
 }

@@ -93,7 +93,7 @@ export const TreeHistory = (props: PropsVisNet) => {
         interaction: {
             // dragView: false,
             keyboard: false,
-            dragNodes: false,
+            dragNodes: true,
         },
         layout: {
          hierarchical: {
@@ -111,7 +111,7 @@ export const TreeHistory = (props: PropsVisNet) => {
             shapeProperties: {
                 interpolation: false
             },
-            shape: "circle",
+            shape: "box",
             font: "18px Roboto black",
             labelHighlightBold: false,
             size: 40,
