@@ -86,15 +86,20 @@ var TM = /** @class */ (function (_super) {
         var _this = _super.call(this, graph, startStatement, input) || this;
         _this.mem = new TMMemory();
         _this.__step = function (counter, tr, histori) {
+            var byLetter = [];
+            var from = _this.curPosition[0].stmt;
+            var mv;
             var by = "";
             _this.cellMatrix(_this.curPosition[0].stmt.idLogic, tr).forEach(function (value) {
                 if (value.stackDown === _this.mem.lookUp()) {
                     if (value.move === IGraphTypes_1.Move.R) {
                         _this.mem.mvRight(value.stackDown, value.stackPush[0]);
+                        mv = value.move;
                         by = value.stackDown;
                     }
                     if (value.move === IGraphTypes_1.Move.L) {
                         _this.mem.mvLeft(value.stackDown, value.stackPush[0]);
+                        mv = value.move;
                         by = value.stackDown;
                     }
                     _this.assignCurMt({ stmt: _this.statements.get(value.id) });
@@ -105,16 +110,23 @@ var TM = /** @class */ (function (_super) {
                 by: by
                 // this.input[counter].value
             });
-            console.log("this.mem.getStorage()");
-            console.log(_this.mem.getStorage());
             counter++;
+            byLetter.push({
+                id: _this.curPosition[0].stmt.id,
+                isAdmit: _this.curPosition[0].stmt.isAdmit,
+                by: by,
+                from: from,
+                cur: _this.curPosition[0].stmt,
+                move: mv
+            });
             return {
                 nodes: [_this.nodes[_this.curPosition[0].stmt.idLogic]],
                 isAdmit: _this.curPosition[0].stmt.isAdmit,
                 counter: counter,
                 history: histori,
                 memory: _this.mem.getStorage(),
-                pointer: _this.mem.getPointer()
+                pointer: _this.mem.getPointer(),
+                byLetter: byLetter
             };
         };
         _this.restart = function () {

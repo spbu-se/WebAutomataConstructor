@@ -8,7 +8,9 @@ export interface NodeCore {
     output?: Output,
     from?: NodeCore,
     cur?: NodeCore,
-    by?: any
+    by?: any,
+    oldStack?: string[],
+    stackDown?: string,
 }
 
 export enum Move {

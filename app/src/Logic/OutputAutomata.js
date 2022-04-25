@@ -29,25 +29,6 @@ var OutputAutomata = /** @class */ (function (_super) {
     __extends(OutputAutomata, _super);
     function OutputAutomata(graph, startStatements, input) {
         var _this = _super.call(this, graph, startStatements) || this;
-        // isDeterministic(): boolean {
-        //     const ret = this.matrix.reduce((acc: boolean, line) =>
-        //         acc && line.reduce((_: boolean, cell) =>
-        //             cell.reduce((accCell: boolean, stmt, index) => {
-        //                 if (index !== 0) {
-        //                     if (stmt.stackDown !== undefined) {
-        //                         return accCell && !(stmt.stackDown === cell[0].stackDown)
-        //                     }
-        //                     if (stmt.stackDown === undefined) {
-        //                         return accCell && false
-        //                     }
-        //                 }
-        //                 return accCell
-        //             }
-        //                 , acc),
-        //             acc),
-        //         true)
-        //     return ret 
-        // }
         _this.haveEpsilon = function () { return _this.alphabet.get(Computer_1.EPS) !== undefined; };
         _this.restart = function () {
             _this.counterSteps = 0;
@@ -122,6 +103,7 @@ var OutputAutomata = /** @class */ (function (_super) {
                 });
                 return acc;
             }, []);
+            nextPs.forEach(function (v, index) { return v.output = nextOs[index]; });
             return { positions: nextPs, outputs: nextOs };
         };
         _this._step = function (ref, histTrace) {
@@ -210,7 +192,7 @@ var OutputAutomata = /** @class */ (function (_super) {
         var _this = this;
         var retNodes = [];
         positions.forEach(function (value) {
-            var temp = __assign(__assign({}, _this.nodes[value.stmt.idLogic]), { from: value.from, cur: value.cur, by: value.by, stack: value.stack === undefined ? undefined : value.stack.getStorage() });
+            var temp = __assign(__assign({}, _this.nodes[value.stmt.idLogic]), { from: value.from, cur: value.cur, by: value.by, output: value.output, stack: value.stack === undefined ? undefined : value.stack.getStorage() });
             retNodes.push(temp);
         });
         return retNodes;

@@ -41,25 +41,6 @@ export abstract class OutputAutomata extends Computer {
         return ret
     }
 
-    // isDeterministic(): boolean {
-    //     const ret = this.matrix.reduce((acc: boolean, line) =>
-    //         acc && line.reduce((_: boolean, cell) =>
-    //             cell.reduce((accCell: boolean, stmt, index) => {
-    //                 if (index !== 0) {
-    //                     if (stmt.stackDown !== undefined) {
-    //                         return accCell && !(stmt.stackDown === cell[0].stackDown)
-    //                     }
-    //                     if (stmt.stackDown === undefined) {
-    //                         return accCell && false
-    //                     }
-    //                 }
-    //                 return accCell
-    //             }
-    //                 , acc),
-    //             acc),
-    //         true)
-    //     return ret 
-    // }
     public haveEpsilon = () => this.alphabet.get(EPS) !== undefined
 
     public restart = () => {
@@ -112,7 +93,7 @@ export abstract class OutputAutomata extends Computer {
                 from: value.from,
                 cur: value.cur,
                 by: value.by,
-                
+                output: value.output,
                 stack: value.stack === undefined ? undefined : value.stack.getStorage()
             }
             retNodes.push(temp)
@@ -162,6 +143,7 @@ export abstract class OutputAutomata extends Computer {
             })
             return acc
         }, [])
+        nextPs.forEach((v, index) => v.output = nextOs[index])
         return { positions: nextPs, outputs: nextOs }
     }
 

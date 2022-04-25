@@ -1,4 +1,4 @@
-import { History, position, Step } from "./Types";
+import { History, HistTrace, position, Step } from "./Types";
 import { GraphCore, NodeCore, Move } from "./IGraphTypes";
 import { PDA } from "./PDA";
 import { EPS } from "./Computer";
@@ -99,29 +99,43 @@ export class TM extends PDA {
     }
 
     public __step = (counter: number, tr: number, histori: History[]): Step => {
+        const byLetter: NodeCore[] = []
+        const from = this.curPosition[0].stmt
+        let mv: Move
         let by = ""
         this.cellMatrix(this.curPosition[0].stmt.idLogic, tr).forEach((value) => {
             if (value.stackDown === this.mem.lookUp()) {
                 if (value.move === Move.R) {
                     this.mem.mvRight(value.stackDown, value.stackPush![0])
+                    mv = value.move
                     by = value.stackDown
                 }
                 if (value.move === Move.L) {
                     this.mem.mvLeft(value.stackDown, value.stackPush![0])
+                    mv = value.move
                     by = value.stackDown
                 }
                 this.assignCurMt({ stmt: this.statements.get(value.id) })
             }
         })
+        
         histori.push({
             nodes: [this.nodes[this.curPosition[0].stmt.idLogic]],
             by: by
             // this.input[counter].value
         })
-        console.log("this.mem.getStorage()")
-        console.log(this.mem.getStorage())
 
         counter++
+
+
+        byLetter.push({
+            id: this.curPosition[0].stmt.id,
+            isAdmit: this.curPosition[0].stmt.isAdmit,
+            by: by,
+            from,
+            cur: this.curPosition[0].stmt,
+            move: mv!,
+        })
 
         return {
             nodes: [this.nodes[this.curPosition[0].stmt.idLogic]],
@@ -129,7 +143,8 @@ export class TM extends PDA {
             counter: counter,
             history: histori,
             memory: this.mem.getStorage(),
-            pointer: this.mem.getPointer()
+            pointer: this.mem.getPointer(),
+            byLetter
         }
     }
 
