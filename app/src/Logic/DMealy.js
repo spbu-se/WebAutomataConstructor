@@ -23,7 +23,7 @@ var DMealy = /** @class */ (function (_super) {
             if (!_super.prototype.isDeterministic.call(_this)) {
                 throw new Exceptions_1.NonDeterministic();
             }
-            return _this.oaRun();
+            return _this.oaStep();
         };
         _this.run = function () {
             if (!_super.prototype.isDeterministic.call(_this)) {

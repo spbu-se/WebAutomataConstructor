@@ -30,25 +30,8 @@ var lodash_1 = require("lodash");
 var Exceptions_1 = require("./Exceptions");
 var PDA = /** @class */ (function (_super) {
     __extends(PDA, _super);
-    // isDeterministic0(): boolean {
-    //     let ret = true
-    //     this.matrix.forEach(value => {
-    //         value.forEach(value1 => {
-    //             if (value1.length > 1) {
-    //                 let tmp: statementCell = value1[0]
-    //                 value1.forEach((value2, index) => {
-    //                     if (index !== 0 && tmp.stackDown === undefined && value2.stackDown || index !== 0 && tmp.stackDown === value2.stackDown ) {
-    //                         ret = false
-    //                     }
-    //                 })
-    //             }
-    //         })
-    //     })
-    //     return ret && (!this.haveEpsilon())
-    // }
     function PDA(graph, startStatements, input, byEmpty) {
         var _this = _super.call(this, graph, startStatements) || this;
-        // protected matrix: statementCells[][] = []
         _this.stack = new Stack_1.Stack();
         _this.setInput = function (input) {
             _this.input = [];
@@ -59,6 +42,34 @@ var PDA = /** @class */ (function (_super) {
         };
         _this.haveEpsilon = function () {
             return _this.epsId !== undefined;
+        };
+        // isDeterministic0(): boolean {
+        //     let ret = true
+        //     this.matrix.forEach(value => {
+        //         value.forEach(value1 => {
+        //             if (value1.length > 1) {
+        //                 let tmp: statementCell = value1[0]
+        //                 value1.forEach((value2, index) => {
+        //                     if (index !== 0 && tmp.stackDown === undefined && value2.stackDown || index !== 0 && tmp.stackDown === value2.stackDown ) {
+        //                         ret = false
+        //                     }
+        //                 })
+        //             }
+        //         })
+        //     })
+        //     return ret && (!this.haveEpsilon())
+        // }
+        _this.getStartStatements = function () {
+            console.log('this.startStatements');
+            console.log(_this.curPosition);
+            console.log('this.startStatements');
+            var curs = _this.curPosition.map(function (v) {
+                var _a;
+                var stmt = v.stmt;
+                stmt.stack = (_a = v.stack) === null || _a === void 0 ? void 0 : _a.getStorage();
+                return stmt;
+            });
+            return curs;
         };
         _this.byEmptyStackAdmt = function (isAdmt) {
             _this.admitByEmptyStack = isAdmt;
@@ -83,11 +94,21 @@ var PDA = /** @class */ (function (_super) {
             var histUnit = [];
             var histTrace = [];
             for (var i = 0; i < _this.input.length - 1; i++) {
-                var tmp = _this._step(_this.counterStepsForResult, _this.alphabet.get(_this.input[_this.counterStepsForResult].value), _this.historiRun, histUnit, histTrace);
+                var tmp = _this._step(_this.counterStepsForResult, _this.alphabet.get(_this.input[_this.counterStepsForResult].value), _this.historiRun, histUnit, []);
                 _this.counterStepsForResult = tmp.counter;
                 _this.historiRun = tmp.history;
+                histTrace.push({ byEpsPred: tmp.byEpsPred, byLetter: tmp.byLetter, byEpsAfter: tmp.byEpsAfter });
             }
-            return _this._step(_this.counterStepsForResult, _this.alphabet.get(_this.input[_this.counterStepsForResult].value), _this.historiRun, histUnit, histTrace);
+            var last = _this._step(_this.counterStepsForResult, _this.alphabet.get(_this.input[_this.counterStepsForResult].value), _this.historiRun, histUnit, []);
+            histTrace.push({ byEpsPred: last.byEpsPred, byLetter: last.byLetter, byEpsAfter: last.byEpsAfter });
+            var ret = {
+                nodes: last.nodes,
+                counter: last.counter,
+                isAdmit: last.isAdmit,
+                history: last.history,
+                histTrace: histTrace
+            };
+            return ret;
         };
         _this.step = _this.pdaStep;
         _this.run = _this.pdaRun;
@@ -168,7 +189,7 @@ var PDA = /** @class */ (function (_super) {
                     history: histori,
                     tree: _this.treeHist,
                     byEpsPred: byEpsPred, byEpsAfter: byEpsAfter, byLetter: byLetter,
-                    histTrace: histTrace
+                    histTrace: []
                 };
             }
             rmRepeations();
@@ -189,7 +210,7 @@ var PDA = /** @class */ (function (_super) {
                 history: histori,
                 tree: _this.treeHist,
                 byEpsPred: byEpsPred, byEpsAfter: byEpsAfter, byLetter: byLetter,
-                histTrace: histTrace
+                histTrace: []
             };
         };
         _this.restart = function () {
@@ -478,6 +499,10 @@ var PDA = /** @class */ (function (_super) {
             });
             ////// this.cycleEps(this.curPosition[0].stmt.idLogic, this.curPosition[0].stack!)
         } //
+        console.log('{{{{{{{{{{}}}}}}}}}}');
+        console.log(_this.curPosition);
+        console.log(_this.startStatements);
+        console.log('{{{{{{{{{{}}}}}}}}}}');
         console.log('-------------------------');
         console.log(_this.isDeterministic());
         console.log("ALPHBT");
@@ -679,7 +704,10 @@ var PDA = /** @class */ (function (_super) {
                 stmt: stmt, stack: endsOfEpsWay[i].top,
                 from: this.nodes[curLId],
                 cur: this.nodes[stmt.idLogic],
-                by: Computer_1.EPS
+                by: Computer_1.EPS,
+                oldStack: stack,
+                stackDown: stackDown
+                /////////
                 //?
             });
             hist.push({ by: Computer_1.EPS, from: this.nodes[curLId], value: this.nodes[stmt.idLogic] });
@@ -731,7 +759,9 @@ var PDA = /** @class */ (function (_super) {
                         stmt: _this.statements.get(value.id), stack: newStack,
                         from: _this.nodes[curLId],
                         cur: _this.nodes[value.idLogic],
-                        by: getLetter(transformedInput)
+                        by: getLetter(transformedInput),
+                        oldStack: stack,
+                        stackDown: stackDown
                         //? 
                     });
                     hist.push({ by: getLetter(transformedInput), from: _this.nodes[curLId], value: _this.nodes[value.idLogic] });
@@ -744,7 +774,9 @@ var PDA = /** @class */ (function (_super) {
                         stmt: _this.statements.get(value.id), stack: newStack,
                         from: _this.nodes[curLId],
                         cur: _this.nodes[value.idLogic],
-                        by: getLetter(transformedInput)
+                        by: getLetter(transformedInput),
+                        oldStack: stack,
+                        stackDown: Computer_1.EPS
                         //? 
                     });
                     hist.push({ by: getLetter(transformedInput), from: _this.nodes[curLId], value: _this.nodes[value.idLogic] });
@@ -752,7 +784,6 @@ var PDA = /** @class */ (function (_super) {
                 }
             }
         });
-        // hist.push(histUnit)
         return positions;
     };
     PDA.prototype.isDeterministic = function () {
@@ -782,8 +813,6 @@ var PDA = /** @class */ (function (_super) {
                     ret = true;
                 }
             });
-            // console.log("ADMT")
-            // console.log(ret)
             return ret;
         }
     };
@@ -791,7 +820,15 @@ var PDA = /** @class */ (function (_super) {
         var _this = this;
         var retNodes = [];
         positions.forEach(function (value) {
-            var temp = __assign(__assign({}, _this.nodes[value.stmt.idLogic]), { stack: value.stack.getStorage(), from: value.from, cur: value.cur, by: value.by });
+            var _a, _b;
+            var from = {
+                id: value.from.id,
+                isAdmit: value.from.isAdmit,
+                stack: value.oldStack ? value.oldStack.getStorage() : undefined,
+                move: (_a = value.from) === null || _a === void 0 ? void 0 : _a.move,
+                output: (_b = value.from) === null || _b === void 0 ? void 0 : _b.output
+            };
+            var temp = __assign(__assign({}, _this.nodes[value.stmt.idLogic]), { stack: value.stack.getStorage(), from: from, cur: value.cur, by: value.by, oldStack: value.oldStack.getStorage(), stackDown: value.stackDown });
             retNodes.push(temp);
         });
         return retNodes;
@@ -913,7 +950,9 @@ var nfa = new PDA({
 var aa = nfa.run();
 console.log('_____-_--');
 aa.histTrace.forEach(function (v) {
-    console.log(v.byLetter);
+    // console.log(v.byEpsPred)
+    console.log(v.byEpsAfter);
+    // console.log(v.byLetter)
     console.log();
 });
 // const a = nfa.step()

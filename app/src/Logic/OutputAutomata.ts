@@ -1,6 +1,6 @@
 import { Computer, EPS } from "./Computer";
 import { GraphCore, NodeCore } from "./IGraphTypes";
-import { Output, position, Step, History } from "./Types";
+import { Output, position, Step, History, HistTrace } from "./Types";
 
 export abstract class OutputAutomata extends Computer {
     protected curPosition: position[]
@@ -41,25 +41,6 @@ export abstract class OutputAutomata extends Computer {
         return ret
     }
 
-    // isDeterministic(): boolean {
-    //     const ret = this.matrix.reduce((acc: boolean, line) =>
-    //         acc && line.reduce((_: boolean, cell) =>
-    //             cell.reduce((accCell: boolean, stmt, index) => {
-    //                 if (index !== 0) {
-    //                     if (stmt.stackDown !== undefined) {
-    //                         return accCell && !(stmt.stackDown === cell[0].stackDown)
-    //                     }
-    //                     if (stmt.stackDown === undefined) {
-    //                         return accCell && false
-    //                     }
-    //                 }
-    //                 return accCell
-    //             }
-    //                 , acc),
-    //             acc),
-    //         true)
-    //     return ret 
-    // }
     public haveEpsilon = () => this.alphabet.get(EPS) !== undefined
 
     public restart = () => {
@@ -74,8 +55,11 @@ export abstract class OutputAutomata extends Computer {
     }
 
     oaRun = (): Step => {
+        const histTrace: HistTrace[] = []
+        
         this.historiRun = []
         this.counterStepsForResult = 0
+
         let output
         for (let i = 0; i < this.input.length; i++) {
             const ref = { 
@@ -83,8 +67,9 @@ export abstract class OutputAutomata extends Computer {
                 curPosition: this.curPosition, 
                 historiStep: this.historiRun 
             }
-            const after = this._step(ref)
+            const after = this._step(ref, histTrace)
             this.counterStepsForResult = ref.counterSteps
+            console.log(this.counterStepsForResult)
             this.curPosition = ref.curPosition
             this.historiRun = ref.historiStep
             output = after.output
@@ -95,7 +80,8 @@ export abstract class OutputAutomata extends Computer {
             history: this.historiRun, 
             isAdmit: this.haveAdmitting(this.curPosition), 
             nodes: this.toNodes(this.curPosition),
-            output: output 
+            output: output,
+            histTrace
         }
     }
 
@@ -104,6 +90,10 @@ export abstract class OutputAutomata extends Computer {
         positions.forEach(value => {
             let temp: NodeCore = {
                 ...this.nodes[value.stmt.idLogic],
+                from: value.from,
+                cur: value.cur,
+                by: value.by,
+                output: value.output,
                 stack: value.stack === undefined ? undefined : value.stack.getStorage()
             }
             retNodes.push(temp)
@@ -116,7 +106,26 @@ export abstract class OutputAutomata extends Computer {
     }
 
     protected nextStepPosition = (position: position, by: number): { position: position, output: Output | undefined }[] => {
-        return this.cellMatrix(position.stmt.idLogic, by).map(v => ({ position: { stmt: v }, output: v.output }))
+        return this.cellMatrix(position.stmt.idLogic, by).map(v => {
+            const getLetter = (id: number): any => {
+                let ret
+                this.alphabet.forEach((v, k) => {
+                    if (id === v) {
+                        ret = k
+                    }
+                })
+                return ret
+            }
+    
+            const ret: position = { 
+                stmt: v, 
+                by: getLetter(by), 
+                cur: this.nodes[v.idLogic], 
+                from: this.nodes[position.stmt.idLogic]
+            }
+            // return ({ position: { stmt: v }, output: v.output })
+            return ({ position: ret, output: v.output })
+        })
     }
 
     protected nextStepPositions = (positions: position[], by: number): { positions: position[], outputs: Output[] } => {
@@ -134,26 +143,41 @@ export abstract class OutputAutomata extends Computer {
             })
             return acc
         }, [])
+        nextPs.forEach((v, index) => v.output = nextOs[index])
         return { positions: nextPs, outputs: nextOs }
     }
 
-    protected _step = (ref: { counterSteps: number, curPosition: position[], historiStep: History[] }) => {
+    protected _step = (ref: { counterSteps: number, curPosition: position[], historiStep: History[] }, histTrace: HistTrace[]) => {
+        const byLetter: NodeCore[] = []
+        
         const trNum = this.alphabet.get(this.input[ref.counterSteps]?.value)
         const nextPositions = this.nextStepPositions(ref.curPosition, trNum)
-
+        
         ref.curPosition = nextPositions.positions
+        
         const nodesOfCurPos: NodeCore[] = this.toNodes(ref.curPosition)
+        nodesOfCurPos.forEach((node) => byLetter.push(node))
+        
         ref.historiStep.push({ nodes: nodesOfCurPos, by: trNum })
         if (ref.curPosition.length > 0) {
             ref.counterSteps++
         }
+
+        console.log('--->byLetter')
+        console.log(byLetter)
+        console.log('--->byLetter')
+        
+        histTrace.push({ byLetter })
+
 
         return {
             counter: ref.counterSteps,
             history: ref.historiStep,
             isAdmit: this.haveAdmitting(ref.curPosition),
             nodes: nodesOfCurPos,
-            output: nextPositions.outputs
+            output: nextPositions.outputs,
+            byLetter,
+            histTrace
         }
     }
 
@@ -163,7 +187,7 @@ export abstract class OutputAutomata extends Computer {
             curPosition: this.curPosition, 
             historiStep: this.historiStep 
         }
-        const after = this._step(ref)
+        const after = this._step(ref, [])
         this.counterSteps = ref.counterSteps
         this.curPosition = ref.curPosition
         this.historiStep = ref.historiStep
@@ -173,7 +197,8 @@ export abstract class OutputAutomata extends Computer {
             history: after.history,
             isAdmit: after.isAdmit,
             nodes: after.nodes,
-            output: after.output
+            output: after.output,
+            byLetter: after.byLetter
         }
     }
 

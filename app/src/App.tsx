@@ -3,15 +3,11 @@ import "./App.css"
 // import Graph from "react-graph-vis";
 import {
     ComputerType,
-    controlNodeDraggingEventArgs, deselectEdgeEventArgs,
-    deselectNodeEventArgs,
-    doubleClickEventArgs, dragEndEventArgs, edge,
+    edge,
     graph,
     histNode,
-    node, selectEdgeEventArgs,
-    selectNodeEventArgs
+    node
 } from "./react-graph-vis-types";
-import { cloneDeep } from "lodash";
 import NodeControl from "./Components/NodeControl/NodeControl";
 import EdgeControl from "./Components/EdgeControl/EdgeControl";
 import {
@@ -38,7 +34,7 @@ import {
 } from "vis-network/standalone/esm/vis-network";
 import { Output } from './Logic/Types';
 import { NonDetermenisticModal, NonMinimizableModal } from './ErrorModal';
-import { VNC } from './VNC';
+import { TreeHistory } from './TreeHistory';
 // import {ContextMenu, MenuItem as CotextMenuItem, ContextMenuTrigger} from "react-contextmenu";
 
 interface appProps {
@@ -72,8 +68,9 @@ interface appState {
     wasComputerResetted: boolean,
     byEmptyStack: boolean,
     errIsNonDetermenistic: boolean,
-    errIsNonMinimizable: boolean
-    showTree: boolean
+    errIsNonMinimizable: boolean,
+    showTree: boolean,
+    History: (() => JSX.Element)
 }
 
 export const ComputerTypeContext = React.createContext<null | ComputerType>(null);
@@ -187,7 +184,8 @@ class App extends React.Component<appProps, appState> {
             errIsNonDetermenistic: false,
             errIsNonMinimizable: false,
 
-            showTree: false
+            showTree: false,
+            History: () => ( <div></div> ),
             // errorAction: {
             //     isNonDetermenistic: false, 
             //     setIsNonDetermenistic: (v: boolean): void => { this.setState({ errorAction.isNonDetermenistic = v}) }
@@ -362,7 +360,11 @@ class App extends React.Component<appProps, appState> {
             from: from,
             to: to,
             transitions: transitions,
-            label: transitionsToLabel(transitions, this.state.computerType)
+            label: by 
+            // this.state.computerType !== 'mealy' && this.state.computerType !== 'dmealy' 
+                // ? transitionsToLabel(transitions, this.state.computerType)
+                // : by
+                // transitionsToLabel(transitions, this.state.computerType)
         })
     }
 
@@ -486,11 +488,11 @@ class App extends React.Component<appProps, appState> {
     }
 
     treeVisible = () => {
-        this.setState({showTree: !this.state.showTree})
+        this.setState({ showTree: !this.state.showTree})
         return !this.state.showTree
     }
 
-    treeContextInfo = () => (this.state.showTree ? "Закрыть" : "Открыть") + " дерево вычислений" 
+    treeContextInfo = () => (this.state.showTree ? "Закрыть" : "Открыть") + " дерево вычислений"
 
     DFAContextMenu = (handleContextMenu: any, handleClose: any) => {
         return (
@@ -574,6 +576,14 @@ class App extends React.Component<appProps, appState> {
                         {"Мур"}
                     </button>
                 </div>
+                <div onClick={handleClose}>
+                    <button
+                        className={"button-context-menu"}
+                        onClick={this.treeVisible}
+                    >
+                        {this.treeContextInfo()}
+                    </button>
+                </div>
             </div>
         )
     }
@@ -611,6 +621,14 @@ class App extends React.Component<appProps, appState> {
                         onClick={computerAction.mooreToMealy}
                     >
                         {"Мили"}
+                    </button>
+                </div>
+                <div onClick={handleClose}>
+                    <button
+                        className={"button-context-menu"}
+                        onClick={this.treeVisible}
+                    >
+                        {this.treeContextInfo()}
                     </button>
                 </div>
             </div>
@@ -653,6 +671,14 @@ class App extends React.Component<appProps, appState> {
                         {this.state.byEmptyStack ? "По стеку" : "По состоянию"}
                     </button>
                 </div>
+                <div onClick={handleClose}>
+                    <button
+                        className={"button-context-menu"}
+                        onClick={this.treeVisible}
+                    >
+                        {this.treeContextInfo()}
+                    </button>
+                </div>
             </div>
         )
     }
@@ -684,13 +710,14 @@ class App extends React.Component<appProps, appState> {
                         {"Сброс"}
                     </button>
                 </div>
-                {/* <div onClick={handleClose}>
+                <div onClick={handleClose}>
                     <button
                         className={"button-context-menu"}
+                        onClick={this.treeVisible}
                     >
-                        {"Just-button"}
+                        {this.treeContextInfo()}
                     </button>
-                </div> */}
+                </div>
             </div>
         )
     }
@@ -721,6 +748,8 @@ class App extends React.Component<appProps, appState> {
             }
         }
     }
+
+
 
     render() {
         return (
@@ -771,7 +800,9 @@ class App extends React.Component<appProps, appState> {
                                     onAuthFailed={this.logout}
                                     graph={elementsToGraph(this.state.elements)}
                                     computerType={this.state.computerType!} />
-
+                                <div className="history-container">
+                                    {this.state.History()}
+                                </div>
                                 <div className="hint-container">
                                     <Paper className="hint" variant="outlined">
                                         Ctrl+S — сохранить автомат
@@ -826,7 +857,7 @@ class App extends React.Component<appProps, appState> {
 
                                 {this.state.showTree ?
                                     <div className="eval-tree">
-                                        <VNC
+                                        <TreeHistory
                                             nodes={this.state.treeElems.nodes}
                                             edges={this.state.treeElems.edges}
                                             data={this.state.treeElems}
@@ -857,6 +888,7 @@ class App extends React.Component<appProps, appState> {
                                         computerType={this.state.computerType}
                                         reinitComputer={computerAction.init}
                                     />
+                                     
                                     <RunControl
                                         updMem={this.updMem}
                                         elements={this.state.elements}
@@ -880,11 +912,15 @@ class App extends React.Component<appProps, appState> {
                                         setRun={(f: () => void) => controlAction.run = f}
                                         setStep={(f: () => void) => controlAction.step = f}
                                         setReset={(f: () => void) => controlAction.reset = f}
+                                        setHistory={(jsx: () => JSX.Element) => this.setState({ History: jsx })}
                                         setIsNonDetermenistic={this.setIsNonDetermenistic}
                                         setIsNonMinimizable={this.setIsNonMinimizable}
+                                        treeContextInfo={this.treeContextInfo}
+                                        treeVisible={this.treeVisible}
                                     />
+                                     
                                 </div>
-
+                                
                             </div>
                         </ComputerTypeContext.Provider>
                     </Route>

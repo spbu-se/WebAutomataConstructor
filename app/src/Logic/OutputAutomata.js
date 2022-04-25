@@ -29,25 +29,6 @@ var OutputAutomata = /** @class */ (function (_super) {
     __extends(OutputAutomata, _super);
     function OutputAutomata(graph, startStatements, input) {
         var _this = _super.call(this, graph, startStatements) || this;
-        // isDeterministic(): boolean {
-        //     const ret = this.matrix.reduce((acc: boolean, line) =>
-        //         acc && line.reduce((_: boolean, cell) =>
-        //             cell.reduce((accCell: boolean, stmt, index) => {
-        //                 if (index !== 0) {
-        //                     if (stmt.stackDown !== undefined) {
-        //                         return accCell && !(stmt.stackDown === cell[0].stackDown)
-        //                     }
-        //                     if (stmt.stackDown === undefined) {
-        //                         return accCell && false
-        //                     }
-        //                 }
-        //                 return accCell
-        //             }
-        //                 , acc),
-        //             acc),
-        //         true)
-        //     return ret 
-        // }
         _this.haveEpsilon = function () { return _this.alphabet.get(Computer_1.EPS) !== undefined; };
         _this.restart = function () {
             _this.counterSteps = 0;
@@ -60,6 +41,7 @@ var OutputAutomata = /** @class */ (function (_super) {
             });
         };
         _this.oaRun = function () {
+            var histTrace = [];
             _this.historiRun = [];
             _this.counterStepsForResult = 0;
             var output;
@@ -69,8 +51,9 @@ var OutputAutomata = /** @class */ (function (_super) {
                     curPosition: _this.curPosition,
                     historiStep: _this.historiRun
                 };
-                var after = _this._step(ref);
+                var after = _this._step(ref, histTrace);
                 _this.counterStepsForResult = ref.counterSteps;
+                console.log(_this.counterStepsForResult);
                 _this.curPosition = ref.curPosition;
                 _this.historiRun = ref.historiStep;
                 output = after.output;
@@ -80,11 +63,30 @@ var OutputAutomata = /** @class */ (function (_super) {
                 history: _this.historiRun,
                 isAdmit: _this.haveAdmitting(_this.curPosition),
                 nodes: _this.toNodes(_this.curPosition),
-                output: output
+                output: output,
+                histTrace: histTrace
             };
         };
         _this.nextStepPosition = function (position, by) {
-            return _this.cellMatrix(position.stmt.idLogic, by).map(function (v) { return ({ position: { stmt: v }, output: v.output }); });
+            return _this.cellMatrix(position.stmt.idLogic, by).map(function (v) {
+                var getLetter = function (id) {
+                    var ret;
+                    _this.alphabet.forEach(function (v, k) {
+                        if (id === v) {
+                            ret = k;
+                        }
+                    });
+                    return ret;
+                };
+                var ret = {
+                    stmt: v,
+                    by: getLetter(by),
+                    cur: _this.nodes[v.idLogic],
+                    from: _this.nodes[position.stmt.idLogic]
+                };
+                // return ({ position: { stmt: v }, output: v.output })
+                return ({ position: ret, output: v.output });
+            });
         };
         _this.nextStepPositions = function (positions, by) {
             var nextPOs = positions.map(function (v) { return _this.nextStepPosition(v, by); });
@@ -101,24 +103,33 @@ var OutputAutomata = /** @class */ (function (_super) {
                 });
                 return acc;
             }, []);
+            nextPs.forEach(function (v, index) { return v.output = nextOs[index]; });
             return { positions: nextPs, outputs: nextOs };
         };
-        _this._step = function (ref) {
+        _this._step = function (ref, histTrace) {
             var _a;
+            var byLetter = [];
             var trNum = _this.alphabet.get((_a = _this.input[ref.counterSteps]) === null || _a === void 0 ? void 0 : _a.value);
             var nextPositions = _this.nextStepPositions(ref.curPosition, trNum);
             ref.curPosition = nextPositions.positions;
             var nodesOfCurPos = _this.toNodes(ref.curPosition);
+            nodesOfCurPos.forEach(function (node) { return byLetter.push(node); });
             ref.historiStep.push({ nodes: nodesOfCurPos, by: trNum });
             if (ref.curPosition.length > 0) {
                 ref.counterSteps++;
             }
+            console.log('--->byLetter');
+            console.log(byLetter);
+            console.log('--->byLetter');
+            histTrace.push({ byLetter: byLetter });
             return {
                 counter: ref.counterSteps,
                 history: ref.historiStep,
                 isAdmit: _this.haveAdmitting(ref.curPosition),
                 nodes: nodesOfCurPos,
-                output: nextPositions.outputs
+                output: nextPositions.outputs,
+                byLetter: byLetter,
+                histTrace: histTrace
             };
         };
         _this.oaStep = function () {
@@ -127,7 +138,7 @@ var OutputAutomata = /** @class */ (function (_super) {
                 curPosition: _this.curPosition,
                 historiStep: _this.historiStep
             };
-            var after = _this._step(ref);
+            var after = _this._step(ref, []);
             _this.counterSteps = ref.counterSteps;
             _this.curPosition = ref.curPosition;
             _this.historiStep = ref.historiStep;
@@ -136,7 +147,8 @@ var OutputAutomata = /** @class */ (function (_super) {
                 history: after.history,
                 isAdmit: after.isAdmit,
                 nodes: after.nodes,
-                output: after.output
+                output: after.output,
+                byLetter: after.byLetter
             };
         };
         _this.setInput = function (input) {
@@ -180,7 +192,7 @@ var OutputAutomata = /** @class */ (function (_super) {
         var _this = this;
         var retNodes = [];
         positions.forEach(function (value) {
-            var temp = __assign(__assign({}, _this.nodes[value.stmt.idLogic]), { stack: value.stack === undefined ? undefined : value.stack.getStorage() });
+            var temp = __assign(__assign({}, _this.nodes[value.stmt.idLogic]), { from: value.from, cur: value.cur, by: value.by, output: value.output, stack: value.stack === undefined ? undefined : value.stack.getStorage() });
             retNodes.push(temp);
         });
         return retNodes;

@@ -12,6 +12,17 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
 exports.__esModule = true;
 var PDA_1 = require("./PDA");
 var EpsilonNFA = /** @class */ (function (_super) {
@@ -34,14 +45,16 @@ var EpsilonNFA = /** @class */ (function (_super) {
             _this.historiRun = [];
             _this.counterStepsForResult = 0;
             for (var i = 0; i < _this.input.length - 1; i++) {
-                var tmp = _this._step(_this.counterStepsForResult, _this.alphabet.get(_this.input[_this.counterStepsForResult].value), _this.historiRun, histUnit, histTrace);
+                var tmp = _this._step(_this.counterStepsForResult, _this.alphabet.get(_this.input[_this.counterStepsForResult].value), _this.historiRun, histUnit, []);
                 _this.counterStepsForResult = tmp.counter;
                 _this.historiRun = tmp.history;
+                histTrace.push({ byEpsPred: tmp.byEpsPred, byLetter: tmp.byLetter, byEpsAfter: tmp.byEpsAfter });
             }
-            var ret = _this._step(_this.counterStepsForResult, _this.alphabet.get(_this.input[_this.counterStepsForResult].value), _this.historiRun, histUnit, histTrace);
+            var ret = _this._step(_this.counterStepsForResult, _this.alphabet.get(_this.input[_this.counterStepsForResult].value), _this.historiRun, histUnit, []);
+            histTrace.push({ byEpsPred: ret.byEpsPred, byLetter: ret.byLetter, byEpsAfter: ret.byEpsAfter });
             ret.nodes.forEach(function (value) { return value.stack = undefined; });
             ret.history.forEach(function (value) { return value.nodes.forEach(function (value1) { return value1.stack = undefined; }); });
-            return ret;
+            return __assign(__assign({}, ret), { histTrace: histTrace });
         };
         _this.step = _this.enfaStep;
         _this.run = _this.enfaRun;

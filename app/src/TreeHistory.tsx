@@ -49,7 +49,7 @@ export const MyUseKey = (key: any, condition: boolean) => {
     return isKeyPressed
 }
 
-export const VNC = (props: PropsVisNet) => {
+export const TreeHistory = (props: PropsVisNet) => {
     // A reference to the div rendered by this component
     const [domNode, setdomNode] = useState(useRef<HTMLDivElement>(null));
 
@@ -93,7 +93,7 @@ export const VNC = (props: PropsVisNet) => {
         interaction: {
             // dragView: false,
             keyboard: false,
-            dragNodes: false,
+            dragNodes: true,
         },
         layout: {
          hierarchical: {
@@ -111,7 +111,7 @@ export const VNC = (props: PropsVisNet) => {
             shapeProperties: {
                 interpolation: false
             },
-            shape: "circle",
+            shape: "box",
             font: "18px Roboto black",
             labelHighlightBold: false,
             size: 40,

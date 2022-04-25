@@ -43,10 +43,12 @@ export class EpsilonNFA extends PDA {
                 this.alphabet.get(this.input[this.counterStepsForResult].value),
                 this.historiRun,
                 histUnit,
-                histTrace
+            []
             )
             this.counterStepsForResult = tmp.counter
             this.historiRun = tmp.history
+            histTrace.push({byEpsPred: tmp.byEpsPred, byLetter: tmp.byLetter, byEpsAfter: tmp.byEpsAfter})
+
         }
 
         let ret = this._step(
@@ -54,13 +56,14 @@ export class EpsilonNFA extends PDA {
             this.alphabet.get(this.input[this.counterStepsForResult].value),
             this.historiRun,
             histUnit,
-            histTrace
+            []
         )
+        histTrace.push({byEpsPred: ret.byEpsPred, byLetter: ret.byLetter, byEpsAfter: ret.byEpsAfter})
 
         ret.nodes.forEach(value => value.stack = undefined)
         ret.history.forEach(value => value.nodes.forEach(value1 => value1.stack = undefined))
 
-        return ret
+        return {...ret, histTrace}
     }
 
     step = this.enfaStep

@@ -13,7 +13,7 @@ export class DMoore extends Moore {
         if (!super.isDeterministic()) {
             throw new NonDeterministic()
         }
-        return this.oaRun()
+        return this.oaStep()
     }
 
     run = (): Step => {
