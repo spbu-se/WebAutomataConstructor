@@ -344,7 +344,7 @@ class RunControl extends React.Component<runControlProps, runControlState> {
         if (this.props.computerType === 'pda' || this.props.computerType === 'dpda') {
             tmp.forEach((v) => {
                 const gNode = this.state.gElements.nodes.find((gEl) => gEl.id === v.idd)
-                const label = gNode?.label + '\n' + `${(this.props.getLastHistNodeId() + 1)}` + '\n―' + (v.stack!.reduce((acc, stack) => '\n' + stack + acc, ''))
+                const label = gNode?.label + '\n' + '―' + (v.stack!.reduce((acc, stack) => '\n' + stack + acc, ''))
                 this.props.createHistNode(v.idd, label, v.isAdmit, v.isInitial, v.isCurrent)
             })
         } else {
@@ -484,16 +484,16 @@ class RunControl extends React.Component<runControlProps, runControlState> {
                 }
             })
 
-            if (this.props.computerType === "moore" && stepResult.counter === 1) {
-                const startNode: { a: node, b: string[] | undefined }[] = [{
-                    a: this.state.gElements.nodes.filter(node => node.id === this.state.computer!.getCurrNode())[0],
-                    b: ["~"]
-                }]
-                console.log(startNode)
-                this.setState({
-                    startNode: this.state.gElements.nodes.filter(node => node.id === this.state.computer!.getCurrNode())[0]
-                })
-            }
+            // if (this.props.computerType === "moore" && stepResult.counter === 1) {
+            //     const startNode: { a: node, b: string[] | undefined }[] = [{
+            //         a: this.state.gElements.nodes.filter(node => node.id === this.state.computer!.getCurrNode())[0],
+            //         b: ["~"]
+            //     }]
+            //     console.log(startNode)
+            //     this.setState({
+            //         startNode: this.state.gElements.nodes.filter(node => node.id === this.state.computer!.getCurrNode())[0]
+            //     })
+            // }
 
             this.setState({
                 result: result,
@@ -719,6 +719,7 @@ class RunControl extends React.Component<runControlProps, runControlState> {
             { name: () => 'Шаг', onClick: () => this.step() },
             { name: () => 'Сбросить', onClick: () => this.reset() }
         ],
+        [{ name: this.props.treeContextInfo, onClick: this.props.treeVisible }]
     ]
 
     private getButtons = () => {
@@ -727,7 +728,7 @@ class RunControl extends React.Component<runControlProps, runControlState> {
             case "nfa":
             case "nfa-eps": return creatButtons(this.buttonsTree)
             case "tm": return creatButtons(this.buttonsNoRun)
-            default: return creatButtons(this.defaultButtons)
+            default: return creatButtons(this.buttonsTree)
         }
     }
 

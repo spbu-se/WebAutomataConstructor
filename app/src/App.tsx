@@ -576,6 +576,14 @@ class App extends React.Component<appProps, appState> {
                         {"Мур"}
                     </button>
                 </div>
+                <div onClick={handleClose}>
+                    <button
+                        className={"button-context-menu"}
+                        onClick={this.treeVisible}
+                    >
+                        {this.treeContextInfo()}
+                    </button>
+                </div>
             </div>
         )
     }
@@ -613,6 +621,14 @@ class App extends React.Component<appProps, appState> {
                         onClick={computerAction.mooreToMealy}
                     >
                         {"Мили"}
+                    </button>
+                </div>
+                <div onClick={handleClose}>
+                    <button
+                        className={"button-context-menu"}
+                        onClick={this.treeVisible}
+                    >
+                        {this.treeContextInfo()}
                     </button>
                 </div>
             </div>
@@ -655,6 +671,14 @@ class App extends React.Component<appProps, appState> {
                         {this.state.byEmptyStack ? "По стеку" : "По состоянию"}
                     </button>
                 </div>
+                <div onClick={handleClose}>
+                    <button
+                        className={"button-context-menu"}
+                        onClick={this.treeVisible}
+                    >
+                        {this.treeContextInfo()}
+                    </button>
+                </div>
             </div>
         )
     }
@@ -686,13 +710,14 @@ class App extends React.Component<appProps, appState> {
                         {"Сброс"}
                     </button>
                 </div>
-                {/* <div onClick={handleClose}>
+                <div onClick={handleClose}>
                     <button
                         className={"button-context-menu"}
+                        onClick={this.treeVisible}
                     >
-                        {"Just-button"}
+                        {this.treeContextInfo()}
                     </button>
-                </div> */}
+                </div>
             </div>
         )
     }
