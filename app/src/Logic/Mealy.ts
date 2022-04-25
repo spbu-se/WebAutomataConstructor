@@ -130,19 +130,6 @@ export class Mealy extends OutputAutomata {
 
     run = this.oaRun
 
-    // step = (): Step => {
-    //     if (!super.isDeterministic()) {
-    //         throw new NonDeterministic()
-    //     }
-    //     return this.oaStep()
-    // }
-
-    // run = (): Step => {
-    //     if (!super.isDeterministic()) {
-    //         throw new NonDeterministic()
-    //     }
-    //     return this.oaRun()
-    // }
 }
 
 

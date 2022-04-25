@@ -17,8 +17,8 @@ import { PDA } from "../../Logic/PDA";
 import { TM } from "../../Logic/TM";
 import { Elements } from "../../App";
 import { decorateGraph, elementsToGraph, graphToElements } from "../../utils";
-import { HistUnit, Step } from "../../Logic/Types";
-import { GraphEval, GraphEvalMultiStart, NodeCore } from "../../Logic/IGraphTypes";
+import { HistUnit, Output, Step } from "../../Logic/Types";
+import { GraphEval, GraphEvalMultiStart, Move, NodeCore } from "../../Logic/IGraphTypes";
 import { Mealy } from "../../Logic/Mealy";
 import { Moore } from "../../Logic/Moore";
 import { start } from "repl";
@@ -115,9 +115,11 @@ type nodeTree = {
     id: number,
     idd: number,
     stack?: string[],
+    move?: Move,
     by?: string,
     from?: NodeCore,
     stackDown?: string,
+    output?: Output,
     label: string,
     isAdmit: boolean,
     isInitial: boolean,
@@ -145,9 +147,7 @@ class RunControl extends React.Component<runControlProps, runControlState> {
             startNode: undefined,
             lastHistUnits: [],
             startStatements: []
-            // {nodes: [], edges: []}
         };
-        // this.initializeComputer()
     }
 
     componentDidMount() {
@@ -213,13 +213,6 @@ class RunControl extends React.Component<runControlProps, runControlState> {
                     !isEqual(curr.transitions, prev.transitions)
             });
         }
-
-        // console.log('[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[]')
-        // prev.edges.forEach(v => {
-        //     console.log(v.from + ' ' + v.to)
-        //     v.transitions.forEach((t) => console.log(t))
-        // })
-
         return compareEdges() || compareNodes()
     }
 
@@ -267,125 +260,51 @@ class RunControl extends React.Component<runControlProps, runControlState> {
                 return;
             }
 
-            console.log("this.state.gElementshis.state.gElementshis.state.gElements")
-            console.log(this.state.gElements)
-
             this.setState({
                 computer: this.getComputer(this.props.computerType, this.state.gElements, initialNode, input),
                 result: undefined
             }, async () => {
 
-                const tmp: {
-                    id: number,
-                    idd: number,
-                    stack?: string[]
-                    label: string,
-                    isAdmit: boolean,
-                    isInitial: boolean,
-                    isCurrent: boolean
-                }[] = []
+                const tmp: nodeTree[] = []
 
                 const startStmts = this.state.computer !== undefined
                     ? this.state.computer.getStartStatements()
                     : []
 
-                console.log('startStmts')
-                console.log(startStmts)
-                console.log('startStmts')
+                startStmts.forEach((v, index) => {
+                    const paddingTreeId = index + 1
 
-                startStmts
-                    .map((stmt) => {
-                        const nodeMb = this.state.gElements.nodes.find(node => node.id === stmt.id)
-                        const stck = stmt.stack!
-                        if (nodeMb !== undefined) {
-                            nodeMb.stack = stck ? [...stck] : []
-                            return nodeMb
-                        }
-                        return undefined
+                    tmp.push({
+                        stack: v.stack ? [...v.stack] : [],
+                        from: v.from!,
+                        by: v.by,
+                        stackDown: v.stackDown,
+                        label: `${v.id}`,
+                        isAdmit: v.isAdmit,
+                        isInitial: false,
+                        isCurrent: false,
+                        id: this.props.getLastHistNodeId() + paddingTreeId,
+                        idd: v.id
                     })
-                    .filter((node): node is node => node !== undefined)
-                    .forEach((v, index) => {
-                        const paddingTreeId = index + 1
-                        // this.props.createHistNode(v.id, v.label, v.isAdmit, v.isInitial, v.isCurrent)
-                        tmp.push({
-                            label: v.label,
-                            isAdmit: v.isAdmit,
-                            isInitial: v.isInitial,
-                            isCurrent: v.isCurrent,
-                            stack: v.stack,
-                            id: this.props.getLastHistNodeId() + paddingTreeId,
-                            idd: v.id
-                        })
-                    })
-
-                // console.log('OOOOOOOOOOOO')
-                // console.log(tmp.length)
-                // tmp.map((v) => this.state.gElements.nodes.find((elem) => elem.id === v.idd))
-                //     .filter((node): node is node => node !== undefined)
-                //     .forEach((v) => console.log(v.label))
-                // // this.state.lastHistUnits.forEach((v) => console.log(v.id, tstst.get(v.id)))
-                // console.log('OOOOOOOOOOOO')
-
-                if (this.props.computerType === 'pda' || this.props.computerType === 'dpda') {
-                    startStmts.sort((a, b) => a.id - b.id)
-
-                    const stacks = new Map<number, string[][]>()
-                    let curId = -1
-                    let acc: string[][] = []
-                    startStmts.forEach((v, index) => {
-                        if (curId !== v.id && curId !== -1) {
-                            stacks.set(curId, acc)
-                            acc = []
-                            if (startStmts.length - 1 <= index + 1) {
-                                curId = startStmts[index + 1].id
-                            }
-                        } else {
-                            acc.push(v.stack!)
-                        }
-                    })
-
-                    tmp.sort((a, b) => a.idd - b.idd)
-                    const idds = tmp.reduce((acc: Set<number>, v) => acc.add(v.idd), new Set<number>())
-                    idds.forEach((idd) => {
-                        const curTmps = tmp.filter((tmp) => tmp.idd === idd)
-                        stacks.get(idd)?.forEach((stack, index) => curTmps[index].stack = stack)
-                    })
-
-                }
-
-                console.log('v.stackaaaaaaaaaaaaaaaaaaaaP')
+                })
 
                 if (this.props.computerType === 'pda' || this.props.computerType === 'dpda') {
                     tmp.forEach((v) => {
-                        console.log('v.stackaaaaaaaaaaaaaaaaaaaa', v.stack)
-                        const label = v.label + '\n―' + (v.stack!.reduce((acc, stack) => '\n' + stack + acc, ''))
+                        const gNode = this.state.gElements.nodes.find((gEl) => gEl.id === v.idd)
+                        const label = gNode?.label + '\n' + `${(this.props.getLastHistNodeId() + 1)}` + '\n―' + (v.stack!.reduce((acc, stack) => '\n' + stack + acc, ''))
                         this.props.createHistNode(v.idd, label, v.isAdmit, v.isInitial, v.isCurrent)
                     })
                 } else {
                     tmp.forEach((v) => {
-                        this.props.createHistNode(v.idd, v.label, v.isAdmit, v.isInitial, v.isCurrent)
+                        const gNode = this.state.gElements.nodes.find((gEl) => gEl.id === v.idd)
+                        this.props.createHistNode(v.idd, gNode!.label, v.isAdmit, v.isInitial, v.isCurrent)
                     })
                 }
-                // tmp.forEach((v) => {
-                //     if (this.props.computerType === 'pda' || this.props.computerType === 'dpda') {
-                //         console.log('v.stackaaaaaaaaaaaaaaaaaaaa', v.stack)
-                //         const label = v.label + (v.stack!.reduce((acc, stack) => '\n―\n' + stack + acc, ''))
-                //         this.props.createHistNode(v.idd, label, v.isAdmit, v.isInitial, v.isCurrent)
-                //     } else {
-                //         this.props.createHistNode(v.idd, v.label, v.isAdmit, v.isInitial, v.isCurrent)
-                //     }
-                // })
-
                 await this.setState({ lastHistUnits: tmp })
             });
 
         })
 
-        console.log('::::::::::::::::::::::>')
-        this.props.elements.edges.forEach((v) => {
-            console.log(v.from + ' -- ' + v.to)
-            v.transitions.forEach(t => console.log(t))
-        })
     }
 
     onInputChanged = (event: ChangeEvent<HTMLInputElement>): void => {
@@ -402,59 +321,21 @@ class RunControl extends React.Component<runControlProps, runControlState> {
 
 
     drawTreeLayot = (nodes: NodeCore[], pred: nodeTree[], tmp: nodeTree[]) => {
-        // const nodesMark = nodes.map((node) => ({ node: node, marked: false }))
-
-        // nodesMark.map((stmt) => {
-        //     const nodeMb = this.state.gElements.nodes.find(
-        //         (node) => {
-        //             if (node.id === stmt.node.id && !stmt.marked) {
-        //                 stmt.marked = true
-        //                 return true
-        //             }
-        //             return false
-        //         }
-        //     )
-
-        //     const stck = [...stmt.node.stack!]
-        //     const oldStck = [...stmt.node.oldStack!]
-        //     const stckDwn = stmt.node.stackDown
-        //     console.log(stmt, '###############<<', nodeMb)
-        //     if (nodeMb !== undefined) {
-        //         nodeMb.stack = stck ? [...stck] : []
-        //         nodeMb.stackDown = stckDwn
-        //         nodeMb.oldStack = oldStck ? [...oldStck] : []
-        //         return nodeMb
-        //     }
-        //     return undefined
-        // })
-        // nodes
-        //     .forEach((v, index) => {
-        //         const paddingTreeId = index + 1
-        //         // this.props.createHistNode(v.id, v.label, v.isAdmit, v.isInitial, v.isCurrent)
-        //         tmp.push({
-        //             stack: v.stack,
-        //             stackDown: v.stackDown,
-        //             label: `${v.id}`,
-        //             isAdmit: v.isAdmit,
-        //             isInitial: false,
-        //             isCurrent: false,
-        //             id: this.props.getLastHistNodeId() + paddingTreeId,
-        //             idd: v.id
-        //         })
-        //     })
-
         nodes.forEach((v, index) => {
             const paddingTreeId = index + 1
+            const gNode = this.state.gElements.nodes.find((gEl) => gEl.id === v.id)
 
             tmp.push({
-                stack: [...v.stack!],
+                stack: v.stack ? [...v.stack] : [],
                 from: v.from!,
                 by: v.by,
                 stackDown: v.stackDown,
+                move: v.move,
+                output: v.output,
                 label: `${v.id}`,
                 isAdmit: v.isAdmit,
-                isInitial: false,
-                isCurrent: false,
+                isInitial: gNode!.isInitial,
+                isCurrent: gNode!.isCurrent,
                 id: this.props.getLastHistNodeId() + paddingTreeId,
                 idd: v.id
             })
@@ -462,12 +343,14 @@ class RunControl extends React.Component<runControlProps, runControlState> {
 
         if (this.props.computerType === 'pda' || this.props.computerType === 'dpda') {
             tmp.forEach((v) => {
-                const label = v.label + '\n' + `${(this.props.getLastHistNodeId() + 1)}` + '\n―' + (v.stack!.reduce((acc, stack) => '\n' + stack + acc, ''))
+                const gNode = this.state.gElements.nodes.find((gEl) => gEl.id === v.idd)
+                const label = gNode?.label + '\n' + `${(this.props.getLastHistNodeId() + 1)}` + '\n―' + (v.stack!.reduce((acc, stack) => '\n' + stack + acc, ''))
                 this.props.createHistNode(v.idd, label, v.isAdmit, v.isInitial, v.isCurrent)
             })
         } else {
             tmp.forEach((v) => {
-                this.props.createHistNode(v.idd, v.label, v.isAdmit, v.isInitial, v.isCurrent)
+                const gNode = this.state.gElements.nodes.find((gEl) => gEl.id === v.idd)
+                this.props.createHistNode(v.idd, gNode!.label, v.isAdmit, v.isInitial, v.isCurrent)
             })
         }
 
@@ -476,223 +359,65 @@ class RunControl extends React.Component<runControlProps, runControlState> {
         console.log(tmp)
         console.log('<<<<<<<<<<<<<<<<<<<\n\n')
 
-        const bySymbRules = tmp.reduce((acc: { from: number, to: number[], by: any }[], v) => {
-            console.log('SYKABLATTTT___>', pred.filter((p) => v.from && p.idd === v.from?.id && p.stack?.toString === v.from.stack?.toString))
-            const from = pred.filter((p) => v.from && p.idd === v.from?.id && p.stack?.toString === v.from.stack?.toString)[0].id
-            // const to = tmp.map((t) => t.id)
-            acc.push({ from, to: [v.id], by: v.by })
+        const letter = (l: any) => l === EPS ? 'ε' : l
 
-            // if (pred.filter((p) => p.idd === v.from!.id && p.stack?.toString === v.from?.stack?.toString).length > 0) {
-            //     const from = pred.filter((p) => p.idd === v.from!.id && p.stack === v.from?.stack)[0].id
-            //     console.log('SYKABLATTTT', from)
-            //     const to = tmp.filter((t) => v.id === t.idd).map((v) => v.id)
-            //     acc.push({ from, to, by: v.by })
-            // }
+        const stackDwn = (stDwn: any) => this.props.computerType === 'pda' || this.props.computerType === 'dpda'
+            ? ', ' + letter(stDwn)
+            : ''
+
+        const move = (mv: Move | undefined) => this.props.computerType === 'tm'
+            ? mv === Move.L ? ', L' : ", R"
+            : ''
+
+        const output = (out: any) => this.props.computerType === 'mealy' || this.props.computerType === 'dmealy'
+            ? ', ' + out
+            : ''
+
+        const txt = (l: any, stDwn: any, mv: any, out: any) => letter(l) + stackDwn(stDwn) + move(mv) + output(out)
+
+        const bySymbRules = tmp.reduce((acc: { from: number, to: number[], by: any }[], v) => {
+            const from = () => {
+                switch (this.props.computerType) {
+                    case 'tm':
+                    case 'moore':
+                    case 'dmoore':
+                    case 'mealy':
+                    case 'dmealy':
+                        return pred.filter((p) => v.from && p.idd === v.from?.id)[0].id;
+                    default:
+                        return pred.filter((p) => v.from && p.idd === v.from?.id && p.stack?.toString === v.from.stack?.toString)[0].id
+                }
+            }
+            acc.push({ from: from(), to: [v.id], by: txt(v.by, v.stackDown, v.move, v.output) })
             return acc
         }, [])
+
         console.log('\n\n\n')
+
         bySymbRules.forEach((rule) => rule.to.forEach((to) => this.props.createHistEdge(rule.from, to, rule.by)))
-        // const bySymbRules = tmp.reduce((acc: { from: number, to: number[], by: any }[], v) => {
-        //     const a = pred.filter((l) => v.from && (v.from.id === l.idd))
-        //     if (a.length > 0) {
-        //         const from = pred.filter((l) => v.from && (v.from.id === l.idd))[0]
-        //         // .id
-        //         const toes = tmp.filter((t) => v.id === t.idd)
-
-        //         console.log('SULAAAAAA')
-        //         console.log(from, toes, v.by)
-        //         console.log('SULAAAAAA')
-
-        //         const accTo: number[] = []
-        //         toes.forEach((to) => {
-        //             if (to.stack && from.stack && to.stackDown) {
-        //                 // if (from.stack && from.stack?.length > 0) {
-        //                 //     if (to.stackDown === from.stack[0]) {
-        //                 //         accTo.push(to.id)
-        //                 //     }
-        //                 // }
-        //                 if (to.stackDown === EPS) {
-        //                     accTo.push(to.id)
-        //                 } else if (to.stackDown === from.stack[from.stack.length - 1]) {
-        //                     accTo.push(to.id)
-        //                 }
-        //             }
-        //         })
-        //         // .map((v) => v.id)
-        //         // if (!to.includes(from)) {
-
-        //         acc.push({ from: from.id, to: accTo, by: v.by })
-        //         // }
-        //     }
-        //     return acc
-        // }, [])
-
-
-        // bySymbRules.forEach((rule) => rule.to.forEach((to) => this.props.createHistEdge(rule.from, to, rule.by)))
-
 
         this.setState({ lastHistUnits: tmp })
 
     }
 
     treeEps = (byEpsPred: NodeCore[], byLetter: NodeCore[], byEpsAfter: NodeCore[]) => {
-        // const getStacks = (nodes: NodeCore[]) => {
-        //     const stacks = new Map<number, string[][]>()
-
-        //     nodes.sort((a, b) => a.id - b.id)
-
-        //     let curId = -1
-        //     let tmpStacks: string[][] = []
-
-        //     nodes.forEach((v) => {
-        //         if (curId === v.id) {
-        //             tmpStacks.push(v.stack ? v.stack : [])
-        //         } else {
-        //             stacks.set(curId, tmpStacks)
-        //             curId = v.id
-        //         }
-        //     })
-
-        //     return stacks
-        // }
         console.log('\n')
-        console.log('EPS', byEpsPred)
-        console.log('LTR', byLetter)
-        console.log('EPS', byEpsAfter)
+        console.log('EPS>>>', byEpsPred)
+        console.log('LTR>>>', byLetter)
+        console.log('EPS>>>', byEpsAfter)
         console.log('\n')
 
         const tmp: nodeTree[] = []
         this.drawTreeLayot(byEpsPred, this.state.lastHistUnits, tmp)
-        // byEpsPred.map((node) => this.state.gElements.nodes.find((elem) => elem.id === node.id))
-        //     .filter((node): node is node => node !== undefined)
-        //     .forEach((v) => {
-        //         this.props.createHistNode(v.id, v.label, v.isAdmit, v.isInitial, v.isCurrent)
-        //         tmp.push({ id: this.props.getLastHistNodeId(), idd: v.id })
-        //     })
-
-        // const byEpsPredRules = byEpsPred.reduce((acc: { from: number, to: number[], by: any }[], v) => {
-        //     const a = this.state.lastHistUnits.filter((l) => v.from && (v.from.id === l.idd))
-        //     if (a.length > 0) {
-        //         const from = this.state.lastHistUnits.filter((l) => v.from && (v.from.id === l.idd))[0].id
-        //         const to = tmp.filter((t) => v.id === t.idd).map((v) => v.id)
-        //         if (!to.includes(from)) {
-        //             acc.push({ from, to, by: v.by })
-        //         }
-        //     }
-        //     return acc
-        // }, [])
-
-        // byEpsPredRules.forEach((rule) => rule.to.forEach((to) => this.props.createHistEdge(rule.from, to, rule.by)))
-
-        // this.setState({ lastHistUnits: tmp })
-
         const tmp1: nodeTree[] = []
         this.drawTreeLayot(byLetter, tmp, tmp1)
-
-        // byLetter.map((node) => this.state.gElements.nodes.find((elem) => elem.id === node.id))
-        //     .filter((node): node is node => node !== undefined)
-        //     .forEach((v) => {
-        //         this.props.createHistNode(v.id, v.label, v.isAdmit, v.isInitial, v.isCurrent)
-        //         tmp1.push({ id: this.props.getLastHistNodeId(), idd: v.id })
-        //     })
-
-        // const byLetterRules = byLetter.reduce((acc: { from: number, to: number[], by: any }[], v) => {
-        //     const a = tmp.filter((l) => v.from && (v.from.id === l.idd))
-        //     if (a.length > 0) {
-        //         const from = tmp.filter((l) => v.from && v.from.id === l.idd)[0].id
-        //         const to = tmp1.filter((t) => v.id === t.idd).map((v) => v.id)
-        //         acc.push({ from, to, by: v.by })
-        //     }
-        //     return acc
-        // }, [])
-
-        // byLetterRules.forEach((rule) => rule.to.forEach((to) => this.props.createHistEdge(rule.from, to, rule.by)))
-
-        // this.setState({ lastHistUnits: tmp1 })
-
         const tmp2: nodeTree[] = []
         this.drawTreeLayot(byEpsAfter, tmp1, tmp2)
-
-        // byEpsAfter.map((node) => this.state.gElements.nodes.find((elem) => elem.id === node.id))
-        //     .filter((node): node is node => node !== undefined)
-        //     .forEach((v) => {
-        //         this.props.createHistNode(v.id, v.label, v.isAdmit, v.isInitial, v.isCurrent)
-        //         tmp2.push({ id: this.props.getLastHistNodeId(), idd: v.id })
-        //     })
-
-        // const byEpsAfterRules = byEpsAfter.reduce((acc: { from: number, to: number[], by: any }[], v) => {
-        //     const a = tmp1.filter((l) => v.from && v.from.id === l.idd)
-        //     if (a.length > 0) {
-        //         const from = tmp1.filter((l) => v.from && v.from.id === l.idd)[0].id
-        //         const to = tmp2.filter((t) => v.id === t.idd).map((v) => v.id)
-        //         acc.push({ from, to, by: v.by })
-        //     }
-        //     return acc
-        // }, [])
-
-        // byEpsAfterRules.forEach((rule) => rule.to.forEach((to) => this.props.createHistEdge(rule.from, to, rule.by)))
-
-
-        // this.setState({ lastHistUnits: tmp2 })
-
     }
 
-
     tree = (byLetter: NodeCore[]) => {
-
-        const tmp1: nodeTree[] = []
-        // { id: number, idd: number }[] = []
-
-        byLetter.map((node) => this.state.gElements.nodes.find((elem) => elem.id === node.id))
-            .filter((node): node is node => node !== undefined)
-            .forEach((v) => {
-                this.props.createHistNode(v.id, v.label, v.isAdmit, v.isInitial, v.isCurrent)
-                tmp1.push({
-                    label: v.label,
-                    isAdmit: v.isAdmit,
-                    isInitial: v.isInitial,
-                    isCurrent: v.isCurrent,
-                    id: this.props.getLastHistNodeId(),
-                    idd: v.id
-                })
-            })
-
-        console.log('--->tmp1')
-        console.log(this.state.lastHistUnits)
-        console.log(tmp1)
-        console.log('--->tmp1')
-
-        const byLetterRules = byLetter.reduce((acc: { from: number, to: number[], by: any }[], v) => {
-            // console.log('<<<<<<<<<<<<>>>>>>>>>>>>')
-            // console.log(this.state.lastHistUnits)
-            // console.log(v)
-            // console.log('<<<<<<<<<<<<>>>>>>>>>>>>>')
-
-            const a = this.state.lastHistUnits.filter((l) => v.from && (v.from.id === l.idd))
-
-            console.log(';;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;>>>>')
-            console.log(a)
-            console.log('----->>>>>>>>>>>>>>>>>')
-            console.log(v)
-            console.log(this.state.lastHistUnits)
-            console.log(';;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;>>>>')
-            if (a.length > 0) {
-                const from = this.state.lastHistUnits.filter((l) => v.from && v.from.id === l.idd)[0].id
-                const to = tmp1.filter((t) => v.id === t.idd).map((v) => v.id)
-                console.log('from', from, to, v.by)
-                acc.push({ from, to, by: v.by })
-            }
-            return acc
-        }, [])
-
-        console.log(byLetterRules)
-
-        byLetterRules.forEach((rule) => rule.to.forEach((to) => this.props.createHistEdge(rule.from, to, rule.by)))
-
-
-        // if (tmp1.length > 0) 
-        this.setState({ lastHistUnits: tmp1 })
-
+        const tmp: nodeTree[] = []
+        this.drawTreeLayot(byLetter, this.state.lastHistUnits, tmp)
     }
 
     step = async () => {
@@ -738,11 +463,13 @@ class RunControl extends React.Component<runControlProps, runControlState> {
 
             const byEpsAfter = stepResult.byEpsAfter ? stepResult.byEpsAfter : []
 
-            if (this.state.computer.haveEpsilon()) {
+            if (this.props.computerType !== 'tm' && this.state.computer.haveEpsilon()) {
                 console.log('byEpsAfter>>>', byEpsAfter)
                 this.treeEps(byEpsPred, byLetter, byEpsAfter)
             } else {
-                this.tree(byLetter)
+                console.log('byLetter', byLetter)
+                const tmp: nodeTree[] = []
+                this.drawTreeLayot(byLetter, this.state.lastHistUnits, tmp)
             }
 
             const _nodes = nodes.map((e, i) => {
@@ -765,7 +492,6 @@ class RunControl extends React.Component<runControlProps, runControlState> {
                 console.log(startNode)
                 this.setState({
                     startNode: this.state.gElements.nodes.filter(node => node.id === this.state.computer!.getCurrNode())[0]
-                    // history: [...this.state.history, startNode],
                 })
             }
 
@@ -774,7 +500,6 @@ class RunControl extends React.Component<runControlProps, runControlState> {
                 currentInputIndex: this.state.currentInputIndex + 1,
                 history: [...this.state.history, _nodes],
                 memory: stepResult.memory,
-                // lastHistUnits: tmp
             }, () => {
                 this.props.setHistory(() =>
                     <History
@@ -788,7 +513,6 @@ class RunControl extends React.Component<runControlProps, runControlState> {
         } catch (e) {
             if (e instanceof NonDeterministic) {
                 this.props.setIsNonDetermenistic(true)
-                console.error('KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK')
                 console.log('NonDeterministic')
             }
             else {
@@ -800,12 +524,11 @@ class RunControl extends React.Component<runControlProps, runControlState> {
 
     reset = (): void => {
         this.state.computer?.restart();
-        this.props.changeStateIsCurrent([], true); // resets all nodes
+        this.props.changeStateIsCurrent([], true);
         this.setState({
             result: undefined,
             currentInputIndex: -1,
             history: [],
-            // counter: 0
         },
             () => {
                 this.initializeComputer()
@@ -820,8 +543,6 @@ class RunControl extends React.Component<runControlProps, runControlState> {
         this.state.computer?.setInput(this.state.input.split(""))
         this.props.setResettedStatus(false)
         this.props.resetHistTree()
-
-        // this.initializeComputer()
     }
 
     run = async (): Promise<void> => {
@@ -838,12 +559,6 @@ class RunControl extends React.Component<runControlProps, runControlState> {
             const histTrace = result.histTrace ? result.histTrace : []
 
             histTrace.forEach(async (histStep) => {
-                // const byEpsPred = histStep.byEpsPred!                 
-                // const byLetter = histStep.byLetter!              
-                // const byEpsAfter = histStep.byEpsAfter!                 
-                // const tmp: { id: number, idd: number }[] = []
-
-
                 const byEpsPred = histStep.byEpsPred ? histStep.byEpsPred : []
 
                 const byLetter = histStep.byLetter ? histStep.byLetter : []
@@ -855,106 +570,6 @@ class RunControl extends React.Component<runControlProps, runControlState> {
                 } else {
                     this.tree(byLetter)
                 }
-
-                // byEpsPred.map((node) =>
-                //     this.state.gElements.nodes.find((elem) => elem.id === node.id))
-                //     .filter((node): node is node => node !== undefined)
-                //     .forEach((v) => {
-                //         this.props.createHistNode(v.id, v.label, v.isAdmit, v.isInitial, v.isCurrent)
-                //         tmp.push({ id: this.props.getLastHistNodeId(), idd: v.id })
-                //     })
-
-                // const byEpsPredRules = byEpsPred.reduce((acc: { from: number, to: number[], by: any }[], v) => {
-                //     const a = this.state.lastHistUnits.filter((l) => v.from && (v.from.id === l.idd))
-                //     if (a.length > 0) {
-                //         const from = this.state.lastHistUnits.filter((l) => v.from && (v.from.id === l.idd))[0].id
-                //         const to = tmp.filter((t) => v.id === t.idd).map((v) => v.id)
-                //         if (!to.includes(from)) {
-                //             acc.push({ from, to, by: v.by })
-                //         }
-                //     }
-                //     return acc
-                // }, [])
-
-                // byEpsPredRules.forEach((rule) => rule.to.forEach((to) => this.props.createHistEdge(rule.from, to, rule.by)))
-
-                // this.setState({ lastHistUnits: tmp })
-
-                // const tmp1: { id: number, idd: number }[] = []
-
-                // byLetter.map((node) => this.state.gElements.nodes.find((elem) => elem.id === node.id))
-                //     .filter((node): node is node => node !== undefined)
-                //     .forEach((v) => {
-                //         this.props.createHistNode(v.id, v.label, v.isAdmit, v.isInitial, v.isCurrent)
-                //         tmp1.push({ id: this.props.getLastHistNodeId(), idd: v.id })
-                //     })
-
-                // const byLetterRules = byLetter.reduce((acc: { from: number, to: number[], by: any }[], v) => {
-                //     const a = tmp.filter((l) => v.from && (v.from.id === l.idd))
-                //     if (a.length > 0) {
-                //         const from = tmp.filter((l) => v.from && v.from.id === l.idd)[0].id
-                //         const to = tmp1.filter((t) => v.id === t.idd).map((v) => v.id)
-                //         acc.push({ from, to, by: v.by })
-                //     }
-                //     return acc
-                // }, [])
-
-                // byLetterRules.forEach((rule) => rule.to.forEach((to) => this.props.createHistEdge(rule.from, to, rule.by)))
-
-                // this.setState({ lastHistUnits: tmp1 })
-
-                // const tmp2: { id: number, idd: number }[] = []
-
-                // byEpsAfter.map((node) => this.state.gElements.nodes.find((elem) => elem.id === node.id))
-                //     .filter((node): node is node => node !== undefined)
-                //     .forEach((v) => {
-                //         this.props.createHistNode(v.id, v.label, v.isAdmit, v.isInitial, v.isCurrent)
-                //         tmp2.push({ id: this.props.getLastHistNodeId(), idd: v.id })
-                //     })
-
-                // const byEpsAfterRules = byEpsAfter.reduce((acc: { from: number, to: number[], by: any }[], v) => {
-                //     const a = tmp1.filter((l) => v.from && v.from.id === l.idd)
-                //     if (a.length > 0) {
-                //         const from = tmp1.filter((l) => v.from && v.from.id === l.idd)[0].id
-                //         const to = tmp2.filter((t) => v.id === t.idd).map((v) => v.id)
-                //         acc.push({ from, to, by: v.by })
-                //     }
-                //     return acc
-                // }, [])
-
-                // byEpsAfterRules.forEach((rule) => rule.to.forEach((to) => this.props.createHistEdge(rule.from, to, rule.by)))
-
-
-                // this.setState({ lastHistUnits: tmp2 })
-
-
-
-
-
-                // // histStep.byLetter
-                // const tmp1: { id: number, idd: number }[] = []
-
-                // histStep.byLetter!.map((node) => this.state.gElements.nodes.find((elem) => elem.id === node.id))
-                //     .filter((node): node is node => node !== undefined)
-                //     .forEach((v) => {
-                //         this.props.createHistNode(v.id, v.label, v.isAdmit, v.isInitial, v.isCurrent)
-                //         tmp1.push({ id: this.props.getLastHistNodeId(), idd: v.id })
-                //     })
-
-                // const byLetterRules = histStep.byLetter!.reduce((acc: { from: number, to: number[], by: any }[], v) => {
-                //     const a = this.state.lastHistUnits.filter((l) => v.from && (v.from.id === l.idd))
-                //     if (a.length > 0) {
-                //         const from = this.state.lastHistUnits.filter((l) => v.from && v.from.id === l.idd)[0].id
-                //         const to = tmp1.filter((t) => v.id === t.idd).map((v) => v.id)
-                //         acc.push({ from, to, by: v.by })
-                //     }
-                //     return acc
-                // }, [])
-
-                // byLetterRules.forEach((rule) => rule.to.forEach((to) => this.props.createHistEdge(rule.from, to, rule.by)))
-
-                // await this.setState({ lastHistUnits: tmp1 })
-
             })
 
             this.setState({ result: result.isAdmit, currentInputIndex: -1, history: [] });
@@ -962,7 +577,6 @@ class RunControl extends React.Component<runControlProps, runControlState> {
         } catch (e) {
             if (e instanceof NonDeterministic) {
                 this.props.setIsNonDetermenistic(true)
-                console.error('KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK')
                 console.log('NonDeterministic')
             }
         }
@@ -1026,7 +640,6 @@ class RunControl extends React.Component<runControlProps, runControlState> {
         } catch (e) {
             if (e instanceof NonMinimizable) {
                 this.props.setIsNonMinimizable(true)
-                console.error('KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK')
                 console.log('NonDeterministic')
             }
         }
@@ -1068,8 +681,6 @@ class RunControl extends React.Component<runControlProps, runControlState> {
 
         const starts = miniDFA.start.map(v => v.id)
 
-        // console.log('()()()()()))()(', miniDFA.graphcore.edges)
-
         const nodes = miniDFA.graphcore.nodes.map((v) => ({
             id: v.id,
             isAdmit: v.isAdmit,
@@ -1108,7 +719,6 @@ class RunControl extends React.Component<runControlProps, runControlState> {
             { name: () => 'Шаг', onClick: () => this.step() },
             { name: () => 'Сбросить', onClick: () => this.reset() }
         ],
-        // [{ name: this.props.treeContextInfo, onClick: this.props.treeVisible }]
     ]
 
     private getButtons = () => {

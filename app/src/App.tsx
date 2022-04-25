@@ -360,9 +360,10 @@ class App extends React.Component<appProps, appState> {
             from: from,
             to: to,
             transitions: transitions,
-            label: this.state.computerType !== 'mealy' && this.state.computerType !== 'dmealy' 
-                ? transitionsToLabel(transitions, this.state.computerType)
-                : by
+            label: by 
+            // this.state.computerType !== 'mealy' && this.state.computerType !== 'dmealy' 
+                // ? transitionsToLabel(transitions, this.state.computerType)
+                // : by
                 // transitionsToLabel(transitions, this.state.computerType)
         })
     }

@@ -1,4 +1,4 @@
-import {EdgeCore, NodeCore, TransitionParams} from "./IGraphTypes";
+import {EdgeCore, Move, NodeCore, TransitionParams} from "./IGraphTypes";
 import {Stack} from "./Stack";
 import {TMMemory} from "./TM"
 export type elementOfAlphabet = {
@@ -41,6 +41,7 @@ export type Step = {
     isAdmit: boolean
     history: History[]
     memory?: string[]
+    move?: Move,
     pointer?: number
     output?: Output[]
     tree?: HistUnit[][],
@@ -56,6 +57,7 @@ export type position = {
     from?: NodeCore,
     cur?: NodeCore,
     by?: any,
+    output?: Output,
     stack?: Stack<string>
     oldStack?: Stack<string>
     stackDown?: string
