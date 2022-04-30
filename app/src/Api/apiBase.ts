@@ -5,8 +5,7 @@ export const BASE_URL = process.env.REACT_APP_BACKEND_BASE_URL ?? "http://localh
 export function getAuthHeaders(): Headers {
     const headers = new Headers();
 
-    headers.set("tt", "g");
-    headers.set("t", getCookie("token") || "");
+    headers.set("Authorization", `Bearer ${getCookie("jwt")}`);
 
     return headers;
 }

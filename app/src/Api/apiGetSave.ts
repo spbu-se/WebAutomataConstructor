@@ -7,13 +7,12 @@ export type GetSaveRequest = {
 export type GetSaveResponse = {
     id: number,
     name: string,
-    save: string,
-    user_id: string,
+    data: string,
 };
 
-export default function getSave(request: GetSaveRequest, onAuthFailed: () => void): Promise<GetSaveResponse> {
+export default function ApiGetSave(request: GetSaveRequest, onAuthFailed: () => void): Promise<GetSaveResponse> {
     return new Promise(function (resolve, reject) {
-        const url = BASE_URL + `/saves/${request.id}`;
+        const url = BASE_URL + `/save/${request.id}`;
 
         const headers = getAuthHeaders();
         const params = getParams(headers);

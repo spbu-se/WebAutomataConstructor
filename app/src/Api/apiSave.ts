@@ -1,17 +1,17 @@
-import {BASE_URL, getAuthHeaders, getParams} from "./apiBase";
+import {BASE_URL, getAuthHeaders, postParams} from "./apiBase";
 
-export type GetSavesResponse = {
-    id: number,
+export type SaveRequest = {
     name: string,
-    user_id: string,
-}[];
+    data: string,
+};
 
-export default function getSaves(onAuthFailed: () => void): Promise<GetSavesResponse> {
+export default function ApiSave(request: SaveRequest, onAuthFailed: () => void): Promise<void> {
     return new Promise(function (resolve, reject) {
-        const url = BASE_URL + "/saves";
+        const url = BASE_URL + "/save";
 
+        const body = JSON.stringify(request);
         const headers = getAuthHeaders();
-        const params = getParams(headers);
+        const params = postParams(headers, body);
 
         fetch(url, params)
             .then(response => {
@@ -22,9 +22,8 @@ export default function getSaves(onAuthFailed: () => void): Promise<GetSavesResp
                     throw new Error(response.status + response.statusText);
                 }
 
-                return response.json()
+                resolve();
             })
-            .then(json => resolve(json))
             .catch(error => reject(error));
     });
 }
