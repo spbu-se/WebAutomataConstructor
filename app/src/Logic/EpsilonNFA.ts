@@ -1,22 +1,25 @@
-import {position, Step} from "./Types";
+import {HistTrace, HistUnit, position, Step} from "./Types";
 import {EdgeCore, GraphCore, NodeCore, TransitionParams} from "./IGraphTypes";
 import {PDA} from "./PDA";
 import {cloneDeep} from "lodash";
+import { EPS } from "./Computer";
 
 
 export class EpsilonNFA extends PDA {
 
     constructor(graph: GraphCore, startStatement: NodeCore[], input: string[]) {
         super(graph, startStatement, input)
-
     }
 
-    step = (): Step => {
-        let ret = this._step
-        (
+    protected enfaStep = (): Step => {
+        const histUnit: HistUnit[] = []
+
+        let ret = this._step(
             this.counterSteps,
             this.alphabet.get(this.input[this.counterSteps]?.value),
-            this.historiStep
+            this.historiStep,
+            histUnit,
+            []
         )
 
         this.counterSteps = ret.counter
@@ -27,7 +30,10 @@ export class EpsilonNFA extends PDA {
         return ret
     }
 
-    run = (): Step => {
+    protected enfaRun = (): Step => {
+        const histUnit: HistUnit[] = []
+        const histTrace: HistTrace[] = []
+
         this.historiRun = []
         this.counterStepsForResult = 0
 
@@ -35,27 +41,63 @@ export class EpsilonNFA extends PDA {
             let tmp = this._step(
                 this.counterStepsForResult,
                 this.alphabet.get(this.input[this.counterStepsForResult].value),
-                this.historiRun
+                this.historiRun,
+                histUnit,
+            []
             )
             this.counterStepsForResult = tmp.counter
             this.historiRun = tmp.history
+            histTrace.push({byEpsPred: tmp.byEpsPred, byLetter: tmp.byLetter, byEpsAfter: tmp.byEpsAfter})
+
         }
 
         let ret = this._step(
             this.counterStepsForResult,
             this.alphabet.get(this.input[this.counterStepsForResult].value),
-            this.historiRun
+            this.historiRun,
+            histUnit,
+            []
         )
+        histTrace.push({byEpsPred: ret.byEpsPred, byLetter: ret.byLetter, byEpsAfter: ret.byEpsAfter})
 
         ret.nodes.forEach(value => value.stack = undefined)
         ret.history.forEach(value => value.nodes.forEach(value1 => value1.stack = undefined))
 
-        return ret
+        return {...ret, histTrace}
     }
 
+    step = this.enfaStep
 
-
+    run = this.enfaRun
 }
+
+
+
+// let nfa = new EpsilonNFA (
+//     {
+//         nodes: [
+//             {id: 0, isAdmit: false},
+//             {id: 1, isAdmit: false},
+//             {id: 2, isAdmit: false},
+//             {id: 3, isAdmit: false},
+//             {id: 4, isAdmit: false},
+//             // {id: 2, isAdmit: false},
+//
+//         ],
+//         edges: [
+//             // {from: 0, to: 0, transitions: new Set([ [{title: 'a'}, {title: 'b'}] ])},
+//             {from: 0, to: 1, transitions: new Set([ [{title: EPS}] ])},
+//             {from: 1, to: 2, transitions: new Set([ [{title: "a"}] ])},
+//             {from: 2, to: 3, transitions: new Set([ [{title: "a"}] ])},
+//             {from: 3, to: 4, transitions: new Set([ [{title: "a"}] ])},
+//             // {from: 1, to: 2, transitions: new Set([ [{title: EPS}] ])},
+//         ]
+//     }, [{id: 0, isAdmit: false}, {id: 3, isAdmit: false}], ['a', 'a'],
+// )
+// console.log(nfa.step())
+// console.log(nfa.step())
+// nfa.nfaToDfa()
+
 //
 // let nfa = new EpsilonNFA(
 //     {

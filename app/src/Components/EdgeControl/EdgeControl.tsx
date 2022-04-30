@@ -18,6 +18,7 @@ interface EdgeControlProps {
     changeEdgeTransitions: (id: string, transitions: Set<TransitionParams[]>) => void,
     deleteEdge: (id: string) => void,
     computerType: ComputerType | null
+    reinitComputer: (() => void)
 }
 
 interface Rule{
@@ -43,8 +44,8 @@ class EdgeControl extends React.Component<EdgeControlProps, EdgeControlState> {
         this.state = {
             prevEdgeId: this.props.edge?.id,
             transitions: this.props.edge?.transitions || new Set(),
-            transitionsText: getTransitionsTitles(this.props.edge?.transitions || new Set<TransitionParams[]>()),
-            displayedTransitionText: getTransitionsTitles(this.props.edge?.transitions || new Set<TransitionParams[]>()),
+            transitionsText: getTransitionsTitles(this.props.edge?.transitions || new Set<TransitionParams[]>(), this.props.computerType),
+            displayedTransitionText: getTransitionsTitles(this.props.edge?.transitions || new Set<TransitionParams[]>(), this.props.computerType),
             activeTransition: null,
             editMode: false,
             countRules: 1,
@@ -56,13 +57,15 @@ class EdgeControl extends React.Component<EdgeControlProps, EdgeControlState> {
 
     componentDidUpdate(prevProps: Readonly<EdgeControlProps>, prevState: Readonly<EdgeControlState>) {
         if (this.props.edge?.id !== prevState.prevEdgeId) {
+
             this.setState({
                 transitions: this.props.edge?.transitions || new Set(),
                 prevEdgeId: this.props.edge?.id,
-                transitionsText: getTransitionsTitles(this.props.edge?.transitions || new Set<TransitionParams[]>()),
+                transitionsText: getTransitionsTitles(this.props.edge?.transitions || new Set<TransitionParams[]>(), this.props.computerType),
                 activeTransition: null,
                 editMode: false
             });
+
         }
     }
 
@@ -74,25 +77,160 @@ class EdgeControl extends React.Component<EdgeControlProps, EdgeControlState> {
         }
     }
 
-    changeTransitions = (event: React.ChangeEvent<HTMLInputElement>) => {
+    changeTransitions = async (event: React.ChangeEvent<HTMLInputElement>) => {
         const value = event.target.value;
         this.setState({transitionsText: value});
 
-        let t: { fst: string | undefined, snd: string | undefined, trd: string | undefined, fth: string | undefined }[] = []
-        this.state.transitionsText
+        let accumulator: {
+            fst: string | undefined,
+            snd: string | undefined,
+            trd: string | undefined,
+            fth: string | undefined }[] = []
+        let acc: TransitionParams[] = []
+
+        if (this.props.computerType === "tm") {
+            this.state.transitionsText
+                .split('')
+                .filter(x => x !== " " && x !== "\n")
+                .join('')
+                .split(";")
+                .forEach(value => {
+                    let tmp = value.split('')
+                    let fst = tmp.shift()
+                    tmp = tmp.join('').split("|" || ">")
+                    let trd = tmp
+                    let fth = undefined
+
+                    let bebra = tmp.join("").split(">")
+                    bebra.reverse()
+                    fth = bebra.shift()
+                    bebra.reverse()
+                    trd = bebra
+
+                    accumulator.push({ fst: EPS, snd: fst, trd: trd.join(':'), fth: fth })
+                })
+
+
+            // accumulator.forEach(value => {
+            //     if (value.fth !== undefined) {
+            //         acc.push(
+            //             {
+            //                 title: EPS,
+            //                 stackDown: value.snd === 'eps' ? EPS : value.snd,
+            //                 stackPush: value.trd?.split(':').map(value => value === 'eps' ? EPS : value),
+            //                 move: value.fth === 'L' ? Move.L : value.fth === 'R' ? Move.R : undefined
+            //             }
+            //         )
+            //     }
+            // })
+        } 
+        if (this.props.computerType === "mealy" || this.props.computerType === "dmealy") {
+            this.state.transitionsText
             .split('')
             .filter(x => x !== " " && x !== "\n")
             .join('')
             .split(";")
             .forEach(value => {
-                let tmp = value.split(",")
+                let tmp = value.split("|")
                 let fst = tmp.shift()
-                tmp = tmp.join('').split("|" || ">")
                 let snd = tmp.shift()
-                let trd = tmp
-                let fth
+                accumulator.push({ fst: fst, snd: snd, trd: undefined, fth: undefined })
+            })
 
-                if (this.props.computerType === "tm") {
+            accumulator.forEach(value => {
+                if (value.fst !== undefined) {
+                    acc.push(
+                        {
+                            title: value.fst === 'eps' ? EPS : value.fst,
+                            output: value.snd
+                        }
+                    )
+                }
+            })
+        } 
+        else {
+            this.state.transitionsText
+                .split('')
+                .filter(x => x !== " " && x !== "\n")
+                .join('')
+                .split(";")
+                .forEach(value => {
+                    let tmp = value.split(",")
+                    let fst = tmp.shift()
+                    tmp = tmp.join('').split("|" || ">")
+                    let snd = tmp.shift()
+                    let trd = tmp
+                    accumulator.push({ fst: fst, snd: snd, trd: trd.join(':'), fth: undefined })
+                })
+
+            accumulator.forEach(value => {
+                if (value.fst !== undefined) {
+                    acc.push(
+                        {
+                            title: value.fst === 'eps' ? EPS : value.fst,
+                            stackDown: value.snd === 'eps' ? EPS : value.snd,
+                            stackPush: value.trd?.split(':').map(value => value === 'eps' ? EPS : value),
+                            move: value.fth === 'L' ? Move.L : value.fth === 'R' ? Move.R : undefined
+                        }
+                    )
+                }
+            })
+        }
+
+
+        let transitions: Set<TransitionParams[]> = new Set<TransitionParams[]>([acc])
+
+        this.props.changeEdgeTransitions(this.props.edge!.id!, transitions)
+        console.log("ALLLOO")
+        /////
+        // await this.props.reinitComputer()
+        ///
+        this.setState({transitionsText: value
+            , transitions: transitions
+        }, () => this.props.reinitComputer());
+    }
+
+    deleteEdge = async (): Promise<void> => {
+        if (this.props.edge !== null) {
+            this.props.deleteEdge(this.props.edge.id!);
+        }
+        await this.props.reinitComputer()
+
+    }
+    
+    private addInstruction(value: string) {
+        let newRow = {id: this.state.rules.length, value: value};
+        this.setState({rules: this.state.rules.concat(newRow)});
+    }
+    
+    changeEditMode = () => {
+         this.setState({editMode: !this.state.editMode});
+         this.updateTransitions();
+
+    }
+    
+    updateTransitions = async () => {
+        let accumulator: {
+            fst: string | undefined,
+            snd: string | undefined,
+            trd: string | undefined,
+            fth: string | undefined 
+            out: string | undefined
+        } [] = []
+
+        if (this.props.computerType === "tm") {
+            this.state.transitionsText
+                .split('')
+                .filter(x => x !== " " && x !== "\n")
+                .join('')
+                .split(";")
+                .forEach(value => {
+                    let tmp = value.split('')
+                    let fst = tmp.shift()
+                    tmp = tmp.join('').split("|" || ">")
+                    let trd = tmp
+                    let fth = undefined
+
                     let bebra = tmp.join("").split(">")
                     bebra.reverse()
                     fth = bebra.shift()
@@ -100,114 +238,66 @@ class EdgeControl extends React.Component<EdgeControlProps, EdgeControlState> {
                     trd = bebra
                     console.log("tmp")
                     console.log(bebra)
-                }
 
-                t.push({ fst: fst, snd: snd, trd: trd.join(':'), fth: fth })
+                    accumulator.push({ fst: EPS, snd: fst, trd: trd.join(':'), fth: fth, out: undefined })
+                })
+
+        } 
+        if (this.props.computerType === "mealy" || this.props.computerType === "dmealy") {
+            this.state.transitionsText
+            .split('')
+            .filter(x => x !== " " && x !== "\n")
+            .join('')
+            .split(";")
+            .forEach(value => {
+                let tmp = value.split("|")
+                let fst = tmp.shift()
+                let snd = tmp.shift()
+                accumulator.push({ fst: fst, snd: undefined, trd: undefined, fth: undefined, out: snd })
             })
+        } 
+        else {
+            this.state.transitionsText
+                .split('')
+                .filter(x => x !== " " && x !== "\n")
+                .join('')
+                .split(";")
+                .forEach(value => {
+                    let tmp = value.split(",")
+                    let fst = tmp.shift()
+                    tmp = tmp.join('').split("|" || ">")
+                    let snd = tmp.shift()
+                    let trd = tmp
+                    accumulator.push({ fst: fst, snd: snd, trd: trd.join(':'), fth: undefined, out: undefined })
+                })
+        }
+
+
         let acc: TransitionParams[] = []
-        t.forEach(value => {
+        accumulator.forEach(value => {
             if (value.fst !== undefined) {
                 acc.push(
                     {
                         title: value.fst === 'eps' ? EPS : value.fst,
                         stackDown: value.snd === 'eps' ? EPS : value.snd,
                         stackPush: value.trd?.split(':').map(value => value === 'eps' ? EPS : value),
-                        move: value.fth === 'L' ? Move.L : Move.R
+                        move: value.fth === 'L' ? Move.L : value.fth === 'R' ? Move.R : undefined,
+                        output: value.out,
+                        
                     }
                 )
             }
         })
 
         let transitions: Set<TransitionParams[]> = new Set<TransitionParams[]>([acc])
-        this.props.changeEdgeTransitions(this.props.edge!.id!, transitions)
-        this.setState({transitionsText:
-            value
-            , transitions: transitions
-        });
 
-    }
-
-    changeStackDown = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
-        const value = event.target.value;
-
-        // this.setState({stackDownText: value});
-        if (value.slice(-1) === ",") {
-            const transitions: Set<TransitionParams[]> = new Set<TransitionParams[]>();
-
-            this.props.changeEdgeTransitions(this.props.edge!.id!, transitions);
-            this.setState({transitionsText: transitionsToLabel(transitions)}
-            );
-        }
-    }
-
-    deleteEdge = (): void => {
-        if (this.props.edge !== null) {
-            this.props.deleteEdge(this.props.edge.id!);
-        }
-    }
-    
-
-    private addInstruction(value: string) {
-        let newRow = {id: this.state.rules.length, value: value};
-        this.setState({rules: this.state.rules.concat(newRow)});
-    }
-    
-     changeEditMode = () => {
-         this.setState({editMode: !this.state.editMode});
-         this.updateTransitions();
-     }
-    
-    updateTransitions = () => {
-        const transitions = new Set<TransitionParams[]>();
-
-        let t: { fst: string | undefined, snd: string | undefined, trd: string | undefined, fth: string | undefined }[] = []
-        this.state.transitionsText
-            .split('')
-            .filter(x => x !== " " && x !== "\n")
-            .join('')
-            .split(";")
-            .forEach(value => {
-                let tmp = value.split(",")
-                let fst = tmp.shift()
-                tmp = tmp.join('').split("|")
-                let snd = tmp.shift()
-                let trd = tmp
-                let fth
-
-                if (this.props.computerType === "tm") {
-                    let bebra = tmp.join("").split(">")
-                    bebra.reverse()
-                    fth = bebra.shift()
-                    bebra.reverse()
-                    trd = bebra
-                    console.log("tmp")
-                    console.log(bebra)
-                }
-
-                t.push({ fst: fst, snd: snd, trd: trd.join(':'), fth: fth })
-            })
-        // t.forEach(value =>  console.log(value))
-        let acc: TransitionParams[] = []
-        t.forEach(value => {
-            if (value.fst !== undefined) {
-                acc.push(
-                    {
-                        title: value.fst === 'eps' ? EPS : value.fst,
-                        stackDown: value.snd === 'eps' ? EPS : value.snd,
-                        stackPush: value.trd?.split(':').map(value => value === 'eps' ? EPS : value),
-
-                        move: value.fth === 'L' ? Move.L : Move.R
-                    }
-                )
-            }
-        })
-        acc = acc.filter(x => x.title.length > 0)
-        transitions.add(acc)
-        this.props.changeEdgeTransitions(this.props.edge!.id!, transitions);
         this.setState({
-            transitionsText: getTransitionsTitles(transitions),
+            transitionsText: getTransitionsTitles(transitions, this.props.computerType),
             transitions: transitions
         })
+        ///
+        await this.props.reinitComputer()
+        ///
     }
 
     deleteTransition = (): void => {
@@ -216,7 +306,7 @@ class EdgeControl extends React.Component<EdgeControlProps, EdgeControlState> {
             transitions.delete(this.state.activeTransition);
 
             this.props.changeEdgeTransitions(this.props.edge.id!, transitions);
-            this.setState({transitions: transitions, transitionsText: getTransitionsTitles(transitions)});
+            this.setState({transitions: transitions, transitionsText: getTransitionsTitles(transitions, this.props.computerType)});
         }
     }
 
@@ -224,7 +314,6 @@ class EdgeControl extends React.Component<EdgeControlProps, EdgeControlState> {
 
     render() {
         return (
-            // (this.props.computerType !== "pda")?
             <ControlWrapper title="Переход" visible={this.props.edge !== null}>
                 <div className="edge-control__container">
                     <div className="edge-control__item edge-control__transitions">
@@ -238,7 +327,7 @@ class EdgeControl extends React.Component<EdgeControlProps, EdgeControlState> {
                                     size="small"
                                     value={this.state.transitionsText}
                                     onChange={this.changeTransitions}
-                                    helperText={this.props.computerType === "nfa-eps" || "pda" ? 'Список символов или "eps" через запятую' : "Список символов через запятую"}
+                                    helperText={this.props.computerType === "nfa-eps" || "pda"|| "dpda" ? 'Список символов или "eps" через запятую' : "Список символов через запятую"}
                                     onBlur={this.updateTransitions}
                                 />
                         }
