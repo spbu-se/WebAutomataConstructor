@@ -1,5 +1,4 @@
-import {BASE_URL, getAuthHeaders, getParams, SAVES_PORT} from "./apiBase";
-import {ComputerType, graph} from "../react-graph-vis-types";
+import {BASE_URL, getAuthHeaders, getParams} from "./apiBase";
 
 export type GetSaveRequest = {
     id: number,
@@ -14,15 +13,12 @@ export type GetSaveResponse = {
 
 export default function getSave(request: GetSaveRequest, onAuthFailed: () => void): Promise<GetSaveResponse> {
     return new Promise(function (resolve, reject) {
-        const url = BASE_URL;
-        url.port = SAVES_PORT;
-        url.pathname = "/saves";
-        url.pathname += "/" + request.id;
+        const url = BASE_URL + `/saves/${request.id}`;
 
         const headers = getAuthHeaders();
         const params = getParams(headers);
 
-        fetch(url.href, params)
+        fetch(url, params)
             .then(response => {
                 if (response.status == 401) {
                     onAuthFailed();

@@ -18,14 +18,13 @@ import RunControl from "./Components/RunControl/RunControl";
 import WelcomePopout from "./Components/WelcomePopout/WelcomePopout";
 import Paper from "@mui/material/Paper";
 import SavingPopout from "./Components/SavingPopout/SavingPopout";
-import {Route, Switch, HashRouter} from "react-router-dom";
+import {Route, Routes, HashRouter} from "react-router-dom";
 import LoginPage from "./Components/Pages/LoginPage/LoginPage";
-import PingPage from "./Components/Pages/PingPage/PingPage";
-import FailedLoginPage from "./Components/Pages/FailedLoginPage/FailedLoginPage";
+import RegisterPage from "./Components/Pages/RegisterPage/RegisterPage";
 import AppHeader from "./Components/AppHeader/AppHeader";
 import {TransitionParams} from "./Logic/IGraphTypes";
 import SuccessLoginPage from "./Components/Pages/SuccessLoginPage/SuccessLoginPage";
-import { Box } from '@mui/material';
+import RegisteredPage from "./Components/Pages/RegisteredPage/RegisteredPage";
 
 interface appProps {
 }
@@ -96,7 +95,6 @@ class App extends React.Component<appProps, appState> {
 
     componentDidUpdate() {
     }
-
 
 
     componentDidMount() {
@@ -381,12 +379,12 @@ class App extends React.Component<appProps, appState> {
     }
 
     updMem = (mem: string[], ptr: number): void => {
-        this.setState({ mem: mem, ptr: ptr });
+        this.setState({mem: mem, ptr: ptr});
     }
 
     memPos = (index: number | undefined): void => {
         // if (index !== undefined && index > 5) {
-            this.memRef?.current?.scrollIntoView({behavior: 'smooth'})
+        this.memRef?.current?.scrollIntoView({behavior: 'smooth'})
         // }
     }
 
@@ -403,20 +401,20 @@ class App extends React.Component<appProps, appState> {
     render() {
         return (
             <HashRouter>
-                <Switch>
-                    <Route path="/login">
+                <Routes>
+                    <Route path="/login" element={
                         <LoginPage/>
-                    </Route>
-                    <Route path="/ping">
-                        <PingPage/>
-                    </Route>
-                    <Route path="/failed-login">
-                        <FailedLoginPage/>
-                    </Route>
-                    <Route path="/success-login">
-                        <SuccessLoginPage onAuthSuccess={this.login}/>
-                    </Route>
-                    <Route path="/">
+                    }/>
+                    <Route path="/register" element={
+                        <RegisterPage/>
+                    }/>
+                    <Route path="/registered" element={
+                        <RegisteredPage/>
+                    }/>
+                    <Route path="/success-login" element={
+                        <SuccessLoginPage/>
+                    }/>
+                    <Route path="/" element={
                         <ComputerTypeContext.Provider value={this.state.computerType}>
                             <div className="app">
                                 <WelcomePopout
@@ -461,24 +459,25 @@ class App extends React.Component<appProps, appState> {
 
 
                                 {
-                                        this.state.computerType === "tm" ?
-                                            <div className="app__mem_ribbon">
-                                                    {
-                                                        this.state.mem?.map((value, index) =>
-                                                            <div
-                                                                className="app__mem_cell"
-                                                                style={{border: `${index === this.state.ptr ? "#0041d0" : "#000000" } 2px solid`}}
-                                                            >
+                                    this.state.computerType === "tm" ?
+                                        <div className="app__mem_ribbon">
+                                            {
+                                                this.state.mem?.map((value, index) =>
+                                                    <div
+                                                        className="app__mem_cell"
+                                                        style={{border: `${index === this.state.ptr ? "#0041d0" : "#000000"} 2px solid`}}
+                                                    >
 
-                                                                {Math.abs (Math.abs(index) - Math.abs(this.state.ptr!)) <= 5  ? <div ref={this.memRef}/> : <div/>}
-                                                                {value}
-                                                                {this.memRef?.current?.scrollIntoView({behavior: 'smooth'})                                                                }
-                                                            </div>
-                                                        )
-                                                    }
-                                            </div>
+                                                        {Math.abs(Math.abs(index) - Math.abs(this.state.ptr!)) <= 5 ?
+                                                            <div ref={this.memRef}/> : <div/>}
+                                                        {value}
+                                                        {this.memRef?.current?.scrollIntoView({behavior: 'smooth'})}
+                                                    </div>
+                                                )
+                                            }
+                                        </div>
                                         : <div/>
-                                    }
+                                }
 
 
                                 <AppHeader
@@ -511,7 +510,7 @@ class App extends React.Component<appProps, appState> {
                                         deleteEdge={this.deleteEdge}
                                     />
                                     <RunControl
-                                        updMem = {this.updMem}
+                                        updMem={this.updMem}
                                         elements={this.state.elements}
                                         changeStateIsCurrent={this.changeStateIsCurrent}
                                     />
@@ -519,8 +518,8 @@ class App extends React.Component<appProps, appState> {
 
                             </div>
                         </ComputerTypeContext.Provider>
-                    </Route>
-                </Switch>
+                    }/>
+                </Routes>
             </HashRouter>
 
         )

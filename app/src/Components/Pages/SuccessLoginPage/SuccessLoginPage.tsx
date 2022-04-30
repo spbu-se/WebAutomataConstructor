@@ -1,43 +1,53 @@
-import React, {useEffect} from "react";
+import React, {useEffect, useState} from "react";
 
-import {useHistory} from "react-router-dom";
-
-import {getCookie} from "../../../utils";
-
-import obtainAuth from "../../../Api/obtainAuth";
+import {useSearchParams} from "react-router-dom";
+import {useNavigate} from "react-router-dom";
 
 import "./SuccessLoginPage.css";
+import {Alert, Container, Stack, Typography} from "@mui/material";
 
 export interface SuccessLoginPageProps {
-    onAuthSuccess: () => void,
 }
 
-export const SuccessLoginPage: React.FunctionComponent<SuccessLoginPageProps> = ({onAuthSuccess}) => {
-    const updateAuth = async () => {
-        const state = getCookie("state") || "";
+export const SuccessLoginPage: React.FunctionComponent<SuccessLoginPageProps> = ({}) => {
+    const [error, setError] = useState<string | null>(null);
 
-        let response = null;
+    const updateAuth = () => {
+        const jwt = searchParams.get('jwt');
 
-        try {
-            response = await obtainAuth({state: state});
-            onAuthSuccess();
-        } catch (error) {
-            console.error(error);
+        if (!jwt) {
+            setError("Не удалось войти в аккаунт");
             return;
         }
 
-        document.cookie = `token=${response.value}; path=/; secure; max-age=86400`;
-        history.push("/");
+        console.log(`Jwt = ${jwt}`);
+
+        document.cookie = `jwt=${jwt}; path=/; secure; max-age=2592000`;
+        window.location.href = "/";
     }
 
     useEffect(() => {
         updateAuth();
     }, []);
 
-    const history = useHistory();
+    const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
 
     return (
-        <div>
+        <div className="success-login-page">
+            <Container maxWidth="xs">
+                <Stack
+                    spacing={1}
+                    justifyContent="center"
+                    style={{minHeight: '100vh'}}
+                >
+                    <Typography variant="h5" align="center" sx={{paddingBottom: "24px"}}>Входим в аккаунт...</Typography>
+
+                    {
+                        error && <Alert severity="error">{error}</Alert>
+                    }
+                </Stack>
+            </Container>
         </div>
     )
 };

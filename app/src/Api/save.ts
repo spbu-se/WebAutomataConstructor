@@ -1,4 +1,4 @@
-import {BASE_URL, getAuthHeaders, getParams, postParams, SAVES_PORT} from "./apiBase";
+import {BASE_URL, getAuthHeaders, postParams} from "./apiBase";
 
 export type SaveRequest = {
     name: string,
@@ -7,15 +7,13 @@ export type SaveRequest = {
 
 export default function save(request: SaveRequest, onAuthFailed: () => void): Promise<void> {
     return new Promise(function (resolve, reject) {
-        const url = BASE_URL;
-        url.port = SAVES_PORT;
-        url.pathname = "/saves";
+        const url = BASE_URL + "/saves";
 
         const body = JSON.stringify(request);
         const headers = getAuthHeaders();
         const params = postParams(headers, body);
 
-        fetch(url.href, params)
+        fetch(url, params)
             .then(response => {
                 if (response.status == 401) {
                     onAuthFailed();
