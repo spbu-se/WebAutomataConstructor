@@ -1,6 +1,5 @@
 import React, { ReactNode } from 'react';
 import "./App.css"
-// import Graph from "react-graph-vis";
 import {
     ComputerType,
     edge,
@@ -18,13 +17,13 @@ import RunControl from "./Components/RunControl/RunControl";
 import WelcomePopout from "./Components/WelcomePopout/WelcomePopout";
 import Paper from "@mui/material/Paper";
 import SavingPopout from "./Components/SavingPopout/SavingPopout";
-import { Route, Switch, HashRouter } from "react-router-dom";
+import {Route, Routes, HashRouter} from "react-router-dom";
 import LoginPage from "./Components/Pages/LoginPage/LoginPage";
-import PingPage from "./Components/Pages/PingPage/PingPage";
-import FailedLoginPage from "./Components/Pages/FailedLoginPage/FailedLoginPage";
+import RegisterPage from "./Components/Pages/RegisterPage/RegisterPage";
 import AppHeader from "./Components/AppHeader/AppHeader";
 import { TransitionParams } from "./Logic/IGraphTypes";
 import SuccessLoginPage from "./Components/Pages/SuccessLoginPage/SuccessLoginPage";
+import RegisteredPage from "./Components/Pages/RegisteredPage/RegisteredPage";
 import { VisNetwork } from './VisNetwork';
 import {
     DataSet,
@@ -91,11 +90,11 @@ export const controlAction = {
 }
 
 // export interface errorAction {
-//     isNonDetermenistic: boolean, 
+//     isNonDetermenistic: boolean,
 //     setIsNonDetermenistic: (v: boolean) => void
 // }
 // export const errorAction =  {
-//     isNonDetermenistic: false, 
+//     isNonDetermenistic: false,
 //     setIsNonDetermenistic: (v: boolean): void => { errorAction.isNonDetermenistic = v }
 // }
 
@@ -187,7 +186,7 @@ class App extends React.Component<appProps, appState> {
             showTree: false,
             History: () => ( <div></div> ),
             // errorAction: {
-            //     isNonDetermenistic: false, 
+            //     isNonDetermenistic: false,
             //     setIsNonDetermenistic: (v: boolean): void => { this.setState({ errorAction.isNonDetermenistic = v}) }
             // }
         };
@@ -360,8 +359,8 @@ class App extends React.Component<appProps, appState> {
             from: from,
             to: to,
             transitions: transitions,
-            label: by 
-            // this.state.computerType !== 'mealy' && this.state.computerType !== 'dmealy' 
+            label: by
+            // this.state.computerType !== 'mealy' && this.state.computerType !== 'dmealy'
                 // ? transitionsToLabel(transitions, this.state.computerType)
                 // : by
                 // transitionsToLabel(transitions, this.state.computerType)
@@ -754,20 +753,20 @@ class App extends React.Component<appProps, appState> {
     render() {
         return (
             <HashRouter>
-                <Switch>
-                    <Route path="/login">
-                        <LoginPage />
-                    </Route>
-                    <Route path="/ping">
-                        <PingPage />
-                    </Route>
-                    <Route path="/failed-login">
-                        <FailedLoginPage />
-                    </Route>
-                    <Route path="/success-login">
-                        <SuccessLoginPage onAuthSuccess={this.login} />
-                    </Route>
-                    <Route path="/">
+                <Routes>
+                    <Route path="/login" element={
+                        <LoginPage/>
+                    }/>
+                    <Route path="/register" element={
+                        <RegisterPage/>
+                    }/>
+                    <Route path="/registered" element={
+                        <RegisteredPage/>
+                    }/>
+                    <Route path="/success-login" element={
+                        <SuccessLoginPage/>
+                    }/>
+                    <Route path="/" element={
                         <ComputerTypeContext.Provider value={this.state.computerType}>
                             <div className="app">
                                 <WelcomePopout
@@ -888,7 +887,7 @@ class App extends React.Component<appProps, appState> {
                                         computerType={this.state.computerType}
                                         reinitComputer={computerAction.init}
                                     />
-                                     
+
                                     <RunControl
                                         updMem={this.updMem}
                                         elements={this.state.elements}
@@ -918,13 +917,13 @@ class App extends React.Component<appProps, appState> {
                                         treeContextInfo={this.treeContextInfo}
                                         treeVisible={this.treeVisible}
                                     />
-                                     
+
                                 </div>
-                                
+
                             </div>
                         </ComputerTypeContext.Provider>
-                    </Route>
-                </Switch>
+                    }/>
+                </Routes>
             </HashRouter>
 
         )

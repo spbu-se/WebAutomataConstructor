@@ -2,9 +2,9 @@ import SavesManager from "./SavesManager";
 import {Save, SaveMeta} from "./Save";
 import {ComputerType, graph} from "../react-graph-vis-types";
 
-import getSaves, {GetSavesResponse} from "../Api/getSaves";
-import {default as apiSave, SaveRequest} from "../Api/save";
-import getSave, {GetSaveRequest} from "../Api/getSave";
+import ApiGetSaves, {GetSavesResponse} from "../Api/apiGetSaves";
+import ApiGetSave, {GetSaveRequest} from "../Api/apiGetSave";
+import ApiSave, {SaveRequest} from "../Api/apiSave";
 
 export default class CloudSavesManager implements SavesManager {
     private readonly onAuthFailed;
@@ -21,13 +21,12 @@ export default class CloudSavesManager implements SavesManager {
         let save = null;
 
         try {
-            const response = await getSave(request, this.onAuthFailed);
+            const response = await ApiGetSave(request, this.onAuthFailed);
 
             save = {
                 id: response.id,
                 name: response.name,
-                save: JSON.parse(response.save),
-                user_id: response.user_id,
+                save: JSON.parse(response.data),
             };
         } catch (error) {
             console.error(error);
@@ -40,7 +39,7 @@ export default class CloudSavesManager implements SavesManager {
         let saves: GetSavesResponse = [];
 
         try {
-            saves = await getSaves(this.onAuthFailed);
+            saves = await ApiGetSaves(this.onAuthFailed);
         } catch (error) {
             console.error(error);
         }
@@ -56,11 +55,11 @@ export default class CloudSavesManager implements SavesManager {
 
         const request: SaveRequest = {
             name: name,
-            save: serialized_save
+            data: serialized_save
         };
 
         try {
-            await apiSave(request, this.onAuthFailed);
+            await ApiSave(request, this.onAuthFailed);
         } catch (error) {
             console.error(error);
         }

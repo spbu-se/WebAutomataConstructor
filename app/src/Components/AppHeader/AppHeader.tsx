@@ -1,6 +1,6 @@
 import React from "react";
 
-import {useHistory} from "react-router-dom";
+import {useNavigate} from "react-router-dom";
 
 import Button from "@mui/material/Button";
 import AppBar from "@mui/material/AppBar";
@@ -22,10 +22,10 @@ export const AppHeader: React.FunctionComponent<AppHeaderProps> = (
         onLogoutButtonClicked,
         isLogin,
     }) => {
-    const history = useHistory();
+    const navigate = useNavigate();
 
     const onSignInButtonClicked = () => {
-        history.push("/login");
+        navigate("/login");
     }
 
     const onSignOutButtonClicked = () => {

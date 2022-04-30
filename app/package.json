@@ -1,5 +1,5 @@
 {
-  "homepage": "https://ndreuu.github.io/WebAutomataConstructor/",
+  "homepage": "https://spbu-se.github.io/WebAutomataConstructor/",
   "name": "web_automata_constructor",
   "version": "0.1.0",
   "dependencies": {
@@ -16,7 +16,7 @@
     "react": "17.0.2",
     "react-dom": "17.0.2",
     "react-graph-vis": "1.0.5",
-    "react-router-dom": "^5.3.0",
+    "react-router-dom": "^6.3.0",
     "react-scripts": "3.0.1",
     "react-window": "^1.8.6",
     "rooks": "^5.10.3",
