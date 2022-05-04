@@ -34,6 +34,7 @@ interface runControlProps {
     computerType: ComputerType,
     elements: Elements,
     treeElems: Elements,
+    historyEndRef: React.RefObject<HTMLDivElement>, 
     changeStateIsCurrent: (ids: number[], isCurrent: boolean) => void
     updMem: (mem: string[] | undefined, ptr: number | undefined) => void
     network: any
@@ -128,7 +129,7 @@ type nodeTree = {
 
 class RunControl extends React.Component<runControlProps, runControlState> {
 
-    historyEndRef = React.createRef<HTMLDivElement>();
+    // historyEndRef = React.createRef<HTMLDivElement>();
 
     constructor(props: runControlProps) {
         super(props);
@@ -174,7 +175,7 @@ class RunControl extends React.Component<runControlProps, runControlState> {
             <History
                 startNode={this.state.startNode!}
                 history={this.state.history!}
-                historyEndRef={this.historyEndRef}
+                historyEndRef={this.props.historyEndRef}
             />)
         this.initializeComputer()
     }
@@ -505,9 +506,9 @@ class RunControl extends React.Component<runControlProps, runControlState> {
                     <History
                         startNode={this.state.startNode!}
                         history={this.state.history!}
-                        historyEndRef={this.historyEndRef}
+                        historyEndRef={this.props.historyEndRef}
                     />)
-                this.historyEndRef?.current?.scrollIntoView({ behavior: 'smooth' })
+                // this.historyEndRef?.current?.scrollIntoView({ behavior: 'smooth' })
             });
 
         } catch (e) {
@@ -519,6 +520,7 @@ class RunControl extends React.Component<runControlProps, runControlState> {
                 console.log(e)
             }
         }
+        // await this.historyEndRef?.current?.scrollIntoView({ behavior: 'smooth' })
 
     }
 
@@ -536,7 +538,7 @@ class RunControl extends React.Component<runControlProps, runControlState> {
                     <History
                         startNode={this.state.startNode!}
                         history={this.state.history!}
-                        historyEndRef={this.historyEndRef}
+                        historyEndRef={this.props.historyEndRef}
                     />)
             }
         );

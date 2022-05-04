@@ -104,10 +104,10 @@ interface RibbonProps {
     wasComputerResetted: boolean,
     mem: string[] | undefined,
     ptr: number | undefined
+    memRef: React.RefObject<HTMLDivElement>
 }
 
 export const Ribbon = (props: RibbonProps) => {
-    const memRef = React.createRef<HTMLDivElement>()
     return (
         props.computerType === "tm" && props.wasComputerResetted
             ?
@@ -119,11 +119,11 @@ export const Ribbon = (props: RibbonProps) => {
                             style={{ border: `${index === props.ptr ? "#0041d0" : "#000000"} 2px solid` }}
                         >
                             {Math.abs(Math.abs(index) - Math.abs(props.ptr!)) <= 5
-                                ? <div ref={memRef} />
+                                ? <div ref={props.memRef} />
                                 : <div />
                             }
                             {value}
-                            {memRef?.current?.scrollIntoView({ behavior: 'smooth' })}
+                            {props.memRef?.current?.scrollIntoView({ behavior: 'smooth' })}
                         </div>
                     )
                 }
@@ -366,6 +366,8 @@ class App extends React.Component<appProps, appState> {
                 // transitionsToLabel(transitions, this.state.computerType)
         })
     }
+
+    historyEndRef = React.createRef<HTMLDivElement>();
 
     getLastHistNodeId = () => this.lastHistNodeId
 
@@ -829,6 +831,7 @@ class App extends React.Component<appProps, appState> {
                                     wasComputerResetted={this.state.wasComputerResetted}
                                     mem={this.state.mem}
                                     ptr={this.state.ptr}
+                                    memRef={this.memRef}
                                 />
 
                                 <AppHeader
@@ -911,7 +914,9 @@ class App extends React.Component<appProps, appState> {
                                         setRun={(f: () => void) => controlAction.run = f}
                                         setStep={(f: () => void) => controlAction.step = f}
                                         setReset={(f: () => void) => controlAction.reset = f}
-                                        setHistory={(jsx: () => JSX.Element) => this.setState({ History: jsx })}
+                                        setHistory={(jsx: () => JSX.Element) => this.setState({ History: jsx }, 
+                                            () => this.historyEndRef?.current?.scrollIntoView({ behavior: 'smooth' }) )}
+                                        historyEndRef={this.historyEndRef}
                                         setIsNonDetermenistic={this.setIsNonDetermenistic}
                                         setIsNonMinimizable={this.setIsNonMinimizable}
                                         treeContextInfo={this.treeContextInfo}
