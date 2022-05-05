@@ -341,14 +341,32 @@ class App extends React.Component<appProps, appState> {
     createHistNode = (idd: number, label: string, isAdmit: boolean, isInitial: boolean, isCurrent: boolean) => {
         this.lastHistNodeId++;
 
+
+        const border = isInitial ? "#0041d0" : isAdmit ? "#ff0072" : "#000000"
+        const background = isCurrent ? "#ffff55" : "#ffffff";
+        const borderWidth = {
+            default: 1.5,
+            primary: 2,
+            highlight: 4
+        };
+
         const node: histNode = {
             id: this.lastHistNodeId,
             idd,
             label,
             isAdmit,
             isInitial,
-            isCurrent
+            isCurrent,
+            color: {
+                background: background,
+                border: border,
+                highlight: {
+                    border: border,
+                    background: background
+                }
+            }
         }
+
         this.state.treeElems.nodes.add(node);
     }
 
