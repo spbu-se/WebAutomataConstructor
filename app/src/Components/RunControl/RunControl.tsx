@@ -34,7 +34,9 @@ interface runControlProps {
     computerType: ComputerType,
     elements: Elements,
     treeElems: Elements,
-    historyEndRef: React.RefObject<HTMLDivElement>, 
+    historyEndRef: React.RefObject<HTMLDivElement>,
+    byEmptyStack: boolean,
+    changerStack: () => void,
     changeStateIsCurrent: (ids: number[], isCurrent: boolean) => void
     updMem: (mem: string[] | undefined, ptr: number | undefined) => void
     network: any
@@ -716,6 +718,14 @@ class RunControl extends React.Component<runControlProps, runControlState> {
         [{ name: this.props.treeContextInfo, onClick: this.props.treeVisible }]
     ]
 
+    private buttonsByStackByState: ButtonSource[][] = [
+        this.defaultButtonsLine,
+        [
+            { name: () => this.props.byEmptyStack ? "По стеку" : "По состоянию", onClick: () => this.props.changerStack() },
+            { name: this.props.treeContextInfo, onClick: this.props.treeVisible }
+        ],
+    ]
+
     private buttonsNoRun: ButtonSource[][] = [
         [
             { name: () => 'Шаг', onClick: () => this.step() },
@@ -728,9 +738,15 @@ class RunControl extends React.Component<runControlProps, runControlState> {
         switch (this.props.computerType) {
             case "dfa":
             case "nfa":
-            case "nfa-eps": return creatButtons(this.buttonsTree)
-            case "tm": return creatButtons(this.buttonsNoRun)
-            default: return creatButtons(this.buttonsTree)
+            case "nfa-eps":
+                return creatButtons(this.buttonsTree)
+            case "tm": 
+                return creatButtons(this.buttonsNoRun)
+            case "pda":
+            case "dpda": 
+                return creatButtons(this.buttonsByStackByState)
+            default: 
+                return creatButtons(this.buttonsTree)
         }
     }
 
