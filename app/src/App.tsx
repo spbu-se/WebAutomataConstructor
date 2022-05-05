@@ -914,11 +914,13 @@ class App extends React.Component<appProps, appState> {
                                         elements={this.state.elements}
                                         treeElems={this.state.treeElems}
                                         createHistNode={this.createHistNode}
+                                        byEmptyStack={this.state.byEmptyStack}
                                         createHistEdge={this.createHistEdge}
                                         getLastHistNodeId={this.getLastHistNodeId}
                                         resetHistTree={this.resetHistTree}
                                         changeStateIsCurrent={this.changeStateIsCurrent}
                                         network={this.network}
+                                        changerStack={controlAction.changerByStack}
                                         setInit={(f: () => void) => computerAction.init = f}
                                         setNfaToDfa={(f: () => void) => computerAction.nfaToDfa = f}
                                         setMinimizeDfa={(f: () => void) => computerAction.minimizeDfa = f}
