@@ -1,12 +1,12 @@
 import {ComputerType, graph} from "../react-graph-vis-types";
 
 export type SaveMeta = {
-    id: number,
+    id: string,
     name: string,
 };
 
 export type Save = {
-    id: number,
+    id: string,
     name: string,
     save: SaveData,
 };

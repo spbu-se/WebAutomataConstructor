@@ -1,11 +1,11 @@
 import {BASE_URL, getAuthHeaders, getParams} from "./apiBase";
 
 export type GetSaveRequest = {
-    id: number,
+    id: string,
 };
 
 export type GetSaveResponse = {
-    id: number,
+    id: string,
     name: string,
     data: string,
 };
