@@ -33,9 +33,11 @@ export const History = (props: {
                                                 style={{ border: `${props.startNode.isInitial ? "#0041d0" : props.startNode.isAdmit ? "#ff0072" : "#000000"} 2px solid` }}
                                             >
                                                 {props.startNode!.label}
+
                                             </div>
                                         </Tooltip>
                                     }
+
                                 </div>
                                 : <div />
                         }
@@ -53,19 +55,29 @@ export const History = (props: {
                                                     style={{ border: `${node.a.isInitial ? "#0041d0" : node.a.isAdmit ? "#ff0072" : "#000000"} 2px solid` }}
                                                 >
                                                     {node.a.label}
+
                                                 </div>
                                             </Tooltip>
                                         ))
                                     }
+
                                 </div>
                             ))
+                            
                         }
-                        <div ref={props.historyEndRef} />
+                                        <div>
+                                            {/* {console.log(nodes)} */}
+                                            <div ref={props.historyEndRef} />
+                                        </div>
+
                     </div>
                     :
                     <div className="run-control__history__placeholder">
                         Используйте пошаговый запуск, чтобы наблюдать за историей
+
                     </div>
             }
+
+
         </div>)
 }

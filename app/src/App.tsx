@@ -1,4 +1,4 @@
-import React, {ReactNode} from 'react';
+import React, { ReactNode } from 'react';
 import "./App.css"
 import {
     ComputerType,
@@ -21,10 +21,10 @@ import {Route, Routes, HashRouter} from "react-router-dom";
 import LoginPage from "./Components/Pages/LoginPage/LoginPage";
 import RegisterPage from "./Components/Pages/RegisterPage/RegisterPage";
 import AppHeader from "./Components/AppHeader/AppHeader";
-import {TransitionParams} from "./Logic/IGraphTypes";
+import { TransitionParams } from "./Logic/IGraphTypes";
 import SuccessLoginPage from "./Components/Pages/SuccessLoginPage/SuccessLoginPage";
 import RegisteredPage from "./Components/Pages/RegisteredPage/RegisteredPage";
-import {VisNetwork} from './VisNetwork';
+import { VisNetwork } from './VisNetwork';
 import {
     DataSet,
     Network,
@@ -80,27 +80,18 @@ interface appState {
 export const ComputerTypeContext = React.createContext<null | ComputerType>(null);
 
 export const computerAction = {
-    init: (() => {
-    }),
-    nfaToDfa: (() => {
-    }),
-    minimizeDfa: (() => {
-    }),
-    mooreToMealy: (() => {
-    }),
-    mealyToMoore: (() => {
-    })
+    init: (() => { }),
+    nfaToDfa: (() => { }),
+    minimizeDfa: (() => { }),
+    mooreToMealy: (() => { }),
+    mealyToMoore: (() => { })
 }
 
 export const controlAction = {
-    changerByStack: (() => {
-    }),
-    run: (() => {
-    }),
-    step: (() => {
-    }),
-    reset: (() => {
-    }),
+    changerByStack: (() => { }),
+    run: (() => { }),
+    step: (() => { }),
+    reset: (() => { }),
 }
 
 // export interface errorAction {
@@ -118,10 +109,10 @@ interface RibbonProps {
     wasComputerResetted: boolean,
     mem: string[] | undefined,
     ptr: number | undefined
+    memRef: React.RefObject<HTMLDivElement>
 }
 
 export const Ribbon = (props: RibbonProps) => {
-    const memRef = React.createRef<HTMLDivElement>()
     return (
         props.computerType === "tm" && props.wasComputerResetted
             ?
@@ -130,19 +121,19 @@ export const Ribbon = (props: RibbonProps) => {
                     props.mem?.map((value, index) =>
                         <div
                             className="app__mem_cell"
-                            style={{border: `${index === props.ptr ? "#0041d0" : "#000000"} 2px solid`}}
+                            style={{ border: `${index === props.ptr ? "#0041d0" : "#000000"} 2px solid` }}
                         >
                             {Math.abs(Math.abs(index) - Math.abs(props.ptr!)) <= 5
-                                ? <div ref={memRef}/>
-                                : <div/>
+                                ? <div ref={props.memRef} />
+                                : <div />
                             }
                             {value}
-                            {memRef?.current?.scrollIntoView({behavior: 'smooth'})}
+                            {props.memRef?.current?.scrollIntoView({ behavior: 'smooth' })}
                         </div>
                     )
                 }
             </div>
-            : <div/>
+            : <div />
     )
 }
 
@@ -161,8 +152,8 @@ class App extends React.Component<appProps, appState> {
             selectedNode: null,
             selectedEdge: null,
             inEdgeMode: false,
-            elements: {nodes: new DataSet<node>(), edges: new DataSet<edge>()},
-            treeElems: {nodes: new DataSet<histNode>(), edges: new DataSet<edge>()},
+            elements: { nodes: new DataSet<node>(), edges: new DataSet<edge>() },
+            treeElems: { nodes: new DataSet<histNode>(), edges: new DataSet<edge>() },
             options: {
                 edges: {
                     smooth: {
@@ -198,7 +189,7 @@ class App extends React.Component<appProps, appState> {
             errIsNonMinimizable: false,
 
             showTree: false,
-            History: () => (<div></div>),
+            History: () => ( <div></div> ),
             // errorAction: {
             //     isNonDetermenistic: false,
             //     setIsNonDetermenistic: (v: boolean): void => { this.setState({ errorAction.isNonDetermenistic = v}) }
@@ -207,9 +198,9 @@ class App extends React.Component<appProps, appState> {
         };
     }
 
-    setIsNonDetermenistic = (v: boolean) => this.setState({errIsNonDetermenistic: v})
+    setIsNonDetermenistic = (v: boolean) => this.setState({ errIsNonDetermenistic: v })
 
-    setIsNonMinimizable = (v: boolean) => this.setState({errIsNonMinimizable: v})
+    setIsNonMinimizable = (v: boolean) => this.setState({ errIsNonMinimizable: v })
 
     async componentDidMount() {
         await this.updateCurrentUser();
@@ -241,19 +232,19 @@ class App extends React.Component<appProps, appState> {
     }
 
     openSavePopout = () => {
-        this.setState({savePopoutOpen: true});
+        this.setState({ savePopoutOpen: true });
     }
 
     closeSavePopout = () => {
-        this.setState({savePopoutOpen: false});
+        this.setState({ savePopoutOpen: false });
     }
 
     openWelcomePopout = () => {
-        this.setState({welcomePopoutOpen: true});
+        this.setState({ welcomePopoutOpen: true });
     }
 
     closeWelcomePopout = () => {
-        this.setState({welcomePopoutOpen: false});
+        this.setState({ welcomePopoutOpen: false });
     }
 
     logout = () => {
@@ -267,6 +258,7 @@ class App extends React.Component<appProps, appState> {
             .then(user => this.setState({user: user}))
             .catch(() => this.setState({user: null}));
     }
+
 
     updateGraph = (): void => {
         decorateGraph(this.state.elements, this.state.computerType)
@@ -369,7 +361,7 @@ class App extends React.Component<appProps, appState> {
     }
 
     createHistEdge = (from: number, to: number, by: any) => {
-        const transitions = new Set([[{title: by}]])
+        const transitions = new Set([[{ title: by }]])
 
         this.state.treeElems.edges.add({
             from: from,
@@ -377,11 +369,13 @@ class App extends React.Component<appProps, appState> {
             transitions: transitions,
             label: by
             // this.state.computerType !== 'mealy' && this.state.computerType !== 'dmealy'
-            // ? transitionsToLabel(transitions, this.state.computerType)
-            // : by
-            // transitionsToLabel(transitions, this.state.computerType)
+                // ? transitionsToLabel(transitions, this.state.computerType)
+                // : by
+                // transitionsToLabel(transitions, this.state.computerType)
         })
     }
+
+    historyEndRef = React.createRef<HTMLDivElement>();
 
     getLastHistNodeId = () => this.lastHistNodeId
 
@@ -401,14 +395,14 @@ class App extends React.Component<appProps, appState> {
     selectNode = (e: { nodes: number[]; }): void => {
         const nodesIDs: number[] = e.nodes;
         const selectedNodes = this.state.elements.nodes.get(nodesIDs);
-        this.setState({selectedNode: selectedNodes[0]});
+        this.setState({ selectedNode: selectedNodes[0] });
     }
 
 
     deselectNode = (e: { nodes: number[]; }): void => {
         const nodesIDs: number[] = e.nodes;
         if (nodesIDs.length === 0) {
-            this.setState({selectedNode: null});
+            this.setState({ selectedNode: null });
         }
     }
 
@@ -427,14 +421,14 @@ class App extends React.Component<appProps, appState> {
     selectEdge = (e: { edges: any; }): void => {
         const edgesIDs: number[] = e.edges;
         const selectedEdges = this.state.elements.edges.get(edgesIDs);
-        this.setState({selectedEdge: selectedEdges[0]});
+        this.setState({ selectedEdge: selectedEdges[0] });
         console.log('click1  = selectEdge')
     }
 
     deselectEdge = (e: { edges: number[]; }): void => {
         const edgesIDs: number[] = e.edges;
         if (edgesIDs.length === 0) {
-            this.setState({selectedEdge: null});
+            this.setState({ selectedEdge: null });
         }
     }
 
@@ -452,7 +446,7 @@ class App extends React.Component<appProps, appState> {
     }
 
     updMem = (mem: string[], ptr: number): void => {
-        this.setState({mem: mem, ptr: ptr});
+        this.setState({ mem: mem, ptr: ptr });
     }
 
     NFAContextMenu = (handleContextMenu: any, handleClose: any) => {
@@ -503,7 +497,7 @@ class App extends React.Component<appProps, appState> {
     }
 
     treeVisible = () => {
-        this.setState({showTree: !this.state.showTree})
+        this.setState({ showTree: !this.state.showTree})
         return !this.state.showTree
     }
 
@@ -862,6 +856,7 @@ class App extends React.Component<appProps, appState> {
                                     wasComputerResetted={this.state.wasComputerResetted}
                                     mem={this.state.mem}
                                     ptr={this.state.ptr}
+                                    memRef={this.memRef}
                                 />
 
                                 <AppHeader
@@ -902,7 +897,7 @@ class App extends React.Component<appProps, appState> {
                                             contextMenu={this.ContextMenu(this.state.computerType)}
                                         />
                                     </div>
-                                    : <div/>}
+                                    : <div />}
                                 <div className="app__right-menu">
                                     <NodeControl
                                         node={this.state.selectedNode}
@@ -936,15 +931,17 @@ class App extends React.Component<appProps, appState> {
                                         setMinimizeDfa={(f: () => void) => computerAction.minimizeDfa = f}
                                         setMooreToMealy={(f: () => void) => computerAction.mooreToMealy = f}
                                         setMealyToMoore={(f: () => void) => computerAction.mealyToMoore = f}
-                                        updateElements={(elements: Elements) => this.setState({elements: elements}, () => this.updateGraph())}
-                                        setComputerType={(type: null | ComputerType) => this.setState({computerType: type})}
-                                        setResettedStatus={(status: boolean) => this.setState({wasComputerResetted: status})}
-                                        setByEmptyStack={(byEmptyStack: boolean) => this.setState({byEmptyStack: byEmptyStack})}
+                                        updateElements={(elements: Elements) => this.setState({ elements: elements }, () => this.updateGraph())}
+                                        setComputerType={(type: null | ComputerType) => this.setState({ computerType: type })}
+                                        setResettedStatus={(status: boolean) => this.setState({ wasComputerResetted: status })}
+                                        setByEmptyStack={(byEmptyStack: boolean) => this.setState({ byEmptyStack: byEmptyStack })}
                                         setChangerByStack={(f: () => void) => controlAction.changerByStack = f}
                                         setRun={(f: () => void) => controlAction.run = f}
                                         setStep={(f: () => void) => controlAction.step = f}
                                         setReset={(f: () => void) => controlAction.reset = f}
-                                        setHistory={(jsx: () => JSX.Element) => this.setState({History: jsx})}
+                                        setHistory={(jsx: () => JSX.Element) => this.setState({ History: jsx },
+                                            () => this.historyEndRef?.current?.scrollIntoView({ behavior: 'smooth' }) )}
+                                        historyEndRef={this.historyEndRef}
                                         setIsNonDetermenistic={this.setIsNonDetermenistic}
                                         setIsNonMinimizable={this.setIsNonMinimizable}
                                         treeContextInfo={this.treeContextInfo}
