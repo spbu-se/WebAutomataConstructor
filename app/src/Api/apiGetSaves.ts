@@ -1,11 +1,7 @@
 import {BASE_URL, getAuthHeaders, getParams} from "./apiBase";
+import {SaveModel} from "../Models/SaveModel";
 
-export type GetSavesResponse = {
-    id: number,
-    name: string,
-}[];
-
-export default function ApiGetSaves(onAuthFailed: () => void): Promise<GetSavesResponse> {
+export default function ApiGetSaves(onAuthFailed: () => void): Promise<SaveModel[]> {
     return new Promise(function (resolve, reject) {
         const url = BASE_URL + "/save";
 

@@ -2,9 +2,10 @@ import SavesManager from "./SavesManager";
 import {Save, SaveMeta} from "./Save";
 import {ComputerType, graph} from "../react-graph-vis-types";
 
-import ApiGetSaves, {GetSavesResponse} from "../Api/apiGetSaves";
+import ApiGetSaves from "../Api/apiGetSaves";
 import ApiGetSave, {GetSaveRequest} from "../Api/apiGetSave";
 import ApiSave, {SaveRequest} from "../Api/apiSave";
+import {SaveModel} from "../Models/SaveModel";
 
 export default class CloudSavesManager implements SavesManager {
     private readonly onAuthFailed;
@@ -36,7 +37,7 @@ export default class CloudSavesManager implements SavesManager {
     }
 
     async getSavesMeta(): Promise<SaveMeta[]> {
-        let saves: GetSavesResponse = [];
+        let saves: SaveModel[] = [];
 
         try {
             saves = await ApiGetSaves(this.onAuthFailed);
@@ -44,7 +45,13 @@ export default class CloudSavesManager implements SavesManager {
             console.error(error);
         }
 
-        return saves;
+        return saves.map(x => {
+            const saveMeta: SaveMeta = {
+                id: x.id,
+                name: x.name
+            };
+            return saveMeta;
+        });
     }
 
     async save(name: string, graph: graph, type: ComputerType): Promise<void> {

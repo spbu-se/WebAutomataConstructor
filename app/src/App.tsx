@@ -31,9 +31,13 @@ import {
     Options,
     Data,
 } from "vis-network/standalone/esm/vis-network";
-import { Output } from './Logic/Types';
-import { NonDetermenisticModal, NonMinimizableModal } from './ErrorModal';
-import { TreeHistory } from './TreeHistory';
+import {Output} from './Logic/Types';
+import {NonDetermenisticModal, NonMinimizableModal} from './ErrorModal';
+import {TreeHistory} from './TreeHistory';
+import MePage from "./Components/Pages/MePage/MePage";
+import {UserModel} from "./Models/UserModel";
+import ApiGetUser from "./Api/apiGetUser";
+
 // import {ContextMenu, MenuItem as CotextMenuItem, ContextMenuTrigger} from "react-contextmenu";
 
 interface appProps {
@@ -69,7 +73,8 @@ interface appState {
     errIsNonDetermenistic: boolean,
     errIsNonMinimizable: boolean,
     showTree: boolean,
-    History: (() => JSX.Element)
+    History: (() => JSX.Element),
+    user: UserModel | null,
 }
 
 export const ComputerTypeContext = React.createContext<null | ComputerType>(null);
@@ -189,6 +194,7 @@ class App extends React.Component<appProps, appState> {
             //     isNonDetermenistic: false,
             //     setIsNonDetermenistic: (v: boolean): void => { this.setState({ errorAction.isNonDetermenistic = v}) }
             // }
+            user: null
         };
     }
 
@@ -196,7 +202,9 @@ class App extends React.Component<appProps, appState> {
 
     setIsNonMinimizable = (v: boolean) => this.setState({ errIsNonMinimizable: v })
 
-    componentDidMount() {
+    async componentDidMount() {
+        await this.updateCurrentUser();
+
         this.updateGraph();
         // this.subscribeToShortcuts();
         this.openWelcomePopout();
@@ -239,16 +247,16 @@ class App extends React.Component<appProps, appState> {
         this.setState({ welcomePopoutOpen: false });
     }
 
-    login = () => {
-        this.setState({ isLogin: true });
-    }
-
     logout = () => {
-        this.setState({ isLogin: false });
+        document.cookie = `jwt=""; path=/; secure; max-age=-1`;
+        this.setState({isLogin: false});
+        this.updateCurrentUser();
     }
 
-    changePopout = (popout: ReactNode | null) => {
-        this.setState({ popout: popout });
+    updateCurrentUser = async () => {
+        await ApiGetUser()
+            .then(user => this.setState({user: user}))
+            .catch(() => this.setState({user: null}));
     }
 
 
@@ -751,7 +759,6 @@ class App extends React.Component<appProps, appState> {
     }
 
 
-
     render() {
         return (
             <HashRouter>
@@ -766,7 +773,25 @@ class App extends React.Component<appProps, appState> {
                         <RegisteredPage/>
                     }/>
                     <Route path="/success-login" element={
-                        <SuccessLoginPage/>
+                        <SuccessLoginPage updateCurrentUser={this.updateCurrentUser}/>
+                    }/>
+                    <Route path="/me" element={
+                        <MePage user={this.state.user}
+                                onAuthFailed={this.logout}
+                                changeComputerType={(computerType, graph: graph | null) => {
+                                    const defaultGraph = graph || computersInfo[computerType!].defaultGraph;
+                                    graphToElements(defaultGraph).nodes.forEach((v) => console.log(v))
+
+                                    this.lastNodeId = defaultGraph.nodes.length;
+                                    this.setState({
+                                            computerType: computerType,
+                                            elements: graphToElements(defaultGraph)
+                                        }
+                                        , () => this.updateGraph()
+                                    );
+                                }
+                                }
+                        />
                     }/>
                     <Route path="/" element={
                         <ComputerTypeContext.Provider value={this.state.computerType}>
@@ -785,9 +810,9 @@ class App extends React.Component<appProps, appState> {
 
                                         this.lastNodeId = defaultGraph.nodes.length;
                                         this.setState({
-                                            computerType: computerType,
-                                            elements: graphToElements(defaultGraph)
-                                        }
+                                                computerType: computerType,
+                                                elements: graphToElements(defaultGraph)
+                                            }
                                             , () => this.updateGraph()
                                         );
                                     }}
@@ -796,11 +821,11 @@ class App extends React.Component<appProps, appState> {
                                 {this.state.popout}
 
                                 <SavingPopout open={this.state.savePopoutOpen}
-                                    onClose={this.closeSavePopout}
-                                    isLogin={this.state.isLogin}
-                                    onAuthFailed={this.logout}
-                                    graph={elementsToGraph(this.state.elements)}
-                                    computerType={this.state.computerType!} />
+                                              onClose={this.closeSavePopout}
+                                              isLogin={this.state.isLogin}
+                                              onAuthFailed={this.logout}
+                                              graph={elementsToGraph(this.state.elements)}
+                                              computerType={this.state.computerType!}/>
                                 <div className="history-container">
                                     {this.state.History()}
                                 </div>
@@ -914,7 +939,7 @@ class App extends React.Component<appProps, appState> {
                                         setRun={(f: () => void) => controlAction.run = f}
                                         setStep={(f: () => void) => controlAction.step = f}
                                         setReset={(f: () => void) => controlAction.reset = f}
-                                        setHistory={(jsx: () => JSX.Element) => this.setState({ History: jsx }, 
+                                        setHistory={(jsx: () => JSX.Element) => this.setState({ History: jsx },
                                             () => this.historyEndRef?.current?.scrollIntoView({ behavior: 'smooth' }) )}
                                         historyEndRef={this.historyEndRef}
                                         setIsNonDetermenistic={this.setIsNonDetermenistic}

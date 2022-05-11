@@ -29,8 +29,12 @@ export const AppHeader: React.FunctionComponent<AppHeaderProps> = (
     }
 
     const onSignOutButtonClicked = () => {
-        document.cookie = "token=; path=/; secure; max-age=-99999999";
+        document.cookie = "jwt=; path=/; secure; max-age=-99999999";
         onLogoutButtonClicked();
+    }
+
+    const onProfileButtonClicked = () => {
+        navigate("/me");
     }
 
 
@@ -38,28 +42,35 @@ export const AppHeader: React.FunctionComponent<AppHeaderProps> = (
         <AppBar position="sticky">
             <Toolbar variant="dense">
                 <div className="app__header__left">
-                    <Button
-                        className="app__header__button"
-                        color="inherit"
-                        onClick={onMenuButtonClicked}
+                    <Button className="app__header__button"
+                            color="inherit"
+                            onClick={onMenuButtonClicked}
                     >
                         Меню
                     </Button>
 
-                    <Button
-                        className="app__header__button"
-                        color="inherit"
-                        onClick={onSaveButtonClicked}
+                    <Button className="app__header__button"
+                            color="inherit"
+                            onClick={onSaveButtonClicked}
                     >
                         Сохранить
                     </Button>
                 </div>
 
                 <div className="app__header__right">
-                    <Button
-                        className="app__header__button"
-                        color="inherit"
-                        onClick={isLogin ? onSignOutButtonClicked : onSignInButtonClicked}
+                    {
+                        isLogin &&
+                        <Button className="app__header__button"
+                                color="inherit"
+                                onClick={onProfileButtonClicked}
+                        >
+                            Профиль
+                        </Button>
+                    }
+
+                    <Button className="app__header__button"
+                            color="inherit"
+                            onClick={isLogin ? onSignOutButtonClicked : onSignInButtonClicked}
                     >
                         {isLogin ? "Выйти" : "Войти"}
                     </Button>

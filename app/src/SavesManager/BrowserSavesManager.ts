@@ -30,9 +30,9 @@ export default class BrowserSavesManager implements SavesManager {
         }
 
         const saves = BrowserSavesManager.getSaves();
-        const next_id = Math.max(...saves.map(save => save.id)) + 1;
+        const next_id = (Math.max(...saves.map(save => Number(save.id))) + 1).toString();
         const save_index = saves.findIndex(save => save.name == name);
-        const save = {id: 0, name: name, save: {graph: graph, type: type}};
+        const save = {id: "0", name: name, save: {graph: graph, type: type}};
 
         if (save_index == -1) {
             save.id = next_id;
