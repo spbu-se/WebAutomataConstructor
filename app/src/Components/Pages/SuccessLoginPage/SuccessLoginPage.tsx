@@ -7,12 +7,13 @@ import "./SuccessLoginPage.css";
 import {Alert, Container, Stack, Typography} from "@mui/material";
 
 export interface SuccessLoginPageProps {
+    updateCurrentUser: () => void,
 }
 
-export const SuccessLoginPage: React.FunctionComponent<SuccessLoginPageProps> = ({}) => {
+export const SuccessLoginPage: React.FunctionComponent<SuccessLoginPageProps> = ({updateCurrentUser}) => {
     const [error, setError] = useState<string | null>(null);
 
-    const updateAuth = () => {
+    const updateAuth = async () => {
         const jwt = searchParams.get('jwt');
 
         if (!jwt) {
@@ -23,6 +24,9 @@ export const SuccessLoginPage: React.FunctionComponent<SuccessLoginPageProps> = 
         console.log(`Jwt = ${jwt}`);
 
         document.cookie = `jwt=${jwt}; path=/; secure; max-age=2592000`;
+
+        await updateCurrentUser();
+
         window.location.href = "/";
     }
 
@@ -30,7 +34,6 @@ export const SuccessLoginPage: React.FunctionComponent<SuccessLoginPageProps> = 
         updateAuth();
     }, []);
 
-    const navigate = useNavigate();
     const [searchParams] = useSearchParams();
 
     return (
