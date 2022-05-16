@@ -110,19 +110,6 @@ class EdgeControl extends React.Component<EdgeControlProps, EdgeControlState> {
                     accumulator.push({ fst: EPS, snd: fst, trd: trd.join(':'), fth: fth })
                 })
 
-
-            // accumulator.forEach(value => {
-            //     if (value.fth !== undefined) {
-            //         acc.push(
-            //             {
-            //                 title: EPS,
-            //                 stackDown: value.snd === 'eps' ? EPS : value.snd,
-            //                 stackPush: value.trd?.split(':').map(value => value === 'eps' ? EPS : value),
-            //                 move: value.fth === 'L' ? Move.L : value.fth === 'R' ? Move.R : undefined
-            //             }
-            //         )
-            //     }
-            // })
         } 
         if (this.props.computerType === "mealy" || this.props.computerType === "dmealy") {
             this.state.transitionsText

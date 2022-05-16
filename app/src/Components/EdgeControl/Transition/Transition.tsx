@@ -26,7 +26,6 @@ class Transition extends React.Component<TransitionProps, {}> {
                  {...restProps}
             >
                 {active ? <HighlightOffIcon className="transition__remove" onClick={() => deleteTransition()}/> : null}
-                {/*{transition.map(value => value.title)}*/}
                 {getTransitionsTitles(new Set<TransitionParams[]>([transition]), this.props.computerType)}
             </div>
         );

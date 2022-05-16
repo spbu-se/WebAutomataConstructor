@@ -63,6 +63,10 @@ export class EpsilonNFA extends PDA {
         ret.nodes.forEach(value => value.stack = undefined)
         ret.history.forEach(value => value.nodes.forEach(value1 => value1.stack = undefined))
 
+        console.log('histTrace')
+        console.log(histTrace)
+        console.log('histTrace')
+
         return {...ret, histTrace}
     }
 

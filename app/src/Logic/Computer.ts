@@ -16,7 +16,6 @@ export const EPS: string = 'Epsilon'
 export const BOTTOM = "Z0"
 
 export abstract class Computer {
-
     protected input: elementOfAlphabet[] = []
     protected alphabet = new Map()
     protected statements = new Map()
@@ -35,6 +34,11 @@ export abstract class Computer {
     public abstract run: () => Step
     public abstract step: () => Step
     public abstract setInput: (input: string[]) => void
+
+    public getInput() {
+        return this.input
+    }
+
 
     public byEmptyStackAdmt = (isAdmt: boolean): void => {
         throw new Error("PDA attribute")

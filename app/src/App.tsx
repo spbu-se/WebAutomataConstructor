@@ -89,14 +89,6 @@ export const controlAction = {
     reset: (() => { }),
 }
 
-// export interface errorAction {
-//     isNonDetermenistic: boolean,
-//     setIsNonDetermenistic: (v: boolean) => void
-// }
-// export const errorAction =  {
-//     isNonDetermenistic: false,
-//     setIsNonDetermenistic: (v: boolean): void => { errorAction.isNonDetermenistic = v }
-// }
 
 
 interface RibbonProps {
@@ -185,10 +177,7 @@ class App extends React.Component<appProps, appState> {
 
             showTree: false,
             History: () => ( <div></div> ),
-            // errorAction: {
-            //     isNonDetermenistic: false,
-            //     setIsNonDetermenistic: (v: boolean): void => { this.setState({ errorAction.isNonDetermenistic = v}) }
-            // }
+
         };
     }
 
@@ -198,29 +187,19 @@ class App extends React.Component<appProps, appState> {
 
     componentDidMount() {
         this.updateGraph();
-        // this.subscribeToShortcuts();
+        this.subscribeToShortcuts();
         this.openWelcomePopout();
     }
 
     lastNodeId = 0;
 
-    ////////////////////////////////////////////////////////////////////////////////////////////////////
     subscribeToShortcuts = () => {
         document.addEventListener("keydown", (event: KeyboardEvent) => {
-            // if (event.key === "Shift" && !this.state.inEdgeMode) {
-            //     this.enterEdgeMode();
-            // }
             if (event.key === "s" && event.ctrlKey) {
                 event.preventDefault();
                 this.openSavePopout();
             }
         })
-
-        // document.addEventListener("keyup", (event: KeyboardEvent) => {
-        //     if (event.key === "Shift" && this.state.inEdgeMode) {
-        //         this.leaveEdgeMode();
-        //     }
-        // })
     }
 
     openSavePopout = () => {
@@ -378,10 +357,6 @@ class App extends React.Component<appProps, appState> {
             to: to,
             transitions: transitions,
             label: by
-            // this.state.computerType !== 'mealy' && this.state.computerType !== 'dmealy'
-                // ? transitionsToLabel(transitions, this.state.computerType)
-                // : by
-                // transitionsToLabel(transitions, this.state.computerType)
         })
     }
 
@@ -395,11 +370,6 @@ class App extends React.Component<appProps, appState> {
         }
         this.state.treeElems.edges.forEach((e) => this.state.treeElems.edges.remove(e.id!))
         this.lastHistNodeId = 0;
-        // this.state.treeElems.nodes.remove()
-        // this.state.treeElems.edges.clear()
-        // this.setState({
-        //     treeElems: { nodes: new DataSet<histNode>(), edges: new DataSet<edge>() }
-        // })
     }
 
     selectNode = (e: { nodes: number[]; }): void => {
@@ -441,7 +411,6 @@ class App extends React.Component<appProps, appState> {
             this.setState({ selectedEdge: null });
         }
     }
-
 
     changeEdgeTransition = (id: string, transitions: Set<TransitionParams[]>): void => {
         this.state.elements.edges.update({
