@@ -76,6 +76,9 @@ var Computer = /** @class */ (function () {
         this.nodes = graph.nodes;
         this.createMatrix();
     }
+    Computer.prototype.getInput = function () {
+        return this.input;
+    };
     Computer.prototype.getAlphabetFromEdges = function () {
         var _this = this;
         var alphabetSet = new Set();

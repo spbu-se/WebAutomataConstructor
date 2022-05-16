@@ -320,12 +320,6 @@ export const computersInfo: Record<ComputerType, ComputerInfo> = {
                         ]])
                 },
 
-                // {from: 1, to: 1, transitions: new Set([[{title: '1',  stackDown: 'Z0', stackPush: ['1', 'Z0']}]])},
-                // {from: 1, to: 1, transitions: new Set([[{title: '0',  stackDown: '0',  stackPush: ['0', '0' ]}]])},
-                // {from: 1, to: 1, transitions: new Set([[{title: '0',  stackDown: '1',  stackPush: ['0', '1' ]}]])},
-                // {from: 1, to: 1, transitions: new Set([[{title: '1',  stackDown: '0',  stackPush: ['1', '0' ]}]])},
-                // {from: 1, to: 1, transitions: new Set([[{title: '1',  stackDown: '1',  stackPush: ['1', '1' ]}]])},
-
                 {
                     from: 1, to: 2, transitions: new Set([
                         [
@@ -334,9 +328,6 @@ export const computersInfo: Record<ComputerType, ComputerInfo> = {
                             {title: EPS, stackDown: '1', stackPush: ['1']}
                         ]])
                 },
-                // {from: 1, to: 2, transitions: new Set([[{title: EPS,  stackDown: '0',  stackPush: ['0'      ]}]])},
-                // {from: 1, to: 2, transitions: new Set([[{title: EPS,  stackDown: '1',  stackPush: ['1'      ]}]])},
-
                 {
                     from: 2, to: 2, transitions: new Set([
                         [
@@ -344,10 +335,8 @@ export const computersInfo: Record<ComputerType, ComputerInfo> = {
                             {title: '1', stackDown: '1', stackPush: [EPS]}
                         ]])
                 },
-                // {from: 2, to: 2, transitions: new Set([[{title: '1',  stackDown: '1',  stackPush: [EPS      ]}]])},
 
                 {from: 2, to: 3, transitions: new Set([[{title: EPS, stackDown: 'Z0', stackPush: [EPS]}]])},
-
             ]
         }
     },

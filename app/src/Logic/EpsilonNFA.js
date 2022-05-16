@@ -54,6 +54,9 @@ var EpsilonNFA = /** @class */ (function (_super) {
             histTrace.push({ byEpsPred: ret.byEpsPred, byLetter: ret.byLetter, byEpsAfter: ret.byEpsAfter });
             ret.nodes.forEach(function (value) { return value.stack = undefined; });
             ret.history.forEach(function (value) { return value.nodes.forEach(function (value1) { return value1.stack = undefined; }); });
+            console.log('histTrace');
+            console.log(histTrace);
+            console.log('histTrace');
             return __assign(__assign({}, ret), { histTrace: histTrace });
         };
         _this.step = _this.enfaStep;

@@ -70,14 +70,13 @@ interface runControlState {
     computer: Computer | undefined,
     editMode: boolean,
     currentInputIndex: number,
-    history: { a: node, b: string[] | undefined }[][],
+    history: { node: node, note: string[] | undefined }[][],
     byEmptyStack: boolean,
     wasRuned: boolean,
     memory: string[] | undefined,
     gElements: graph,
     startNode: node | undefined,
     lastHistUnits: nodeTree[],
-    // { id: number, idd: number, stack?: string[] }[],
     startStatements: NodeCore[]
 }
 
@@ -130,8 +129,6 @@ type nodeTree = {
 }
 
 class RunControl extends React.Component<runControlProps, runControlState> {
-
-    // historyEndRef = React.createRef<HTMLDivElement>();
 
     constructor(props: runControlProps) {
         super(props);
@@ -317,8 +314,6 @@ class RunControl extends React.Component<runControlProps, runControlState> {
         this.state.computer?.setInput(input.split(""));
 
         this.setState({ input: input });
-
-
     }
 
 
@@ -357,10 +352,6 @@ class RunControl extends React.Component<runControlProps, runControlState> {
             })
         }
 
-        console.log('<<<<<<<<<<<<<<<<<<<')
-        console.log(nodes)
-        console.log(tmp)
-        console.log('<<<<<<<<<<<<<<<<<<<\n\n')
 
         const letter = (l: any) => l === EPS ? 'ε' : l
 
@@ -478,25 +469,14 @@ class RunControl extends React.Component<runControlProps, runControlState> {
             const _nodes = nodes.map((e, i) => {
                 const stack = stepResult.nodes[i].stack
                 return {
-                    a: e,
-                    b: stack !== undefined
+                    node: e,
+                    note: stack !== undefined
                         ? stack.reverse()
                         : stepResult.output !== undefined
                             ? stepResult.output!
                             : undefined
                 }
             })
-
-            // if (this.props.computerType === "moore" && stepResult.counter === 1) {
-            //     const startNode: { a: node, b: string[] | undefined }[] = [{
-            //         a: this.state.gElements.nodes.filter(node => node.id === this.state.computer!.getCurrNode())[0],
-            //         b: ["~"]
-            //     }]
-            //     console.log(startNode)
-            //     this.setState({
-            //         startNode: this.state.gElements.nodes.filter(node => node.id === this.state.computer!.getCurrNode())[0]
-            //     })
-            // }
 
             this.setState({
                 result: result,
@@ -510,7 +490,6 @@ class RunControl extends React.Component<runControlProps, runControlState> {
                         history={this.state.history!}
                         historyEndRef={this.props.historyEndRef}
                     />)
-                // this.historyEndRef?.current?.scrollIntoView({ behavior: 'smooth' })
             });
 
         } catch (e) {
@@ -522,7 +501,6 @@ class RunControl extends React.Component<runControlProps, runControlState> {
                 console.log(e)
             }
         }
-        // await this.historyEndRef?.current?.scrollIntoView({ behavior: 'smooth' })
 
     }
 
@@ -718,6 +696,18 @@ class RunControl extends React.Component<runControlProps, runControlState> {
         [{ name: this.props.treeContextInfo, onClick: this.props.treeVisible }]
     ]
 
+    private buttonMealy: ButtonSource[][] = [
+        this.defaultButtonsLine,
+        [{ name: this.props.treeContextInfo, onClick: this.props.treeVisible }],
+        [{ name: () => 'Мур', onClick: () => this.mealyToMoore() }],
+    ]
+
+    private buttonMoore: ButtonSource[][] = [
+        this.defaultButtonsLine,
+        [{ name: this.props.treeContextInfo, onClick: this.props.treeVisible }],
+        [{ name: () => 'Мили', onClick: () => this.mooreToMealy() }],
+    ]
+
     private buttonsByStackByState: ButtonSource[][] = [
         this.defaultButtonsLine,
         [
@@ -740,12 +730,18 @@ class RunControl extends React.Component<runControlProps, runControlState> {
             case "nfa":
             case "nfa-eps":
                 return creatButtons(this.buttonsTree)
-            case "tm": 
+            case "tm":
                 return creatButtons(this.buttonsNoRun)
             case "pda":
-            case "dpda": 
+            case "dpda":
                 return creatButtons(this.buttonsByStackByState)
-            default: 
+            case "mealy":
+            case "dmealy": 
+                return creatButtons(this.buttonMealy)
+            case "moore":
+            case "dmoore":
+                return creatButtons(this.buttonMoore)
+            default:
                 return creatButtons(this.buttonsTree)
         }
     }

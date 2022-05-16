@@ -1,16 +1,9 @@
 import {DFA} from "../DFA";
 import {Step} from "../Types";
 import {NFA} from "../NFA";
+import { Computer } from "../Computer";
 
 export {}
-
-let toSet = (str: string[]) => {
-    let set: Set<string> = new Set()
-    for (let i = 0; i < str.length; i++) {
-        set.add(str[i])
-    }
-    return set;
-}
 
 test("{ q0 -> q1 -> (q2); A = {0, 1}}: 2 steps for 2 edges without loop", () => {
     let dfa = new DFA(
@@ -21,8 +14,8 @@ test("{ q0 -> q1 -> (q2); A = {0, 1}}: 2 steps for 2 edges without loop", () => 
                 {id: 44, isAdmit: true},
             ],
             edges: [
-                {from: 1, to: -100, transitions: toSet(['0', 'a'])},
-                {from: -100, to: 44, transitions: toSet(['a'])}
+                {from: 1, to: -100, transitions: new Set([ [{ title: '0'}, { title: 'a'}]])},
+                {from: -100, to: 44, transitions: new Set([ [{ title: 'a'}]])},
             ]
         }, [{id: 1, isAdmit: false}], ['a', 'a'])
 
@@ -41,8 +34,8 @@ test("{ q0 -> q1 -> (q2); A = {0, 1}}: 1 steps for 2 edges without loop", () => 
                 {id: 44, isAdmit: true},
             ],
             edges: [
-                {from: 1, to: -100, transitions: toSet(['0', 'a'])},
-                {from: -100, to: 44, transitions: toSet(['a'])}
+                {from: 1, to: -100, transitions: new Set([ [{ title: '0'}, { title: 'a'}]])},
+                {from: -100, to: 44, transitions: new Set([ [{ title: 'a'}]])},
             ]
         }, [{id: 1, isAdmit: false}], ['0'])
 
@@ -62,9 +55,9 @@ test("{ q0 -> q1 -> (q2)<-; A = {0, 1}}: 6 steps for 2 edges with loop in q2", (
                 {id: 44, isAdmit: true},
             ],
             edges: [
-                {from: 1, to: -100, transitions: toSet(['0', '1'])},
-                {from: -100, to: 44, transitions: toSet(['a'])},
-                {from: 44, to: 44, transitions: toSet(['z'])}
+                {from: 1, to: -100, transitions: new Set([ [{ title: '0'}, { title: '1'}]])},
+                {from: -100, to: 44, transitions: new Set([ [{ title: 'a'}]])},
+                {from: 44, to: 44, transitions: new Set([ [{ title: 'z'}]])},
             ]
         }, [{id: 1, isAdmit: false}], ['1', 'a', 'z', 'z', 'z', 'z'])
 
@@ -74,25 +67,6 @@ test("{ q0 -> q1 -> (q2)<-; A = {0, 1}}: 6 steps for 2 edges with loop in q2", (
         .toBe(true)
 })
 
-/*test("{ q0; A = {0}}: statement without edges", () => {
-    let dfa = new DFA(
-        {
-            nodes: [
-                {id: 1, isAdmit: false},
-                {id: -100, isAdmit: false},
-                {id: 44, isAdmit: true},
-            ],
-            edges: [
-
-            ]
-        }, {id: 1, isAdmit: false}, ['1', 'a', 'z', 'z', 'z', 'z'])
-
-    let result = {node: {id: 1, isAdmit: false}, counter: 0}
-
-    expect(result.node.id === dfa.run().nodes[0].id && result.counter === dfa.run().counter)
-        .toBe(true)
-})*/
-
 test("{ (q0)<-; A = {0}}: statement with loop", () => {
     let dfa = new DFA(
         {
@@ -100,7 +74,7 @@ test("{ (q0)<-; A = {0}}: statement with loop", () => {
                 {id: 1, isAdmit: true},
             ],
             edges: [
-                {from: 1, to: 1, transitions: toSet(['z'])}
+                {from: 1, to: 1, transitions: new Set([ [{ title: 'z'}]])},
             ]
         }, [{id: 1, isAdmit: false}], ['z', 'z', 'z', 'z'])
 
@@ -118,8 +92,8 @@ test("{ (q0)<=>q1; A = {0}}: is input length divided at 2", () => {
                 {id: 1, isAdmit: true},
             ],
             edges: [
-                {from: -100, to: 1, transitions: toSet(['z'])},
-                {from: 1, to: -100, transitions: toSet(['z'])}
+                {from: -100, to: 1, transitions: new Set([ [{ title: 'z'}]])},
+                {from: 1, to: -100, transitions: new Set([ [{ title: 'z'}]])},
             ]
         }, [{id: 1, isAdmit: true}], ['z', 'z', 'z', 'z', 'z', 'z', 'z', 'z', 'z', 'z'])
 
@@ -128,13 +102,13 @@ test("{ (q0)<=>q1; A = {0}}: is input length divided at 2", () => {
     expect(result.node.id === dfa.run().nodes[0].id && result.counter === dfa.run().counter)
         .toBe(true)
 })
-let testFunc = (dfa: NFA) : Step => {
-    for (let i = 0; i < dfa.input.length; i++) {
-        dfa.step()
-        //console.log(dfa.getTrendyNode())
+
+
+let testFunc = (nfa: Computer): Step => {
+    for (let i = 0; i < nfa.input.length - 1; i++) {
+        nfa.step()
     }
-    console.log('---------------------------------', dfa.getTrendyNode())
-    return dfa.getTrendyNode()
+    return nfa.step()
 }
 
 test("step by step: { q0 -> q1 -> (q2); A = {0, 1}}: 2 steps for 2 edges without loop", () => {
@@ -147,14 +121,17 @@ test("step by step: { q0 -> q1 -> (q2); A = {0, 1}}: 2 steps for 2 edges without
                 {id: 44, isAdmit: true},
             ],
             edges: [
-                {from: 1, to: -100, transitions: toSet(['0', 'a'])},
-                {from: -100, to: 44, transitions: toSet(['a'])}
+
+                {from: 1, to: -100, transitions: new Set([ [{ title: '0'}, { title: 'a'}]])},
+                {from: -100, to: 44, transitions: new Set([ [{ title: 'a'}]])},
+                
             ]
         }, [{id: 1, isAdmit: false}], ['0', 'a'])
 
     let result = testFunc(dfa)
+    dfa.restart()
 
-    expect(result.nodes[0].id === dfa.run().nodes[0].id && result.counter === dfa.run().counter)
+    expect(result.nodes[0].id === dfa.run().nodes[0].id)
         .toBe(true)
 })
 
@@ -167,12 +144,13 @@ test("step by step: { q0 -> q1 -> (q2); A = {0, 1}}: 1 steps for 2 edges without
                 {id: 44, isAdmit: true},
             ],
             edges: [
-                {from: 1, to: -100, transitions: toSet(['0', 'a'])},
-                {from: -100, to: 44, transitions: toSet(['a'])}
+                {from: 1, to: -100, transitions: new Set([ [{ title: '0'}, { title: 'a'}]])},
+                {from: -100, to: 44, transitions: new Set([ [{ title: 'a'}]])},
             ]
         }, [{id: 1, isAdmit: false}], ['0'])
 
     let result = testFunc(dfa)
+    dfa.restart()
 
     expect(result.nodes[0].id === dfa.run().nodes[0].id && result.counter === dfa.run().counter)
         .toBe(true)
@@ -189,35 +167,19 @@ test("step by step: { q0 -> q1 -> (q2)<-; A = {0, 1}}: 6 steps for 2 edges with 
                 {id: 44, isAdmit: true},
             ],
             edges: [
-                {from: 1, to: -100, transitions: toSet(['0', '1'])},
-                {from: -100, to: 44, transitions: toSet(['a'])},
-                {from: 44, to: 44, transitions: toSet(['z'])}
+                {from: 1, to: -100, transitions: new Set([ [{ title: '0'}, { title: '1'}]])},
+                {from: -100, to: 44, transitions: new Set([ [{ title: 'a'}]])},
+                {from: 44, to: 44, transitions: new Set([ [{ title: 'z'}]])},
             ]
         }, [{id: 1, isAdmit: false}], ['1', 'a', 'z', 'z', 'z', 'z'])
 
     let result = testFunc(dfa)
+    dfa.restart()
 
     expect(result.nodes[0].id === dfa.run().nodes[0].id && result.counter === dfa.run().counter)
         .toBe(true)
 })
 
-
-test("step by step: { (q0)<-; A = {0}}: statement with loop", () => {
-    let dfa = new DFA(
-        {
-            nodes: [
-                {id: 1, isAdmit: true},
-            ],
-            edges: [
-                {from: 1, to: 1, transitions: toSet(['z'])}
-            ]
-        }, [{id: 1, isAdmit: false}], ['z', 'z', 'z', 'z'])
-
-    let result = testFunc(dfa)
-
-    expect(result.nodes[0].id === dfa.run().nodes[0].id && result.counter === dfa.run().counter)
-        .toBe(true)
-})
 
 test("step by step: a{(q0)<=>q1; A = {0}}: is input length divided at 2", () => {
     let dfa = new DFA(
@@ -227,12 +189,13 @@ test("step by step: a{(q0)<=>q1; A = {0}}: is input length divided at 2", () => 
                 {id: 1, isAdmit: true},
             ],
             edges: [
-                {from: -100, to: 1, transitions: toSet(['z'])},
-                {from: 1, to: -100, transitions: toSet(['z'])}
+                {from: -100, to: 1, transitions: new Set([ [{ title: 'z'}]])},
+                {from: 1, to: -100, transitions: new Set([ [{ title: 'z'}]])},
             ]
         }, [{id: 1, isAdmit: true}], ['z', 'z', 'z', 'z', 'z', 'z', 'z', 'z', 'z', 'z'])
 
     let result = testFunc(dfa)
+    dfa.restart()
 
     expect(result.nodes[0].id === dfa.run().nodes[0].id && result.counter === dfa.run().counter)
         .toBe(true)

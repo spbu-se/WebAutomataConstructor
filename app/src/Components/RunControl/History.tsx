@@ -6,8 +6,8 @@ import Typography from "@mui/material/Typography";
 
 export const History = (props: {
     startNode: node, history: {
-        a: node;
-        b: string[] | undefined;
+        node: node;
+        note: string[] | undefined;
     }[][], historyEndRef: any
 }) => {
     return (
@@ -49,12 +49,12 @@ export const History = (props: {
                                     {
                                         nodes.map((node, index) => (
                                             <Tooltip
-                                                title={<Typography className="display-linebreak">{node.b !== undefined ? node.b.join('\n') : ''}</Typography>}>
+                                                title={<Typography className="display-linebreak">{node.note !== undefined ? node.note.join('\n') : ''}</Typography>}>
                                                 <div
                                                     className="run-control__history__node"
-                                                    style={{ border: `${node.a.isInitial ? "#0041d0" : node.a.isAdmit ? "#ff0072" : "#000000"} 2px solid` }}
+                                                    style={{ border: `${node.node.isInitial ? "#0041d0" : node.node.isAdmit ? "#ff0072" : "#000000"} 2px solid` }}
                                                 >
-                                                    {node.a.label}
+                                                    {node.node.label}
 
                                                 </div>
                                             </Tooltip>
@@ -63,12 +63,11 @@ export const History = (props: {
 
                                 </div>
                             ))
-                            
+
                         }
-                                        <div>
-                                            {/* {console.log(nodes)} */}
-                                            <div ref={props.historyEndRef} />
-                                        </div>
+                        <div>
+                            <div ref={props.historyEndRef} />
+                        </div>
 
                     </div>
                     :

@@ -60,9 +60,9 @@ var PDA = /** @class */ (function (_super) {
         //     return ret && (!this.haveEpsilon())
         // }
         _this.getStartStatements = function () {
-            console.log('this.startStatements');
-            console.log(_this.curPosition);
-            console.log('this.startStatements');
+            // console.log('this.startStatements')
+            // console.log(this.curPosition)
+            // console.log('this.startStatements')
             var curs = _this.curPosition.map(function (v) {
                 var _a;
                 var stmt = v.stmt;
@@ -82,10 +82,10 @@ var PDA = /** @class */ (function (_super) {
             _this.counterSteps = ret.counter;
             _this.historiStep = ret.history;
             _this.treeHist = ret.tree ? ret.tree : [];
-            console.log("STEP stck: ");
-            ret.history.forEach(function (value) { return value.nodes.forEach(function (value1) { return console.log(value1.stack); }); });
-            console.log("STEP admit: ");
-            console.log(ret.isAdmit);
+            // console.log("STEP stck: ")
+            // ret.history.forEach(value => value.nodes.forEach(value1 => console.log(value1.stack)))
+            // console.log("STEP admit: ")
+            // console.log(ret.isAdmit)
             return ret;
         };
         _this.pdaRun = function () {
@@ -108,6 +108,9 @@ var PDA = /** @class */ (function (_super) {
                 history: last.history,
                 histTrace: histTrace
             };
+            console.log('ret.histTrace');
+            console.log(ret.histTrace);
+            console.log('ret.histTrace');
             return ret;
         };
         _this.step = _this.pdaStep;
@@ -316,8 +319,8 @@ var PDA = /** @class */ (function (_super) {
             table.forEach(function (ps, from) {
                 _this.alphabet.forEach(function (tr, letter) {
                     if (tr !== _this.epsId && ps[tr].length !== 0) {
-                        console.log(ps[tr]);
-                        console.log(from, set.getIter(ps[tr]));
+                        // console.log(ps[tr])
+                        // console.log(from, set.getIter(ps[tr]))
                         _edges.push({
                             from: from,
                             to: set.getIter(ps[tr]),
@@ -424,7 +427,7 @@ var PDA = /** @class */ (function (_super) {
                 return acc && line.reduce(function (accLine, cells) { return accLine && cells.length > 0; }, acc);
             }, true);
             if (first.length < 1 || !byEveryLetter) {
-                console.log('CATHTHT');
+                // console.log('CATHTHT')
                 throw new Exceptions_1.NonMinimizable();
             }
             // плюс если есть пробелы в таблице!
@@ -461,7 +464,7 @@ var PDA = /** @class */ (function (_super) {
                 });
                 return acc;
             }, []);
-            console.log(nodes);
+            // console.log(nodes)
             var startGrp = groups.filter(function (g) {
                 var gIds = g.map(function (v) { return v.node.idLogic; });
                 return gIds.includes(startId);
@@ -499,23 +502,23 @@ var PDA = /** @class */ (function (_super) {
             });
             ////// this.cycleEps(this.curPosition[0].stmt.idLogic, this.curPosition[0].stack!)
         } //
-        console.log('{{{{{{{{{{}}}}}}}}}}');
-        console.log(_this.curPosition);
-        console.log(_this.startStatements);
-        console.log('{{{{{{{{{{}}}}}}}}}}');
-        console.log('-------------------------');
-        console.log(_this.isDeterministic());
-        console.log("ALPHBT");
-        _this.alphabet.forEach(function (value, key) { return console.log(value, key); });
-        console.log("STMTS");
-        _this.statements.forEach(function (value) { return console.log(value); });
-        console.log("MTX");
-        _this.matrix.forEach(function (value) {
-            console.log();
-            value.forEach(function (value1) { return console.log(value1); });
-        });
-        console.log('-------------------------');
         return _this;
+        // console.log('{{{{{{{{{{}}}}}}}}}}')
+        // console.log(this.curPosition)
+        // console.log(this.startStatements)
+        // console.log('{{{{{{{{{{}}}}}}}}}}')
+        // console.log('-------------------------')
+        // console.log(this.isDeterministic())
+        // console.log("ALPHBT")
+        // this.alphabet.forEach((value, key) => console.log(value, key))
+        // console.log("STMTS")
+        // this.statements.forEach(value => console.log(value))
+        // console.log("MTX")
+        // this.matrix.forEach(value => {
+        //     console.log()
+        //     value.forEach(value1 => console.log(value1))
+        // })
+        // console.log('-------------------------')
     }
     PDA.prototype.copyPushList = function (value) {
         var _a;
@@ -925,36 +928,55 @@ var ImSet = /** @class */ (function () {
 exports.ImSet = ImSet;
 var nfa = new PDA({
     nodes: [
-        // { id: 9, isAdmit: false },
-        { id: 10, isAdmit: false },
-        { id: 11, isAdmit: false },
-        { id: 12, isAdmit: false },
-        { id: 13, isAdmit: false },
-        { id: 14, isAdmit: false },
-        { id: 15, isAdmit: false },
-        { id: 16, isAdmit: false },
-        { id: 17, isAdmit: false },
+        { id: 1, isAdmit: false },
+        { id: 2, isAdmit: false },
+        { id: 3, isAdmit: false },
     ],
     edges: [
-        // { from: 9, to: 10, transitions: new Set([[{ title: EPS }]]) },
-        { from: 10, to: 11, transitions: new Set([[{ title: 'a' }]]) },
-        { from: 11, to: 12, transitions: new Set([[{ title: Computer_1.EPS }]]) },
-        { from: 12, to: 13, transitions: new Set([[{ title: 'b' }]]) },
-        { from: 14, to: 15, transitions: new Set([[{ title: 'a' }]]) },
-        { from: 15, to: 16, transitions: new Set([[{ title: Computer_1.EPS }]]) },
-        { from: 16, to: 17, transitions: new Set([[{ title: 'b' }]]) },
+        {
+            from: 1, to: 1, transitions: new Set([
+                [
+                    { title: '0', stackDown: 'Z0', stackPush: ['0', 'Z0'] },
+                    { title: '1', stackDown: 'Z0', stackPush: ['1', 'Z0'] },
+                    { title: '0', stackDown: '0', stackPush: ['0', '0'] },
+                    { title: '0', stackDown: '1', stackPush: ['0', '1'] },
+                    { title: '1', stackDown: '0', stackPush: ['1', '0'] },
+                    { title: '1', stackDown: '1', stackPush: ['1', '1'] }
+                ]
+            ])
+        },
+        {
+            from: 1, to: 2, transitions: new Set([
+                [
+                    { title: Computer_1.EPS, stackDown: 'Z0', stackPush: ['Z0'] },
+                    { title: Computer_1.EPS, stackDown: '0', stackPush: ['0'] },
+                    { title: Computer_1.EPS, stackDown: '1', stackPush: ['1'] }
+                ]
+            ])
+        },
+        {
+            from: 2, to: 2, transitions: new Set([
+                [
+                    { title: '0', stackDown: '0', stackPush: [Computer_1.EPS] },
+                    { title: '1', stackDown: '1', stackPush: [Computer_1.EPS] }
+                ]
+            ])
+        },
+        { from: 2, to: 3, transitions: new Set([[{ title: Computer_1.EPS, stackDown: 'Z0', stackPush: [Computer_1.EPS] }]]) },
     ]
-}, [{ id: 10, isAdmit: false }, { id: 14, isAdmit: false }], ['a', 'b']);
+}, [
+    { id: 1, isAdmit: false }
+], ['0', '0']);
 // console.log(nfa.isDeterministic())
 // nfa.step()
-var aa = nfa.run();
-console.log('_____-_--');
-aa.histTrace.forEach(function (v) {
-    // console.log(v.byEpsPred)
-    console.log(v.byEpsAfter);
-    // console.log(v.byLetter)
-    console.log();
-});
+// const aa = nfa.run()
+// console.log('_____-_--')
+// aa.histTrace!.forEach(v => {
+//     // console.log(v.byEpsPred)
+//     console.log(v.byEpsAfter)
+//     // console.log(v.byLetter)
+//     console.log()
+// })
 // const a = nfa.step()
 // console.log()
 // console.log()
