@@ -260,6 +260,10 @@ class App extends React.Component<appProps, appState> {
             .catch(() => this.setState({user: null}));
     }
 
+    setUser = (user: UserModel) => {
+        this.setState({ user: user })
+    }
+
 
     updateGraph = (): void => {
         decorateGraph(this.state.elements, this.state.computerType)
@@ -792,23 +796,26 @@ class App extends React.Component<appProps, appState> {
                                     );
                                 }
                                 }
+                                setUser={this.setUser}
                         />
                     }/>
                     <Route path="/user/:userId" element={
-                        <UserPage changeComputerType={
-                            (computerType, graph: graph | null) => {
-                                const defaultGraph = graph || computersInfo[computerType!].defaultGraph;
-                                graphToElements(defaultGraph).nodes.forEach((v) => console.log(v))
+                        <UserPage 
+                            changeComputerType={
+                                (computerType, graph: graph | null) => {
+                                    const defaultGraph = graph || computersInfo[computerType!].defaultGraph;
+                                    graphToElements(defaultGraph).nodes.forEach((v) => console.log(v))
 
-                                this.lastNodeId = defaultGraph.nodes.length;
-                                this.setState({
-                                        computerType: computerType,
-                                        elements: graphToElements(defaultGraph)
-                                    }
-                                    , () => this.updateGraph()
-                                );
+                                    this.lastNodeId = defaultGraph.nodes.length;
+                                    this.setState({
+                                            computerType: computerType,
+                                            elements: graphToElements(defaultGraph)
+                                        }
+                                        , () => this.updateGraph()
+                                    );
+                                }
                             }
-                        }/>
+                        />
                     }/>
                     <Route path="/" element={
                         <ComputerTypeContext.Provider value={this.state.computerType}>

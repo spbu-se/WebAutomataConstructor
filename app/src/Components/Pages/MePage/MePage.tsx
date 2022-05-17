@@ -10,6 +10,8 @@ import {
     InputAdornment,
     OutlinedInput,
     Alert,
+    Box,
+    TextField,
 } from "@mui/material";
 import { UserModel } from "../../../Models/UserModel";
 import LaunchOutlinedIcon from '@mui/icons-material/LaunchOutlined';
@@ -24,18 +26,22 @@ import { ComputerType, graph } from "../../../react-graph-vis-types";
 import { useNavigate } from "react-router-dom";
 import ApiUpdateSave, { UpdateSaveRequest } from "../../../Api/apiUpdateSave";
 import ContentCopyOutlinedIcon from '@mui/icons-material/ContentCopyOutlined';
+import ApiUpdateUser, { UpdateUserRequest } from "../../../Api/apiUpdateUser";
 
 interface MePageProps {
     user: UserModel | null,
     onAuthFailed: () => void,
-    changeComputerType: (computerType: null | ComputerType, graph: graph | null) => void
+    changeComputerType: (computerType: null | ComputerType, graph: graph | null) => void,
+    setUser: (user: UserModel) => void,
 }
 
-const MePage: FC<MePageProps> = ({ user, onAuthFailed, changeComputerType }) => {
+const MePage: FC<MePageProps> = ({ user, onAuthFailed, changeComputerType, setUser }) => {
     const [saves, setSaves] = useState<SaveModel[]>([]);
     const [open, setOpen] = useState<boolean>(false);
     const [shareDialogOpen, setShareDialogOpen] = useState<boolean>(false);
     const [saveToRemoveId, setSaveToRemoveId] = useState<string | null>(null);
+    const [editAccountMode, setEditAccountMode] = useState<boolean>(false);
+    const [editedAbout, setEditedAbout] = useState<string>(user?.about ?? "");
 
     const navigate = useNavigate();
 
@@ -78,6 +84,32 @@ const MePage: FC<MePageProps> = ({ user, onAuthFailed, changeComputerType }) => 
         navigator.clipboard.writeText(`https://spbu-se.github.io/WebAutomataConstructor/user/${user?.id}`);
     }
 
+    const onEditAccountClicked = async () => {
+        if (!editAccountMode) {
+            setEditAccountMode(true);
+        } else {
+            await saveAccountChanges();
+            setEditAccountMode(false);
+        }
+    }
+
+    const onAboutChanged = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const value = event.target.value;
+        setEditedAbout(value);
+    }
+
+    const saveAccountChanges = async () => {
+        if (editedAbout != user?.about) {
+            var request: UpdateUserRequest = {
+                about: editedAbout,
+            }
+
+            ApiUpdateUser(request).then(updatedUser => {
+                setUser(updatedUser);
+            });
+        }
+    }
+
     const closeDialog = () => {
         setOpen(false);
     }
@@ -111,6 +143,10 @@ const MePage: FC<MePageProps> = ({ user, onAuthFailed, changeComputerType }) => 
     useEffect(() => {
         updateSaves();
     }, [])
+
+    useEffect(() => {
+        setEditedAbout(user?.about ?? "");
+    }, [user])
 
     return (
         user &&
@@ -159,8 +195,20 @@ const MePage: FC<MePageProps> = ({ user, onAuthFailed, changeComputerType }) => 
                         <Typography variant="h5">Аккаунт</Typography>
                         <Stack>
                             <Typography variant="body1">Имя пользователя: {user.userName}</Typography>
-                            <Typography variant="body1">О себе: {user.about}</Typography>
+                            {
+                                !editAccountMode &&
+                                <Typography variant="body1">О себе: {user.about}</Typography>
+                            }
+                            {
+                                editAccountMode &&
+                                <TextField sx={{ mt: 1 }} size="small" label="О себе" value={editedAbout} onChange={onAboutChanged} />
+                            }
                         </Stack>
+                        <Box>
+                            <Button size="small" onClick={() => onEditAccountClicked()}>
+                                {editAccountMode ? "Сохранить" : "Редактировать"}
+                            </Button>
+                        </Box>
                     </Stack>
                     <Stack spacing={1}>
                         <Typography variant="h5">Сохранения</Typography>
