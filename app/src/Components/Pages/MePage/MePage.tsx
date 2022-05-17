@@ -86,7 +86,7 @@ const MePage: FC<MePageProps> = ({ user, onAuthFailed, changeComputerType, setUs
     }
 
     const onCopyShareLinkClicked = () => {
-        navigator.clipboard.writeText(`https://spbu-se.github.io/WebAutomataConstructor/user/${user?.id}`);
+        navigator.clipboard.writeText(`https://spbu-se.github.io/WebAutomataConstructor/#/user/${user?.id}`);
     }
 
     const onEditAccountClicked = async () => {
@@ -202,7 +202,7 @@ const MePage: FC<MePageProps> = ({ user, onAuthFailed, changeComputerType, setUs
                         sx={{ mt: 2 }}
                         readOnly
                         fullWidth
-                        value={`https://spbu-se.github.io/WebAutomataConstructor/user/${user.id}`}
+                        value={`https://spbu-se.github.io/WebAutomataConstructor/#/user/${user.id}`}
                         endAdornment={
                             <InputAdornment position="end">
                                 <IconButton onClick={onCopyShareLinkClicked} edge="end">
