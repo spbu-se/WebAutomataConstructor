@@ -17,7 +17,7 @@ public sealed class SaveService : ISavesService
     public async Task<List<Save>> GetSavesAsync(User user)
     {
         var saves = await _database.Saves
-            .Where(x =>x.UserId == user.Id && x.IsRemoved == false)
+            .Where(x => x.UserId == user.Id && x.IsRemoved == false)
             .OrderBy(x => x.CreatedDateTime)
             .ToListAsync();
 
@@ -60,6 +60,17 @@ public sealed class SaveService : ISavesService
 
     public async Task<Save> CreateSaveAsync(Save save, User user)
     {
+        var saveWithSameName = await _database.Saves.SingleOrDefaultAsync(x => x.Name == save.Name &&
+                                                                               x.UserId == user.Id &&
+                                                                               !x.IsRemoved);
+
+        if (saveWithSameName is not null)
+        {
+            var update = new SaveUpdate { Data = save.Data };
+
+            return await UpdateSaveAsync(saveWithSameName.Id, update, user);
+        }
+
         save.UserId = user.Id;
 
         await _database.Saves.AddAsync(save);
