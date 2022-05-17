@@ -13,6 +13,8 @@ export interface SuccessLoginPageProps {
 export const SuccessLoginPage: React.FunctionComponent<SuccessLoginPageProps> = ({updateCurrentUser}) => {
     const [error, setError] = useState<string | null>(null);
 
+    const navigate = useNavigate();
+
     const updateAuth = async () => {
         const jwt = searchParams.get('jwt');
 
@@ -27,7 +29,8 @@ export const SuccessLoginPage: React.FunctionComponent<SuccessLoginPageProps> = 
 
         await updateCurrentUser();
 
-        window.location.href = "/";
+        // window.location.href = "/";
+        navigate("/");
     }
 
     useEffect(() => {
