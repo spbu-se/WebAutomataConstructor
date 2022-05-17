@@ -100,8 +100,6 @@ if (app.Environment.IsDevelopment())
 
 app.UseExceptionsInterception();
 
-app.UseHttpsRedirection();
-
 app.UseCors();
 
 app.UseAuth();
