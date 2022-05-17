@@ -37,6 +37,7 @@ import {TreeHistory} from './TreeHistory';
 import MePage from "./Components/Pages/MePage/MePage";
 import {UserModel} from "./Models/UserModel";
 import ApiGetUser from "./Api/apiGetUser";
+import UserPage from './Components/Pages/UserPage/UserPage';
 
 // import {ContextMenu, MenuItem as CotextMenuItem, ContextMenuTrigger} from "react-contextmenu";
 
@@ -792,6 +793,22 @@ class App extends React.Component<appProps, appState> {
                                 }
                                 }
                         />
+                    }/>
+                    <Route path="/user/:userId" element={
+                        <UserPage changeComputerType={
+                            (computerType, graph: graph | null) => {
+                                const defaultGraph = graph || computersInfo[computerType!].defaultGraph;
+                                graphToElements(defaultGraph).nodes.forEach((v) => console.log(v))
+
+                                this.lastNodeId = defaultGraph.nodes.length;
+                                this.setState({
+                                        computerType: computerType,
+                                        elements: graphToElements(defaultGraph)
+                                    }
+                                    , () => this.updateGraph()
+                                );
+                            }
+                        }/>
                     }/>
                     <Route path="/" element={
                         <ComputerTypeContext.Provider value={this.state.computerType}>

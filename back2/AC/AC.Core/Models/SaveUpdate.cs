@@ -14,4 +14,9 @@ public sealed class SaveUpdate
     /// Save serialized data.
     /// </summary>
     public string? Data { get; set; }
+    
+    /// <summary>
+    /// Flag is save publicly shared.
+    /// </summary>
+    public bool? IsShared { get; set; }
 }

@@ -1,4 +1,4 @@
-import React, {FC, useEffect, useState} from "react";
+import React, { FC, useEffect, useState } from "react";
 import "./MePage.css";
 import {
     Container,
@@ -6,19 +6,23 @@ import {
     Typography,
     IconButton,
     TableContainer,
-    Table, TableHead, TableRow, TableCell, TableBody, DialogContentText, DialogContent, Button
+    Table, TableHead, TableRow, TableCell, TableBody, DialogContentText, DialogContent, Button,
+    InputAdornment,
+    OutlinedInput,
 } from "@mui/material";
-import {UserModel} from "../../../Models/UserModel";
+import { UserModel } from "../../../Models/UserModel";
 import LaunchOutlinedIcon from '@mui/icons-material/LaunchOutlined';
 import DeleteOutlineRoundedIcon from '@mui/icons-material/DeleteOutlineRounded';
 import ApiGetSaves from "../../../Api/apiGetSaves";
-import {SaveModel} from "../../../Models/SaveModel";
+import { SaveModel } from "../../../Models/SaveModel";
 import DialogTitle from "@mui/material/DialogTitle";
 import Dialog from "@mui/material/Dialog";
-import ApiRemoveSave, {RemoveSaveRequest} from "../../../Api/apiRemoveSave";
+import ApiRemoveSave, { RemoveSaveRequest } from "../../../Api/apiRemoveSave";
 import CloudSavesManager from "../../../SavesManager/CloudSavesManager";
-import {ComputerType, graph} from "../../../react-graph-vis-types";
-import {useNavigate} from "react-router-dom";
+import { ComputerType, graph } from "../../../react-graph-vis-types";
+import { useNavigate } from "react-router-dom";
+import ApiUpdateSave, { UpdateSaveRequest } from "../../../Api/apiUpdateSave";
+import ContentCopyOutlinedIcon from '@mui/icons-material/ContentCopyOutlined';
 
 interface MePageProps {
     user: UserModel | null,
@@ -26,9 +30,10 @@ interface MePageProps {
     changeComputerType: (computerType: null | ComputerType, graph: graph | null) => void
 }
 
-const MePage: FC<MePageProps> = ({user, onAuthFailed, changeComputerType}) => {
+const MePage: FC<MePageProps> = ({ user, onAuthFailed, changeComputerType }) => {
     const [saves, setSaves] = useState<SaveModel[]>([]);
     const [open, setOpen] = useState<boolean>(false);
+    const [shareDialogOpen, setShareDialogOpen] = useState<boolean>(false);
     const [saveToRemoveId, setSaveToRemoveId] = useState<string | null>(null);
 
     const navigate = useNavigate();
@@ -53,7 +58,7 @@ const MePage: FC<MePageProps> = ({user, onAuthFailed, changeComputerType}) => {
     }
 
     const onOpenClicked = async (id: string, name: string) => {
-        const save = await cloudSavesManager.getSave({id: id, name: name});
+        const save = await cloudSavesManager.getSave({ id: id, name: name });
 
         if (save) {
             changeComputerType(save.save.type, save.save.graph);
@@ -61,8 +66,23 @@ const MePage: FC<MePageProps> = ({user, onAuthFailed, changeComputerType}) => {
         }
     }
 
+    const onShareClicked = (id: string, isShared: boolean) => {
+        setSaveShareState(id, !isShared).then(updateSaves);
+        if (!isShared) {
+            setShareDialogOpen(true);
+        }
+    }
+
+    const onCopyShareLinkClicked = () => {
+        navigator.clipboard.writeText(`https://spbu-se.github.io/WebAutomataConstructor/user/${user?.id}`);
+    }
+
     const closeDialog = () => {
         setOpen(false);
+    }
+
+    const closeShareDialog = () => {
+        setShareDialogOpen(false);
     }
 
     const updateSaves = async () => {
@@ -77,6 +97,14 @@ const MePage: FC<MePageProps> = ({user, onAuthFailed, changeComputerType}) => {
         };
 
         await ApiRemoveSave(request, onAuthFailed);
+    }
+
+    const setSaveShareState = async (id: string, shareState: boolean) => {
+        const request: UpdateSaveRequest = {
+            isShared: shareState,
+        }
+
+        await ApiUpdateSave(id, request, onAuthFailed);
     }
 
     useEffect(() => {
@@ -99,6 +127,31 @@ const MePage: FC<MePageProps> = ({user, onAuthFailed, changeComputerType}) => {
                 </DialogContent>
             </Dialog>
 
+            <Dialog open={shareDialogOpen} onClose={closeShareDialog} maxWidth="md" fullWidth>
+                <DialogTitle>Настройки доступа</DialogTitle>
+                <DialogContent>
+                    <DialogContentText>
+                        Доступно всем пользователям по ссылке. Закрыть доступ можно в профиле пользователя.
+                    </DialogContentText>
+                    <OutlinedInput
+                        sx={{ mt: 2 }}
+                        readOnly
+                        fullWidth
+                        value={`https://spbu-se.github.io/WebAutomataConstructor/user/${user.id}`}
+                        endAdornment={
+                            <InputAdornment position="end">
+                                <IconButton onClick={onCopyShareLinkClicked} edge="end">
+                                    <ContentCopyOutlinedIcon />
+                                </IconButton>
+                            </InputAdornment>
+                        }
+                    />
+                </DialogContent>
+                <DialogContent>
+                    <Button onClick={() => closeShareDialog()}>Ок</Button>
+                </DialogContent>
+            </Dialog>
+
             <Container>
                 <Stack spacing={4}>
                     <Stack spacing={1}>
@@ -118,6 +171,7 @@ const MePage: FC<MePageProps> = ({user, onAuthFailed, changeComputerType}) => {
                                         <TableCell>Время создания</TableCell>
                                         <TableCell>Время изменения</TableCell>
                                         <TableCell>Открыть</TableCell>
+                                        <TableCell>Поделиться</TableCell>
                                         <TableCell>Удалить</TableCell>
                                     </TableRow>
                                 </TableHead>
@@ -136,12 +190,17 @@ const MePage: FC<MePageProps> = ({user, onAuthFailed, changeComputerType}) => {
                                                 </TableCell>
                                                 <TableCell>
                                                     <IconButton onClick={() => onOpenClicked(save.id, save.name)}>
-                                                        <LaunchOutlinedIcon/>
+                                                        <LaunchOutlinedIcon />
                                                     </IconButton>
                                                 </TableCell>
                                                 <TableCell>
+                                                    <Button size="small" onClick={() => onShareClicked(save.id, save.isShared)}>
+                                                        {save.isShared ? "Закрыть доступ" : "Поделиться"}
+                                                    </Button>
+                                                </TableCell>
+                                                <TableCell>
                                                     <IconButton onClick={() => onRemoveButtonClicked(save.id)}>
-                                                        <DeleteOutlineRoundedIcon/>
+                                                        <DeleteOutlineRoundedIcon />
                                                     </IconButton>
                                                 </TableCell>
                                             </TableRow>

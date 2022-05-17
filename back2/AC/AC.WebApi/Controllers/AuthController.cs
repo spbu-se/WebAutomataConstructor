@@ -43,7 +43,7 @@ public sealed class AuthController : ControllerBase
         var created = await _authService.CreateUserAsync(user, resource.Password);
 
         return CreatedAtAction(nameof(UserController.GetUser), "User", null,
-            _mapper.Map<UserResponseResource>(created));
+            _mapper.Map<CurrentUserResponseResource>(created));
     }
 
     [HttpPost("signin")]
