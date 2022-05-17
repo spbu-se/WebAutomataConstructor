@@ -5,7 +5,7 @@ import ApiGetUserSaves from "../../../Api/apiGetUserSaves";
 import { UserModel } from "../../../Models/UserModel";
 import { SaveModel } from "../../../Models/SaveModel";
 import "./UserPage.css";
-import { Button, Container, Dialog, DialogContent, DialogContentText, DialogTitle, Stack, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography } from "@mui/material";
+import { Alert, Button, Container, Dialog, DialogContent, DialogContentText, DialogTitle, Stack, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography } from "@mui/material";
 import ApiCloneSave from "../../../Api/apiCloneSave";
 import { ComputerType, graph } from "../../../react-graph-vis-types";
 import CloudSavesManager from "../../../SavesManager/CloudSavesManager";
@@ -93,40 +93,49 @@ const UserPage: FC<UserPageProps> = ({ changeComputerType }) => {
                     </Stack>
                     <Stack spacing={1}>
                         <Typography variant="h5">Сохранения</Typography>
-                        <TableContainer>
-                            <Table>
-                                <TableHead>
-                                    <TableRow>
-                                        <TableCell>Название</TableCell>
-                                        <TableCell>Время создания</TableCell>
-                                        <TableCell>Время изменения</TableCell>
-                                        <TableCell>Клонирование</TableCell>
-                                    </TableRow>
-                                </TableHead>
-                                <TableBody>
-                                    {
-                                        saves.map(save => (
-                                            <TableRow key={save.id}>
-                                                <TableCell>
-                                                    {save.name}
-                                                </TableCell>
-                                                <TableCell>
-                                                    {new Date(save.createdDateTime).toLocaleString('ru-ru')}
-                                                </TableCell>
-                                                <TableCell>
-                                                    {new Date(save.lastModifiedDateTime).toLocaleString('ru-ru')}
-                                                </TableCell>
-                                                <TableCell>
-                                                    <Button size="small" onClick={() => onCloneClicked(save.id)}>
-                                                        Клонировать себе
-                                                    </Button>
-                                                </TableCell>
-                                            </TableRow>
-                                        ))
-                                    }
-                                </TableBody>
-                            </Table>
-                        </TableContainer>
+                        {
+                            saves.length > 0 &&
+                            <TableContainer>
+                                <Table>
+                                    <TableHead>
+                                        <TableRow>
+                                            <TableCell>Название</TableCell>
+                                            <TableCell>Время создания</TableCell>
+                                            <TableCell>Время изменения</TableCell>
+                                            <TableCell>Клонирование</TableCell>
+                                        </TableRow>
+                                    </TableHead>
+                                    <TableBody>
+                                        {
+                                            saves.map(save => (
+                                                <TableRow key={save.id}>
+                                                    <TableCell>
+                                                        {save.name}
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        {new Date(save.createdDateTime).toLocaleString('ru-ru')}
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        {new Date(save.lastModifiedDateTime).toLocaleString('ru-ru')}
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <Button size="small" onClick={() => onCloneClicked(save.id)}>
+                                                            Клонировать себе
+                                                        </Button>
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))
+                                        }
+                                    </TableBody>
+                                </Table>
+                            </TableContainer>
+                        }
+                        {
+                            saves.length === 0 &&
+                            <Alert severity="warning" icon={false}>
+                                Пользователь ещё не поделился своими сохранениями
+                            </Alert>
+                        }
                     </Stack>
                 </Stack>
             </Container>

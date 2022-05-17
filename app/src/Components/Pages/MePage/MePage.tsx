@@ -9,6 +9,7 @@ import {
     Table, TableHead, TableRow, TableCell, TableBody, DialogContentText, DialogContent, Button,
     InputAdornment,
     OutlinedInput,
+    Alert,
 } from "@mui/material";
 import { UserModel } from "../../../Models/UserModel";
 import LaunchOutlinedIcon from '@mui/icons-material/LaunchOutlined';
@@ -163,52 +164,61 @@ const MePage: FC<MePageProps> = ({ user, onAuthFailed, changeComputerType }) => 
                     </Stack>
                     <Stack spacing={1}>
                         <Typography variant="h5">Сохранения</Typography>
-                        <TableContainer>
-                            <Table>
-                                <TableHead>
-                                    <TableRow>
-                                        <TableCell>Название</TableCell>
-                                        <TableCell>Время создания</TableCell>
-                                        <TableCell>Время изменения</TableCell>
-                                        <TableCell>Открыть</TableCell>
-                                        <TableCell>Поделиться</TableCell>
-                                        <TableCell>Удалить</TableCell>
-                                    </TableRow>
-                                </TableHead>
-                                <TableBody>
-                                    {
-                                        saves.map(save => (
-                                            <TableRow key={save.id}>
-                                                <TableCell>
-                                                    {save.name}
-                                                </TableCell>
-                                                <TableCell>
-                                                    {new Date(save.createdDateTime).toLocaleString('ru-ru')}
-                                                </TableCell>
-                                                <TableCell>
-                                                    {new Date(save.lastModifiedDateTime).toLocaleString('ru-ru')}
-                                                </TableCell>
-                                                <TableCell>
-                                                    <IconButton onClick={() => onOpenClicked(save.id, save.name)}>
-                                                        <LaunchOutlinedIcon />
-                                                    </IconButton>
-                                                </TableCell>
-                                                <TableCell>
-                                                    <Button size="small" onClick={() => onShareClicked(save.id, save.isShared)}>
-                                                        {save.isShared ? "Закрыть доступ" : "Поделиться"}
-                                                    </Button>
-                                                </TableCell>
-                                                <TableCell>
-                                                    <IconButton onClick={() => onRemoveButtonClicked(save.id)}>
-                                                        <DeleteOutlineRoundedIcon />
-                                                    </IconButton>
-                                                </TableCell>
-                                            </TableRow>
-                                        ))
-                                    }
-                                </TableBody>
-                            </Table>
-                        </TableContainer>
+                        {
+                            saves.length > 0 &&
+                            <TableContainer>
+                                <Table>
+                                    <TableHead>
+                                        <TableRow>
+                                            <TableCell>Название</TableCell>
+                                            <TableCell>Время создания</TableCell>
+                                            <TableCell>Время изменения</TableCell>
+                                            <TableCell>Открыть</TableCell>
+                                            <TableCell>Поделиться</TableCell>
+                                            <TableCell>Удалить</TableCell>
+                                        </TableRow>
+                                    </TableHead>
+                                    <TableBody>
+                                        {
+                                            saves.map(save => (
+                                                <TableRow key={save.id}>
+                                                    <TableCell>
+                                                        {save.name}
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        {new Date(save.createdDateTime).toLocaleString('ru-ru')}
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        {new Date(save.lastModifiedDateTime).toLocaleString('ru-ru')}
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <IconButton onClick={() => onOpenClicked(save.id, save.name)}>
+                                                            <LaunchOutlinedIcon />
+                                                        </IconButton>
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <Button size="small" onClick={() => onShareClicked(save.id, save.isShared)}>
+                                                            {save.isShared ? "Закрыть доступ" : "Поделиться"}
+                                                        </Button>
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <IconButton onClick={() => onRemoveButtonClicked(save.id)}>
+                                                            <DeleteOutlineRoundedIcon />
+                                                        </IconButton>
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))
+                                        }
+                                    </TableBody>
+                                </Table>
+                            </TableContainer>
+                        }
+                        {
+                            saves.length === 0 &&
+                            <Alert severity="warning" icon={false}>
+                                Сохранённых вычислетелей ещё нет
+                            </Alert>
+                        }
                     </Stack>
                 </Stack>
             </Container>
