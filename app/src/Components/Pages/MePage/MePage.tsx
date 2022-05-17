@@ -12,6 +12,7 @@ import {
     Alert,
     Box,
     TextField,
+    DialogActions,
 } from "@mui/material";
 import { UserModel } from "../../../Models/UserModel";
 import LaunchOutlinedIcon from '@mui/icons-material/LaunchOutlined';
@@ -27,6 +28,7 @@ import { useNavigate } from "react-router-dom";
 import ApiUpdateSave, { UpdateSaveRequest } from "../../../Api/apiUpdateSave";
 import ContentCopyOutlinedIcon from '@mui/icons-material/ContentCopyOutlined';
 import ApiUpdateUser, { UpdateUserRequest } from "../../../Api/apiUpdateUser";
+import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 
 interface MePageProps {
     user: UserModel | null,
@@ -42,6 +44,9 @@ const MePage: FC<MePageProps> = ({ user, onAuthFailed, changeComputerType, setUs
     const [saveToRemoveId, setSaveToRemoveId] = useState<string | null>(null);
     const [editAccountMode, setEditAccountMode] = useState<boolean>(false);
     const [editedAbout, setEditedAbout] = useState<string>(user?.about ?? "");
+    const [editSaveDialogOpen, setEditSaveDialogOpen] = useState<boolean>(false);
+    const [saveToEditId, setSaveToEditId] = useState<string | null>(null);
+    const [editedSaveName, setEditedSaveName] = useState<string | null>(null);
 
     const navigate = useNavigate();
 
@@ -98,6 +103,25 @@ const MePage: FC<MePageProps> = ({ user, onAuthFailed, changeComputerType, setUs
         setEditedAbout(value);
     }
 
+    const onEditSaveClicked = (id: string, name: string) => {
+        setSaveToEditId(id);
+        setEditedSaveName(name);
+        setEditSaveDialogOpen(true);
+    }
+
+    const onEditedSaveNameChanged = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const value = event.target.value;
+        setEditedSaveName(value);
+    }
+
+    const onSaveEditConfirmed = () => {
+        const request: UpdateSaveRequest = {
+            name: editedSaveName!,
+        };
+
+        ApiUpdateSave(saveToEditId!, request, () => {}).then(async () =>{ await updateSaves(); closeEditSaveDialog()});
+    }
+
     const saveAccountChanges = async () => {
         if (editedAbout != user?.about) {
             var request: UpdateUserRequest = {
@@ -116,6 +140,10 @@ const MePage: FC<MePageProps> = ({ user, onAuthFailed, changeComputerType, setUs
 
     const closeShareDialog = () => {
         setShareDialogOpen(false);
+    }
+
+    const closeEditSaveDialog = () => {
+        setEditSaveDialogOpen(false);
     }
 
     const updateSaves = async () => {
@@ -189,6 +217,17 @@ const MePage: FC<MePageProps> = ({ user, onAuthFailed, changeComputerType, setUs
                 </DialogContent>
             </Dialog>
 
+            <Dialog open={editSaveDialogOpen} onClose={closeEditSaveDialog} maxWidth="sm" fullWidth>
+                <DialogTitle>Редактирование сохранения</DialogTitle>
+                <DialogContent>
+                    <TextField sx={{ mt: 1 }} label="Название" fullWidth size="small" value={editedSaveName} onChange={onEditedSaveNameChanged}/>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => onSaveEditConfirmed()}>Сохранить</Button>
+                    <Button onClick={() => closeEditSaveDialog()}>Отменить</Button>
+                </DialogActions>
+            </Dialog>
+
             <Container>
                 <Stack spacing={4}>
                     <Stack spacing={1}>
@@ -221,8 +260,9 @@ const MePage: FC<MePageProps> = ({ user, onAuthFailed, changeComputerType, setUs
                                             <TableCell>Название</TableCell>
                                             <TableCell>Время создания</TableCell>
                                             <TableCell>Время изменения</TableCell>
-                                            <TableCell>Открыть</TableCell>
                                             <TableCell>Поделиться</TableCell>
+                                            <TableCell>Открыть</TableCell>
+                                            <TableCell>Редактировать</TableCell>
                                             <TableCell>Удалить</TableCell>
                                         </TableRow>
                                     </TableHead>
@@ -240,14 +280,19 @@ const MePage: FC<MePageProps> = ({ user, onAuthFailed, changeComputerType, setUs
                                                         {new Date(save.lastModifiedDateTime).toLocaleString('ru-ru')}
                                                     </TableCell>
                                                     <TableCell>
+                                                        <Button size="small" onClick={() => onShareClicked(save.id, save.isShared)}>
+                                                            {save.isShared ? "Закрыть доступ" : "Поделиться"}
+                                                        </Button>
+                                                    </TableCell>
+                                                    <TableCell>
                                                         <IconButton onClick={() => onOpenClicked(save.id, save.name)}>
                                                             <LaunchOutlinedIcon />
                                                         </IconButton>
                                                     </TableCell>
                                                     <TableCell>
-                                                        <Button size="small" onClick={() => onShareClicked(save.id, save.isShared)}>
-                                                            {save.isShared ? "Закрыть доступ" : "Поделиться"}
-                                                        </Button>
+                                                        <IconButton onClick={() => onEditSaveClicked(save.id, save.name)}>
+                                                            <EditOutlinedIcon />
+                                                        </IconButton>
                                                     </TableCell>
                                                     <TableCell>
                                                         <IconButton onClick={() => onRemoveButtonClicked(save.id)}>

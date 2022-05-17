@@ -1,7 +1,8 @@
 import {BASE_URL, getAuthHeaders} from "./apiBase";
 
 export type UpdateSaveRequest = {
-    isShared: boolean,
+    isShared?: boolean,
+    name?: string,
 };
 
 export default function ApiUpdateSave(id: string, request: UpdateSaveRequest, onAuthFailed: () => void): Promise<void> {
