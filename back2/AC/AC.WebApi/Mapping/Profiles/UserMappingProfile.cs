@@ -14,5 +14,6 @@ public sealed class UserMappingProfile : Profile
         CreateMap<UpdateUserRequestResource, UserUpdate>();
 
         CreateMap<User, UserResponseResource>();
+        CreateMap<User, CurrentUserResponseResource>();
     }
 }

@@ -32,10 +32,26 @@ public sealed class UserController : ControllerBase
     /// <returns>User model.</returns>
     /// <response code="200">User returned</response>
     [HttpGet]
-    [ProducesResponseType(typeof(UserResponseResource), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(CurrentUserResponseResource), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetUser()
     {
         var user = await _userManager.GetUserAsync(HttpContext.User);
+
+        return Ok(_mapper.Map<CurrentUserResponseResource>(user));
+    }
+
+    /// <summary>
+    /// Returns public information about user.
+    /// </summary>
+    /// <returns>User model.</returns>
+    /// <response code="200">User returned.</response>
+    /// <response code="404">User with specified id not found.</response>
+    [HttpGet("{id:guid}")]
+    [ProducesResponseType(typeof(UserResponseResource), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ExceptionIntercepionResponseResource), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetUser(Guid id)
+    {
+        var user = await _userService.GetUserAsync(id);
 
         return Ok(_mapper.Map<UserResponseResource>(user));
     }
@@ -48,7 +64,7 @@ public sealed class UserController : ControllerBase
     /// <response code="200">User updated.</response>
     /// <response code="400">Update user model is invalid.</response>
     [HttpPut]
-    [ProducesResponseType(typeof(UserResponseResource), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(CurrentUserResponseResource), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ExceptionIntercepionResponseResource), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> UpdateUser(UpdateUserRequestResource resource)
     {
@@ -58,6 +74,6 @@ public sealed class UserController : ControllerBase
 
         var updated = await _userService.UpdateUserAsync(user, update);
 
-        return Ok(_mapper.Map<UserResponseResource>(updated));
+        return Ok(_mapper.Map<CurrentUserResponseResource>(updated));
     }
 }

@@ -6,6 +6,7 @@ namespace AC.Core.Models;
 /// Save model. 
 /// </summary>
 [Index(nameof(IsRemoved))]
+[Index(nameof(IsShared))]
 public sealed class Save
 {
     /// <summary>
@@ -34,9 +35,14 @@ public sealed class Save
     public DateTime LastModifiedDateTime { get; set; } = DateTime.UtcNow;
 
     /// <summary>
+    /// Flag is save publicly shared.
+    /// </summary>
+    public bool IsShared { get; set; }
+
+    /// <summary>
     /// Flag is save removed.
     /// </summary>
-    public bool IsRemoved;
+    public bool IsRemoved { get; set; }
 
     /// <summary>
     /// Save owner user.

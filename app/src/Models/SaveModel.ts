@@ -3,4 +3,5 @@ export type SaveModel = {
     name: string,
     createdDateTime: string,
     lastModifiedDateTime: string,
+    isShared: boolean,
 }

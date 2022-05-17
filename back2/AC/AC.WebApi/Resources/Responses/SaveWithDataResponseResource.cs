@@ -11,4 +11,6 @@ public sealed class SaveWithDataResponseResource
     public DateTime CreatedDateTime { get; set; }
     
     public DateTime LastModifiedDateTime { get; set; }
+    
+    public bool IsShared { get; set; }
 }

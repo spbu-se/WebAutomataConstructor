@@ -16,12 +16,18 @@ namespace AC.WebApi.Controllers;
 public sealed class SaveController : ControllerBase
 {
     private readonly ISavesService _savesService;
+    private readonly IUserService _userService;
     private readonly UserManager<User> _userManager;
     private readonly IMapper _mapper;
 
-    public SaveController(ISavesService savesService, UserManager<User> userManager, IMapper mapper)
+    public SaveController(
+        ISavesService savesService,
+        IUserService userService,
+        UserManager<User> userManager,
+        IMapper mapper)
     {
         _savesService = savesService;
+        _userService = userService;
         _userManager = userManager;
         _mapper = mapper;
     }
@@ -38,6 +44,20 @@ public sealed class SaveController : ControllerBase
         var user = await _userManager.GetUserAsync(HttpContext.User);
 
         var saves = await _savesService.GetSavesAsync(user);
+
+        return Ok(_mapper.Map<List<SaveResponseResource>>(saves));
+    }
+
+    /// <summary>
+    /// Returns list of user shared saves.
+    /// </summary>
+    /// <returns>List of user saves.</returns>
+    /// <response code="200">List of user saves returned.</response>
+    [HttpGet("user/{id:guid}")]
+    [ProducesResponseType(typeof(List<SaveResponseResource>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetUserSaves(Guid id)
+    {
+        var saves = await _savesService.GetSavesAsync(id);
 
         return Ok(_mapper.Map<List<SaveResponseResource>>(saves));
     }
@@ -104,6 +124,24 @@ public sealed class SaveController : ControllerBase
         var updated = await _savesService.UpdateSaveAsync(id, update, user);
 
         return Ok(_mapper.Map<SaveWithDataResponseResource>(updated));
+    }
+
+    /// <summary>
+    /// Clones shared save.
+    /// </summary>
+    /// <returns>Cloned save.</returns>
+    /// <response code="200">Save with specified id find, cloned and returned.</response>
+    /// <response code="404">Shared save with specified id not found.</response>
+    [ProducesResponseType(typeof(SaveWithDataResponseResource), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ExceptionIntercepionResponseResource), StatusCodes.Status404NotFound)]
+    [HttpPost("clone/{id:guid}")]
+    public async Task<IActionResult> CloneSave(Guid id)
+    {
+        var user = await _userManager.GetUserAsync(HttpContext.User);
+
+        var cloned = await _savesService.CloneSaveAsync(id, user);
+
+        return Ok(_mapper.Map<SaveWithDataResponseResource>(cloned));
     }
 
     /// <summary>
