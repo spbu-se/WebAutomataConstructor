@@ -291,7 +291,8 @@ class RunControl extends React.Component<runControlProps, runControlState> {
                 if (this.props.computerType === 'pda' || this.props.computerType === 'dpda') {
                     tmp.forEach((v) => {
                         const gNode = this.state.gElements.nodes.find((gEl) => gEl.id === v.idd)
-                        const label = gNode?.label + '\n' + `${(this.props.getLastHistNodeId() + 1)}` + '\n―' + (v.stack!.reduce((acc, stack) => '\n' + stack + acc, ''))
+                        const label = gNode?.label + '\n―' + (v.stack!.reduce((acc, stack) => '\n' + stack + acc, ''))
+                        // + '\n' + `${(this.props.getLastHistNodeId() + 1)}` + 
                         this.props.createHistNode(v.idd, label, v.isAdmit, v.isInitial, v.isCurrent)
                     })
                 } else {
@@ -696,6 +697,20 @@ class RunControl extends React.Component<runControlProps, runControlState> {
         [{ name: this.props.treeContextInfo, onClick: this.props.treeVisible }]
     ]
 
+    private buttonNfa: ButtonSource[][] = [
+        this.defaultButtonsLine,
+        [{ name: () => 'ДКА', onClick: () => this.nfaToDfa() }],
+        [{ name: this.props.treeContextInfo, onClick: this.props.treeVisible }],
+    ]
+
+
+    private buttonDfa: ButtonSource[][] = [
+        this.defaultButtonsLine,
+        [{ name: () => 'Минимизировать', onClick: () => this.minimizeDfa() }],
+        [{ name: this.props.treeContextInfo, onClick: this.props.treeVisible }],
+    ]
+
+
     private buttonMealy: ButtonSource[][] = [
         this.defaultButtonsLine,
         [{ name: this.props.treeContextInfo, onClick: this.props.treeVisible }],
@@ -727,7 +742,9 @@ class RunControl extends React.Component<runControlProps, runControlState> {
     private getButtons = () => {
         switch (this.props.computerType) {
             case "dfa":
-            case "nfa":
+                return creatButtons(this.buttonDfa)
+            case "nfa": 
+                return creatButtons(this.buttonNfa)
             case "nfa-eps":
                 return creatButtons(this.buttonsTree)
             case "tm":

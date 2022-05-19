@@ -28,8 +28,6 @@ import { VisNetwork } from './VisNetwork';
 import {
     DataSet,
     Network,
-    Options,
-    Data,
 } from "vis-network/standalone/esm/vis-network";
 import {Output} from './Logic/Types';
 import {NonDetermenisticModal, NonMinimizableModal} from './ErrorModal';
@@ -724,8 +722,7 @@ class App extends React.Component<appProps, appState> {
 
     ContextMenu = (computerType: null | ComputerType) => {
         switch (computerType) {
-            case "nfa":
-            case "nfa-eps": {
+            case "nfa": {
                 return this.NFAContextMenu
             }
             case "dfa": {
