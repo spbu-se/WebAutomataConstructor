@@ -977,6 +977,46 @@ export class PDA extends Computer {
             return acc
         }, [])
 
+
+        edges.sort((a, b) => a.from - b.from || a.to - b.to)
+        const newEdges: EdgeCore[] = []
+        for (let i = 0; i < edges.length; i++) {
+            const acc: TransitionParams[] = []
+            let delta = 0
+            let j = i
+            while (j < edges.length && edges[i].from === edges[j].from && edges[i].to === edges[j].to) {
+                let tmp: string = ''
+                edges[j].transitions.forEach((_) => _.forEach((v) => tmp = v.title))
+                acc.push({ title: tmp })
+
+                j++
+            }
+            i = j - 1
+
+            newEdges.push({
+                from: edges[i].from,
+                to: edges[i].to,
+                transitions: new Set<TransitionParams[]>([acc])
+            })
+
+        }
+        // for (let i = 0; i < edges.length; i++) {
+        //     const acc: TransitionParams[] = []
+        //     let delta = 0
+        //     for (let j = i; j < edges.length; j++) {
+        //         if (edges[i].from === edges[j].from && edges[i].to === edges[j].to) {
+        //             acc.push(Array.from(edges[j].transitions)[0][0])
+        //             delta++
+        //         }
+        //     }
+        //     edges.push({
+        //         from: edges[i].from,
+        //         to: edges[i].to,
+        //         transitions: new Set<TransitionParams[]>([acc])
+        //     })
+        //     i += delta - 1
+        // }
+
         // console.log(nodes)
 
         const startGrp = groups.filter((g) => {
@@ -984,10 +1024,12 @@ export class PDA extends Computer {
             return gIds.includes(startId)
         })
 
-
+        console.log('edgesedgesedgesedgesedges')
+        console.log(edges)
+        console.log('edgesedgesedgesedgesedges')
         const start = nodes[startGrp[0][0].number - 1]
 
-        return { graphcore: { nodes: nodes, edges: edges }, start }
+        return { graphcore: { nodes: nodes, edges: newEdges }, start }
     }
 
 }
@@ -1131,6 +1173,7 @@ let nfa = new PDA(
     [
         {id: 1, isAdmit: false}], ['0', '0'],
 )
+console.log('ja')
 // console.log(nfa.isDeterministic())
 // nfa.step()
 // const aa = nfa.run()

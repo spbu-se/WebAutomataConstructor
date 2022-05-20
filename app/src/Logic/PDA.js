@@ -464,13 +464,54 @@ var PDA = /** @class */ (function (_super) {
                 });
                 return acc;
             }, []);
+            edges.sort(function (a, b) { return a.from - b.from || a.to - b.to; });
+            var newEdges = [];
+            for (var i = 0; i < edges.length; i++) {
+                var acc = [];
+                var delta = 0;
+                var j = i;
+                var _loop_2 = function () {
+                    var tmp = '';
+                    edges[j].transitions.forEach(function (_) { return _.forEach(function (v) { return tmp = v.title; }); });
+                    acc.push({ title: tmp });
+                    j++;
+                };
+                while (j < edges.length && edges[i].from === edges[j].from && edges[i].to === edges[j].to) {
+                    _loop_2();
+                }
+                i = j - 1;
+                newEdges.push({
+                    from: edges[i].from,
+                    to: edges[i].to,
+                    transitions: new Set([acc])
+                });
+            }
+            // for (let i = 0; i < edges.length; i++) {
+            //     const acc: TransitionParams[] = []
+            //     let delta = 0
+            //     for (let j = i; j < edges.length; j++) {
+            //         if (edges[i].from === edges[j].from && edges[i].to === edges[j].to) {
+            //             acc.push(Array.from(edges[j].transitions)[0][0])
+            //             delta++
+            //         }
+            //     }
+            //     edges.push({
+            //         from: edges[i].from,
+            //         to: edges[i].to,
+            //         transitions: new Set<TransitionParams[]>([acc])
+            //     })
+            //     i += delta - 1
+            // }
             // console.log(nodes)
             var startGrp = groups.filter(function (g) {
                 var gIds = g.map(function (v) { return v.node.idLogic; });
                 return gIds.includes(startId);
             });
+            console.log('edgesedgesedgesedgesedges');
+            console.log(edges);
+            console.log('edgesedgesedgesedgesedges');
             var start = nodes[startGrp[0][0].number - 1];
-            return { graphcore: { nodes: nodes, edges: edges }, start: start };
+            return { graphcore: { nodes: nodes, edges: newEdges }, start: start };
         };
         _this.admitByEmptyStack = byEmpty;
         _this.epsId = _this.alphabet.get(Computer_1.EPS);
@@ -967,6 +1008,7 @@ var nfa = new PDA({
 }, [
     { id: 1, isAdmit: false }
 ], ['0', '0']);
+console.log('ja');
 // console.log(nfa.isDeterministic())
 // nfa.step()
 // const aa = nfa.run()
