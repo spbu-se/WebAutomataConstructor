@@ -23,6 +23,13 @@ var __assign = (this && this.__assign) || function () {
     };
     return __assign.apply(this, arguments);
 };
+var __spreadArrays = (this && this.__spreadArrays) || function () {
+    for (var s = 0, i = 0, il = arguments.length; i < il; i++) s += arguments[i].length;
+    for (var r = Array(s), k = 0, i = 0; i < il; i++)
+        for (var a = arguments[i], j = 0, jl = a.length; j < jl; j++, k++)
+            r[k] = a[j];
+    return r;
+};
 exports.__esModule = true;
 var Computer_1 = require("./Computer");
 var Stack_1 = require("./Stack");
@@ -230,10 +237,21 @@ var PDA = /** @class */ (function (_super) {
                 });
             });
         };
-        // move to Nfa
         _this.nfaToDfa = function () {
+            var startIds = _this.startStatements.map(function (v) { return v.id; });
+            var fakeEdges = __spreadArrays(_this.edges);
+            startIds.forEach(function (v) { return fakeEdges.push({
+                from: 999,
+                to: v,
+                transitions: new Set([[{ title: Computer_1.EPS }]]),
+                localValue: []
+            }); });
+            var fakeStart = { id: 999, isAdmit: false };
+            var fakeNodes = __spreadArrays([fakeStart], _this.nodes);
+            var fakeAutomat = new PDA({ edges: fakeEdges, nodes: fakeNodes }, [fakeStart], []);
+            console.log(fakeAutomat);
             var nextStepPosition = function (position, by) {
-                return _this.cellMatrix(position.stmt.idLogic, by).map(function (v) { return ({ stmt: v }); });
+                return fakeAutomat.cellMatrix(position.stmt.idLogic, by).map(function (v) { return ({ stmt: v }); });
             };
             var _nextStepPositions = function (positions, by) {
                 var acc = [];
@@ -246,14 +264,14 @@ var PDA = /** @class */ (function (_super) {
             };
             var nextStepPositions = function (positions, by) {
                 var afterEps = function (positions) {
-                    if (_this.epsId === undefined) {
+                    if (fakeAutomat.epsId === undefined) {
                         return positions;
                     }
                     var acc = [];
                     var EPStack = new Stack_1.Stack();
                     EPStack.push(Computer_1.EPS);
                     positions.forEach(function (position) {
-                        var tmp = _this.epsilonStep(position.stmt.idLogic, Computer_1.EPS, EPStack, []);
+                        var tmp = fakeAutomat.epsilonStep(position.stmt.idLogic, Computer_1.EPS, EPStack, []);
                         if (tmp !== undefined) {
                             acc.push(tmp);
                         }
@@ -268,16 +286,18 @@ var PDA = /** @class */ (function (_super) {
             var push = function (v) {
                 stack.push(v);
             };
+            // this.restart()
+            fakeAutomat.restart();
             var stack = [];
             var table = [];
             var set = new ImSet();
-            var startPos = _this.curPosition;
-            _this.restart();
+            // const startPos = this.curPosition
+            var startPos = fakeAutomat.curPosition;
             push(startPos);
             var _loop_1 = function () {
                 var head = pop();
                 var acc = [];
-                if (head === undefined || head.length === 0) {
+                if (head === undefined || head.length < 1) {
                     return "break";
                 }
                 if (set.has(head)) {
@@ -291,17 +311,25 @@ var PDA = /** @class */ (function (_super) {
                     },
                     stack: undefined
                 }); }));
-                _this.alphabet.forEach(function (value) {
-                    if (value !== _this.epsId) {
+                fakeAutomat.alphabet.forEach(function (value) {
+                    if (value !== fakeAutomat.epsId) {
                         var to = nextStepPositions(head, value);
-                        var _to = to.map(function (v) { return ({
-                            stmt: {
-                                id: v.stmt.id,
-                                idLogic: v.stmt.idLogic,
-                                isAdmit: v.stmt.isAdmit
-                            },
-                            stack: undefined
-                        }); });
+                        var wasPushed_1 = [];
+                        var __to = to.map(function (v) {
+                            if (wasPushed_1.includes(v.stmt.idLogic)) {
+                                return { stmt: { id: -100, idLogic: -100, isAdmit: false }, stack: undefined };
+                            }
+                            wasPushed_1.push(v.stmt.idLogic);
+                            return ({
+                                stmt: {
+                                    id: v.stmt.id,
+                                    idLogic: v.stmt.idLogic,
+                                    isAdmit: v.stmt.isAdmit
+                                },
+                                stack: undefined
+                            });
+                        });
+                        var _to = __to.filter(function (v) { return (v === null || v === void 0 ? void 0 : v.stmt.idLogic) !== -100; });
                         acc.push(_to);
                         if (to.length > 0 && !set.has(to) && !set.has(_to)) {
                             push(_to);
@@ -309,6 +337,12 @@ var PDA = /** @class */ (function (_super) {
                     }
                 });
                 table.push(acc);
+                console.log('OOOOOOOOOO');
+                stack.forEach(function (v) { return v.forEach(function (vv) { return console.log(vv); }); });
+                console.log('LLLL');
+                set.getStorage().forEach(function (v) { return v.forEach(function (vv) { return console.log(vv); }); });
+                console.log('LLLL');
+                console.log();
             };
             while (stack.length > 0) {
                 var state_1 = _loop_1();
@@ -317,10 +351,8 @@ var PDA = /** @class */ (function (_super) {
             }
             var _edges = [];
             table.forEach(function (ps, from) {
-                _this.alphabet.forEach(function (tr, letter) {
-                    if (tr !== _this.epsId && ps[tr].length !== 0) {
-                        // console.log(ps[tr])
-                        // console.log(from, set.getIter(ps[tr]))
+                fakeAutomat.alphabet.forEach(function (tr, letter) {
+                    if (tr !== fakeAutomat.epsId && ps[tr].length !== 0) {
                         _edges.push({
                             from: from,
                             to: set.getIter(ps[tr]),
@@ -331,28 +363,153 @@ var PDA = /** @class */ (function (_super) {
             });
             var nodes = set.getStorage().map(function (v) { return ({
                 id: set.getIter(v),
-                isAdmit: _this.haveAdmitting(v)
+                isAdmit: fakeAutomat.haveAdmitting(v)
             }); });
             var edges = [];
             _edges.sort(function (a, b) { return a.from - b.from || a.to - b.to; });
+            var newEdges = [];
             for (var i = 0; i < _edges.length; i++) {
                 var acc = [];
                 var delta = 0;
-                for (var j = i; j < _edges.length; j++) {
-                    if (_edges[i].from === _edges[j].from && _edges[i].to === _edges[j].to) {
-                        acc.push(Array.from(_edges[j].transitions)[0][0]);
-                        delta++;
-                    }
+                var j = i;
+                var _loop_2 = function () {
+                    var tmp = '';
+                    _edges[j].transitions.forEach(function (_) { return _.forEach(function (v) { return tmp = v.title; }); });
+                    acc.push({ title: tmp });
+                    j++;
+                };
+                while (j < _edges.length && _edges[i].from === _edges[j].from && _edges[i].to === _edges[j].to) {
+                    _loop_2();
                 }
+                i = j - 1;
                 edges.push({
                     from: _edges[i].from,
                     to: _edges[i].to,
                     transitions: new Set([acc])
                 });
-                i += delta - 1;
             }
             return { nodes: nodes, edges: edges };
         };
+        // move to Nfa
+        // nfaToDfa = (): GraphCore => {
+        //     const nextStepPosition = (position: position, by: number): position[] => {
+        //         return this.cellMatrix(position.stmt.idLogic, by).map(v => ({ stmt: v }))
+        //     }
+        //     const _nextStepPositions = (positions: position[], by: number): position[] => {
+        //         let acc: position[] = []
+        //         positions.map((v) =>
+        //             nextStepPosition(v, by)).forEach((ps) =>
+        //                 ps.forEach((p) => acc.push(p)))
+        //         return acc
+        //     }
+        //     const nextStepPositions = (positions: position[], by: number): position[] => {
+        //         const afterEps = (positions: position[]): position[] => {
+        //             if (this.epsId === undefined) {
+        //                 return positions
+        //             }
+        //             const acc: position[][] = []
+        //             const EPStack = new Stack<string>()
+        //             EPStack.push(EPS)
+        //             positions.forEach((position) => {
+        //                 const tmp = this.epsilonStep(position.stmt.idLogic, EPS, EPStack, [])
+        //                 if (tmp !== undefined) {
+        //                     acc.push(tmp)
+        //                 }
+        //             })
+        //             const flatted: position[] = []
+        //             acc.forEach((ps) => ps.forEach((p) => flatted.push(p)))
+        //             return flatted
+        //         }
+        //         return afterEps(_nextStepPositions(afterEps(positions), by))
+        //     }
+        //     const pop = () => stack.shift()
+        //     const push = (v: position[]): void => {
+        //         stack.push(v)
+        //     }
+        //     this.restart()
+        //     const stack: position[][] = []
+        //     const table: position[][][] = []
+        //     const set: ImSet<position[]> = new ImSet<position[]>()
+        //     const startPos = this.curPosition
+        //     push(startPos)
+        //     while (stack.length > 0) {
+        //         let head = pop()
+        //         let acc: position[][] = []
+        //         if (head === undefined || head.length < 1) {
+        //             break;
+        //         }
+        //         if (set.has(head)) {
+        //             continue
+        //         }
+        //         set.add(head.map((v) => (
+        //             {
+        //                 stmt: {
+        //                     id: v.stmt.id,
+        //                     idLogic: v.stmt.idLogic,
+        //                     isAdmit: v.stmt.isAdmit
+        //                 },
+        //                 stack: undefined
+        //             }))
+        //         )
+        //         this.alphabet.forEach((value) => {
+        //             if (value !== this.epsId) {
+        //                 let to: position[] = nextStepPositions(head!, value)
+        //                 let _to: position[] = to.map((v) => (
+        //                     {
+        //                         stmt: {
+        //                             id: v.stmt.id,
+        //                             idLogic: v.stmt.idLogic,
+        //                             isAdmit: v.stmt.isAdmit
+        //                         },
+        //                         stack: undefined
+        //                     })
+        //                 )
+        //                 acc.push(_to)
+        //                 if (to.length > 0 && !set.has(to) && !set.has(_to)) {
+        //                     push(_to)
+        //                 }
+        //             }
+        //         })
+        //         table.push(acc)
+        //     }
+        //     const _edges: EdgeCore[] = []
+        //     table.forEach((ps, from) => {
+        //         this.alphabet.forEach((tr, letter) => {
+        //             if (tr !== this.epsId && ps[tr].length !== 0) {
+        //                 _edges.push({
+        //                     from: from,
+        //                     to: set.getIter(ps[tr]),
+        //                     transitions: new Set<TransitionParams[]>([[{ title: letter }]])
+        //                 })
+        //             }
+        //         })
+        //     })
+        //     const nodes: NodeCore[] = set.getStorage().map((v) => ({
+        //         id: set.getIter(v),
+        //         isAdmit: this.haveAdmitting(v),
+        //     }))
+        //     const edges: EdgeCore[] = []
+        //     _edges.sort((a, b) => a.from - b.from || a.to - b.to)
+        //     const newEdges: EdgeCore[] = []
+        //     for (let i = 0; i < _edges.length; i++) {
+        //         const acc: TransitionParams[] = []
+        //         let delta = 0
+        //         let j = i
+        //         while (j < _edges.length && _edges[i].from === _edges[j].from && _edges[i].to === _edges[j].to) {
+        //             let tmp: string = ''
+        //             _edges[j].transitions.forEach((_) => _.forEach((v) => tmp = v.title))
+        //             acc.push({ title: tmp })
+        //             j++
+        //         }
+        //         i = j - 1
+        //         edges.push({
+        //             from: _edges[i].from,
+        //             to: _edges[i].to,
+        //             transitions: new Set<TransitionParams[]>([acc])
+        //         })
+        //     }
+        //     return { nodes: nodes, edges: edges }
+        // }
         //https://www.usna.edu/Users/cs/wcbrown/courses/F17SI340/lec/l22/lec.html
         _this.minimizeDfa = function () {
             _this.restart();
@@ -470,14 +627,14 @@ var PDA = /** @class */ (function (_super) {
                 var acc = [];
                 var delta = 0;
                 var j = i;
-                var _loop_2 = function () {
+                var _loop_3 = function () {
                     var tmp = '';
                     edges[j].transitions.forEach(function (_) { return _.forEach(function (v) { return tmp = v.title; }); });
                     acc.push({ title: tmp });
                     j++;
                 };
                 while (j < edges.length && edges[i].from === edges[j].from && edges[i].to === edges[j].to) {
-                    _loop_2();
+                    _loop_3();
                 }
                 i = j - 1;
                 newEdges.push({
@@ -971,44 +1128,23 @@ var nfa = new PDA({
     nodes: [
         { id: 1, isAdmit: false },
         { id: 2, isAdmit: false },
-        { id: 3, isAdmit: false },
     ],
     edges: [
         {
-            from: 1, to: 1, transitions: new Set([
-                [
-                    { title: '0', stackDown: 'Z0', stackPush: ['0', 'Z0'] },
-                    { title: '1', stackDown: 'Z0', stackPush: ['1', 'Z0'] },
-                    { title: '0', stackDown: '0', stackPush: ['0', '0'] },
-                    { title: '0', stackDown: '1', stackPush: ['0', '1'] },
-                    { title: '1', stackDown: '0', stackPush: ['1', '0'] },
-                    { title: '1', stackDown: '1', stackPush: ['1', '1'] }
-                ]
-            ])
+            from: 1, to: 1, transitions: new Set([[{ title: '0' }]])
         },
         {
-            from: 1, to: 2, transitions: new Set([
-                [
-                    { title: Computer_1.EPS, stackDown: 'Z0', stackPush: ['Z0'] },
-                    { title: Computer_1.EPS, stackDown: '0', stackPush: ['0'] },
-                    { title: Computer_1.EPS, stackDown: '1', stackPush: ['1'] }
-                ]
-            ])
+            from: 1, to: 2, transitions: new Set([[{ title: '0' }]])
         },
         {
-            from: 2, to: 2, transitions: new Set([
-                [
-                    { title: '0', stackDown: '0', stackPush: [Computer_1.EPS] },
-                    { title: '1', stackDown: '1', stackPush: [Computer_1.EPS] }
-                ]
-            ])
+            from: 2, to: 1, transitions: new Set([[{ title: '0' }]])
         },
-        { from: 2, to: 3, transitions: new Set([[{ title: Computer_1.EPS, stackDown: 'Z0', stackPush: [Computer_1.EPS] }]]) },
     ]
 }, [
     { id: 1, isAdmit: false }
-], ['0', '0']);
-console.log('ja');
+], []);
+console.log('jaj');
+nfa.nfaToDfa();
 // console.log(nfa.isDeterministic())
 // nfa.step()
 // const aa = nfa.run()

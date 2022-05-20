@@ -301,7 +301,7 @@ export class PDA extends Computer {
                         , cur: this.nodes[value.idLogic]
                         , by: getLetter(transformedInput)
                         , oldStack: stack
-                        , stackDown  
+                        , stackDown
                         //? 
                     })
                     hist.push({ by: getLetter(transformedInput), from: this.nodes[curLId], value: this.nodes[value.idLogic] })
@@ -315,7 +315,7 @@ export class PDA extends Computer {
                         , from: this.nodes[curLId]
                         , cur: this.nodes[value.idLogic]
                         , by: getLetter(transformedInput)
-                        , oldStack: stack 
+                        , oldStack: stack
                         , stackDown: EPS
                         //? 
                     })
@@ -383,7 +383,7 @@ export class PDA extends Computer {
             const stmt = v.stmt
             stmt.stack = v.stack?.getStorage()
             return stmt
-        }) 
+        })
 
         return curs
     }
@@ -425,7 +425,7 @@ export class PDA extends Computer {
             })
             ////// this.cycleEps(this.curPosition[0].stmt.idLogic, this.curPosition[0].stack!)
         }//
-        
+
 
         // console.log('{{{{{{{{{{}}}}}}}}}}')
         // console.log(this.curPosition)
@@ -475,7 +475,7 @@ export class PDA extends Computer {
                 stack: value.oldStack ? value.oldStack.getStorage() : undefined,
                 move: value.from?.move,
                 output: value.from?.output,
-            } 
+            }
 
             let temp: NodeCore = {
                 ...this.nodes[value.stmt.idLogic], stack: value.stack!.getStorage(),
@@ -700,10 +700,23 @@ export class PDA extends Computer {
         })
     }
 
-    // move to Nfa
     nfaToDfa = (): GraphCore => {
+        const startIds = this.startStatements.map((v) => v.id)
+        const fakeEdges = [...this.edges]
+        startIds.forEach((v) => fakeEdges.push({
+            from: 999,
+            to: v,
+            transitions: new Set<TransitionParams[]>([[{ title: EPS }]]),
+            localValue: []
+        }))
+        const fakeStart = { id: 999, isAdmit: false }
+        const fakeNodes: NodeCore[] = [fakeStart, ...this.nodes]
+        const fakeAutomat = new PDA({ edges: fakeEdges, nodes: fakeNodes }, [fakeStart], [])
+
+        console.log(fakeAutomat)
+
         const nextStepPosition = (position: position, by: number): position[] => {
-            return this.cellMatrix(position.stmt.idLogic, by).map(v => ({ stmt: v }))
+            return fakeAutomat.cellMatrix(position.stmt.idLogic, by).map(v => ({ stmt: v }))
         }
 
         const _nextStepPositions = (positions: position[], by: number): position[] => {
@@ -717,14 +730,14 @@ export class PDA extends Computer {
         const nextStepPositions = (positions: position[], by: number): position[] => {
 
             const afterEps = (positions: position[]): position[] => {
-                if (this.epsId === undefined) {
+                if (fakeAutomat.epsId === undefined) {
                     return positions
                 }
                 const acc: position[][] = []
                 const EPStack = new Stack<string>()
                 EPStack.push(EPS)
                 positions.forEach((position) => {
-                    const tmp = this.epsilonStep(position.stmt.idLogic, EPS, EPStack, [])
+                    const tmp = fakeAutomat.epsilonStep(position.stmt.idLogic, EPS, EPStack, [])
                     if (tmp !== undefined) {
                         acc.push(tmp)
                     }
@@ -745,19 +758,23 @@ export class PDA extends Computer {
             stack.push(v)
         }
 
+        // this.restart()
+        fakeAutomat.restart()
+
         const stack: position[][] = []
         const table: position[][][] = []
         const set: ImSet<position[]> = new ImSet<position[]>()
-        const startPos = this.curPosition
+        // const startPos = this.curPosition
+        const startPos = fakeAutomat.curPosition
 
-        this.restart()
         push(startPos)
 
         while (stack.length > 0) {
             let head = pop()
             let acc: position[][] = []
 
-            if (head === undefined || head.length === 0) {
+
+            if (head === undefined || head.length < 1) {
                 break;
             }
             if (set.has(head)) {
@@ -774,19 +791,27 @@ export class PDA extends Computer {
                 }))
             )
 
-            this.alphabet.forEach((value) => {
-                if (value !== this.epsId) {
+            fakeAutomat.alphabet.forEach((value) => {
+                if (value !== fakeAutomat.epsId) {
                     let to: position[] = nextStepPositions(head!, value)
-                    let _to: position[] = to.map((v) => (
-                        {
-                            stmt: {
-                                id: v.stmt.id,
-                                idLogic: v.stmt.idLogic,
-                                isAdmit: v.stmt.isAdmit
-                            },
-                            stack: undefined
-                        })
+                    const wasPushed: number[] = []
+                    let __to: position[] = to.map((v) => {
+                        if (wasPushed.includes(v.stmt.idLogic)) {
+                            return {stmt: {id: -100, idLogic: -100, isAdmit: false}, stack: undefined}
+                        }
+                        wasPushed.push(v.stmt.idLogic)
+                        return (
+                            {
+                                stmt: {
+                                    id: v.stmt.id,
+                                    idLogic: v.stmt.idLogic,
+                                    isAdmit: v.stmt.isAdmit
+                                },
+                                stack: undefined
+                            })
+                    }
                     )
+                    const _to: position[] = __to.filter((v) => v?.stmt.idLogic !== -100)
                     acc.push(_to)
                     if (to.length > 0 && !set.has(to) && !set.has(_to)) {
                         push(_to)
@@ -794,14 +819,19 @@ export class PDA extends Computer {
                 }
             })
             table.push(acc)
+
+            console.log('OOOOOOOOOO')
+            stack.forEach(v => v.forEach(vv => console.log(vv)))
+            console.log('LLLL')
+            set.getStorage().forEach(v => v.forEach(vv => console.log(vv)))
+            console.log('LLLL')
+            console.log()
         }
 
         const _edges: EdgeCore[] = []
         table.forEach((ps, from) => {
-            this.alphabet.forEach((tr, letter) => {
-                if (tr !== this.epsId && ps[tr].length !== 0) {
-                    // console.log(ps[tr])
-                    // console.log(from, set.getIter(ps[tr]))
+            fakeAutomat.alphabet.forEach((tr, letter) => {
+                if (tr !== fakeAutomat.epsId && ps[tr].length !== 0) {
                     _edges.push({
                         from: from,
                         to: set.getIter(ps[tr]),
@@ -813,31 +843,180 @@ export class PDA extends Computer {
 
         const nodes: NodeCore[] = set.getStorage().map((v) => ({
             id: set.getIter(v),
-            isAdmit: this.haveAdmitting(v),
+            isAdmit: fakeAutomat.haveAdmitting(v),
         }))
 
         const edges: EdgeCore[] = []
 
         _edges.sort((a, b) => a.from - b.from || a.to - b.to)
+        const newEdges: EdgeCore[] = []
         for (let i = 0; i < _edges.length; i++) {
             const acc: TransitionParams[] = []
             let delta = 0
-            for (let j = i; j < _edges.length; j++) {
-                if (_edges[i].from === _edges[j].from && _edges[i].to === _edges[j].to) {
-                    acc.push(Array.from(_edges[j].transitions)[0][0])
-                    delta++
-                }
+            let j = i
+            while (j < _edges.length && _edges[i].from === _edges[j].from && _edges[i].to === _edges[j].to) {
+                let tmp: string = ''
+                _edges[j].transitions.forEach((_) => _.forEach((v) => tmp = v.title))
+                acc.push({ title: tmp })
+
+                j++
             }
+            i = j - 1
+
             edges.push({
                 from: _edges[i].from,
                 to: _edges[i].to,
                 transitions: new Set<TransitionParams[]>([acc])
             })
-            i += delta - 1
+
         }
 
         return { nodes: nodes, edges: edges }
     }
+
+
+    // move to Nfa
+    // nfaToDfa = (): GraphCore => {
+    //     const nextStepPosition = (position: position, by: number): position[] => {
+    //         return this.cellMatrix(position.stmt.idLogic, by).map(v => ({ stmt: v }))
+    //     }
+
+    //     const _nextStepPositions = (positions: position[], by: number): position[] => {
+    //         let acc: position[] = []
+    //         positions.map((v) =>
+    //             nextStepPosition(v, by)).forEach((ps) =>
+    //                 ps.forEach((p) => acc.push(p)))
+    //         return acc
+    //     }
+
+    //     const nextStepPositions = (positions: position[], by: number): position[] => {
+
+    //         const afterEps = (positions: position[]): position[] => {
+    //             if (this.epsId === undefined) {
+    //                 return positions
+    //             }
+    //             const acc: position[][] = []
+    //             const EPStack = new Stack<string>()
+    //             EPStack.push(EPS)
+    //             positions.forEach((position) => {
+    //                 const tmp = this.epsilonStep(position.stmt.idLogic, EPS, EPStack, [])
+    //                 if (tmp !== undefined) {
+    //                     acc.push(tmp)
+    //                 }
+    //             })
+
+    //             const flatted: position[] = []
+    //             acc.forEach((ps) => ps.forEach((p) => flatted.push(p)))
+
+    //             return flatted
+    //         }
+
+    //         return afterEps(_nextStepPositions(afterEps(positions), by))
+    //     }
+
+    //     const pop = () => stack.shift()
+
+    //     const push = (v: position[]): void => {
+    //         stack.push(v)
+    //     }
+
+    //     this.restart()
+
+    //     const stack: position[][] = []
+    //     const table: position[][][] = []
+    //     const set: ImSet<position[]> = new ImSet<position[]>()
+    //     const startPos = this.curPosition
+
+    //     push(startPos)
+
+    //     while (stack.length > 0) {
+    //         let head = pop()
+    //         let acc: position[][] = []
+
+    //         if (head === undefined || head.length < 1) {
+    //             break;
+    //         }
+    //         if (set.has(head)) {
+    //             continue
+    //         }
+    //         set.add(head.map((v) => (
+    //             {
+    //                 stmt: {
+    //                     id: v.stmt.id,
+    //                     idLogic: v.stmt.idLogic,
+    //                     isAdmit: v.stmt.isAdmit
+    //                 },
+    //                 stack: undefined
+    //             }))
+    //         )
+
+    //         this.alphabet.forEach((value) => {
+    //             if (value !== this.epsId) {
+    //                 let to: position[] = nextStepPositions(head!, value)
+    //                 let _to: position[] = to.map((v) => (
+    //                     {
+    //                         stmt: {
+    //                             id: v.stmt.id,
+    //                             idLogic: v.stmt.idLogic,
+    //                             isAdmit: v.stmt.isAdmit
+    //                         },
+    //                         stack: undefined
+    //                     })
+    //                 )
+    //                 acc.push(_to)
+    //                 if (to.length > 0 && !set.has(to) && !set.has(_to)) {
+    //                     push(_to)
+    //                 }
+    //             }
+    //         })
+    //         table.push(acc)
+    //     }
+
+    //     const _edges: EdgeCore[] = []
+    //     table.forEach((ps, from) => {
+    //         this.alphabet.forEach((tr, letter) => {
+    //             if (tr !== this.epsId && ps[tr].length !== 0) {
+    //                 _edges.push({
+    //                     from: from,
+    //                     to: set.getIter(ps[tr]),
+    //                     transitions: new Set<TransitionParams[]>([[{ title: letter }]])
+    //                 })
+    //             }
+    //         })
+    //     })
+
+    //     const nodes: NodeCore[] = set.getStorage().map((v) => ({
+    //         id: set.getIter(v),
+    //         isAdmit: this.haveAdmitting(v),
+    //     }))
+
+    //     const edges: EdgeCore[] = []
+
+    //     _edges.sort((a, b) => a.from - b.from || a.to - b.to)
+    //     const newEdges: EdgeCore[] = []
+    //     for (let i = 0; i < _edges.length; i++) {
+    //         const acc: TransitionParams[] = []
+    //         let delta = 0
+    //         let j = i
+    //         while (j < _edges.length && _edges[i].from === _edges[j].from && _edges[i].to === _edges[j].to) {
+    //             let tmp: string = ''
+    //             _edges[j].transitions.forEach((_) => _.forEach((v) => tmp = v.title))
+    //             acc.push({ title: tmp })
+
+    //             j++
+    //         }
+    //         i = j - 1
+
+    //         edges.push({
+    //             from: _edges[i].from,
+    //             to: _edges[i].to,
+    //             transitions: new Set<TransitionParams[]>([acc])
+    //         })
+
+    //     }
+
+    //     return { nodes: nodes, edges: edges }
+    // }
 
 
     //https://www.usna.edu/Users/cs/wcbrown/courses/F17SI340/lec/l22/lec.html
@@ -1134,46 +1313,27 @@ export class ImSet<T extends Record<any, any>> {
 let nfa = new PDA(
     {
         nodes: [
-            {id: 1, isAdmit: false},
-            {id: 2, isAdmit: false},
-            {id: 3, isAdmit: false},
+            { id: 1, isAdmit: false },
+            { id: 2, isAdmit: false },
         ],
         edges: [
             {
-                from: 1, to: 1, transitions: new Set([
-                    [
-                        {title: '0', stackDown: 'Z0', stackPush: ['0', 'Z0']},
-                        {title: '1', stackDown: 'Z0', stackPush: ['1', 'Z0']},
-                        {title: '0', stackDown: '0', stackPush: ['0', '0']},
-                        {title: '0', stackDown: '1', stackPush: ['0', '1']},
-                        {title: '1', stackDown: '0', stackPush: ['1', '0']},
-                        {title: '1', stackDown: '1', stackPush: ['1', '1']}
-                    ]])
+                from: 1, to: 1, transitions: new Set([[{ title: '0' }]])
+            },
+            {
+                from: 1, to: 2, transitions: new Set([[{ title: '0' }]])
             },
 
             {
-                from: 1, to: 2, transitions: new Set([
-                    [
-                        {title: EPS, stackDown: 'Z0', stackPush: ['Z0']},
-                        {title: EPS, stackDown: '0', stackPush: ['0']},
-                        {title: EPS, stackDown: '1', stackPush: ['1']}
-                    ]])
+                from: 2, to: 1, transitions: new Set([[{ title: '0' }]])
             },
-            {
-                from: 2, to: 2, transitions: new Set([
-                    [
-                        {title: '0', stackDown: '0', stackPush: [EPS]},
-                        {title: '1', stackDown: '1', stackPush: [EPS]}
-                    ]])
-            },
-
-            {from: 2, to: 3, transitions: new Set([[{title: EPS, stackDown: 'Z0', stackPush: [EPS]}]])},
         ]
-    }, 
+    },
     [
-        {id: 1, isAdmit: false}], ['0', '0'],
+        { id: 1, isAdmit: false }], [],
 )
-console.log('ja')
+console.log('jaj')
+nfa.nfaToDfa()
 // console.log(nfa.isDeterministic())
 // nfa.step()
 // const aa = nfa.run()
