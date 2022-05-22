@@ -699,15 +699,15 @@ class RunControl extends React.Component<runControlProps, runControlState> {
 
     private buttonNfa: ButtonSource[][] = [
         this.defaultButtonsLine,
-        [{ name: () => 'ДКА', onClick: () => this.nfaToDfa() }],
         [{ name: this.props.treeContextInfo, onClick: this.props.treeVisible }],
+        [{ name: () => 'ДКА', onClick: () => this.nfaToDfa() }],
     ]
 
 
     private buttonDfa: ButtonSource[][] = [
         this.defaultButtonsLine,
-        [{ name: () => 'Минимизировать', onClick: () => this.minimizeDfa() }],
         [{ name: this.props.treeContextInfo, onClick: this.props.treeVisible }],
+        [{ name: () => 'Минимизировать', onClick: () => this.minimizeDfa() }],
     ]
 
 

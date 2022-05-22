@@ -99,7 +99,6 @@ export abstract class Computer {
             this.matrix[i] = []
             for (let j = 0; j < this.alphabet.size; j++) {
                 this.matrix[i][j] = []
-                //{idLogic: -1, id: -1, isAdmit: false, stackDown: "empty", stackPush: []}
             }
         }
         for (let i = 0; i < this.edges.length; i++) {
@@ -107,9 +106,7 @@ export abstract class Computer {
             let statementTo: statement = this.statements.get(this.edges[i].to)
             for (let j = 0; j < this.edges[i].localValue.length; j++) {
                 let letterId = this.alphabet.get(this.edges[i].localValue[j].title)
-                // if (letterId === undefined) {
-                //     throw new Error("A")
-                // }
+
                 if (letterId === undefined) {
                     continue
                 }
