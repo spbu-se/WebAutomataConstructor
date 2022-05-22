@@ -14,9 +14,9 @@ type element = {
 
 export class PDA extends Computer {
 
-    private epsId: any
+    public epsId: any
     private stack: Stack<string> = new Stack<string>()
-    protected curPosition: position[]
+    public curPosition: position[]
     private admitByEmptyStack: boolean | undefined
 
 
@@ -135,8 +135,6 @@ export class PDA extends Computer {
         let permutes = this.cellMatrix(curLId, this.epsId)[0] !== undefined
             ? PDA.permute0(this.cellMatrix(curLId, this.epsId))
             : [(this.cellMatrix(curLId, this.epsId))]
-        // permutes.push(this.cellMatrix(curLId, this.epsId))
-        // let permutes: statementCell[][] = PDA.permute(this.cellMatrix(curLId, this.epsId))
 
         const cycle = (cell: statementCell[], idx: number, idLogic: number, stack: Stack<string>): void => {
             visited[idx] = true
@@ -182,7 +180,7 @@ export class PDA extends Computer {
         return positions
     }
 
-    private epsilonStep(curLId: number, stackDown: string, stack: Stack<string>, hist: HistUnit[]): position[] | undefined {
+    public epsilonStep(curLId: number, stackDown: string, stack: Stack<string>, hist: HistUnit[]): position[] | undefined {
         if (this.epsId === undefined) {
             return
         }
@@ -242,13 +240,9 @@ export class PDA extends Computer {
                 , by: EPS
                 , oldStack: stack
                 , stackDown: stackDown
-                /////////
-                //?
             })
             hist.push({ by: EPS, from: this.nodes[curLId], value: this.nodes[stmt.idLogic] })
         }
-
-        // hist.push(histUnit)
 
         return positions
     }
@@ -302,7 +296,6 @@ export class PDA extends Computer {
                         , by: getLetter(transformedInput)
                         , oldStack: stack
                         , stackDown
-                        //? 
                     })
                     hist.push({ by: getLetter(transformedInput), from: this.nodes[curLId], value: this.nodes[value.idLogic] })
                     break
@@ -317,7 +310,6 @@ export class PDA extends Computer {
                         , by: getLetter(transformedInput)
                         , oldStack: stack
                         , stackDown: EPS
-                        //? 
                     })
                     hist.push({ by: getLetter(transformedInput), from: this.nodes[curLId], value: this.nodes[value.idLogic] })
                     break
@@ -355,29 +347,8 @@ export class PDA extends Computer {
         return ret && (!this.haveEpsilon())
     }
 
-    // isDeterministic0(): boolean {
-    //     let ret = true
-    //     this.matrix.forEach(value => {
-    //         value.forEach(value1 => {
-    //             if (value1.length > 1) {
-    //                 let tmp: statementCell = value1[0]
-    //                 value1.forEach((value2, index) => {
-    //                     if (index !== 0 && tmp.stackDown === undefined && value2.stackDown || index !== 0 && tmp.stackDown === value2.stackDown ) {
-    //                         ret = false
-    //                     }
-    //                 })
-    //             }
-    //         })
-    //     })
-    //     return ret && (!this.haveEpsilon())
-    // }
-
-
 
     public getStartStatements = (): NodeCore[] => {
-        // console.log('this.startStatements')
-        // console.log(this.curPosition)
-        // console.log('this.startStatements')
 
         const curs = this.curPosition.map((v) => {
             const stmt = v.stmt
@@ -393,19 +364,9 @@ export class PDA extends Computer {
 
         this.admitByEmptyStack = byEmpty
         this.epsId = this.alphabet.get(EPS)
-        // this.createMatrix()
 
-        // this.matrix.forEach(value => {
-        //     value.forEach(value1 => value1.forEach(value2 => {
-        //         console.log(value2.idLogic)
-        //         console.log(value2.stackDown)
-        //         console.log(value2.stackPush)
-        //         console.log(value2.stack)
-        //
-        //     }))
-        // })
         this.stack.push(BOTTOM)
-        this.curPosition = []//{stack: new Stack<string>(), stmt: startStatements}
+        this.curPosition = []
         this.treeHist = []
         startStatements.forEach(value => {
             let stack = new Stack<string>()
@@ -423,30 +384,10 @@ export class PDA extends Computer {
             this.curPosition.forEach(value => {
                 this.cycleEps(value.stmt.idLogic, value.stack!)
             })
-            ////// this.cycleEps(this.curPosition[0].stmt.idLogic, this.curPosition[0].stack!)
-        }//
-
-
-        // console.log('{{{{{{{{{{}}}}}}}}}}')
-        // console.log(this.curPosition)
-        // console.log(this.startStatements)
-        // console.log('{{{{{{{{{{}}}}}}}}}}')
-
-        // console.log('-------------------------')
-        // console.log(this.isDeterministic())
-        // console.log("ALPHBT")
-        // this.alphabet.forEach((value, key) => console.log(value, key))
-        // console.log("STMTS")
-        // this.statements.forEach(value => console.log(value))
-        // console.log("MTX")
-        // this.matrix.forEach(value => {
-        //     console.log()
-        //     value.forEach(value1 => console.log(value1))
-        // })
-        // console.log('-------------------------')
+        }
     }
 
-    protected haveAdmitting(positions: position[]): boolean {
+    public haveAdmitting(positions: position[]): boolean {
         let ret = false
         if (this.admitByEmptyStack === false || this.admitByEmptyStack === undefined) {
             positions.forEach(value => {
@@ -512,10 +453,6 @@ export class PDA extends Computer {
 
         this.treeHist = ret.tree ? ret.tree : []
 
-        // console.log("STEP stck: ")
-        // ret.history.forEach(value => value.nodes.forEach(value1 => console.log(value1.stack)))
-        // console.log("STEP admit: ")
-        // console.log(ret.isAdmit)
 
         return ret
 
@@ -567,10 +504,6 @@ export class PDA extends Computer {
     step = this.pdaStep
 
     run = this.pdaRun
-    // (): Step => {
-    //     return { counter: 0, history: [], isAdmit: false, nodes: [] }
-    // }
-    // this.pdaRun
 
     protected _step = (counter: number, tr: number, histori: History[], unitHsit: HistUnit[]
         , histTrace: HistTrace[]
@@ -634,13 +567,6 @@ export class PDA extends Computer {
         } else {
             rmRepeations()
 
-            // console.log(":::::::::::::::::::")
-            // this.curPosition.forEach(value => {
-            //     console.log(value.stmt)
-            //     console.log(value.stack)
-            // })
-            // console.log(":::::::::::::::::::")
-
             this.treeHist.push(unitHsit)
 
             histTrace.push({ byEpsPred, byEpsAfter, byLetter })
@@ -657,13 +583,6 @@ export class PDA extends Computer {
             };
         }
         rmRepeations()
-
-        // console.log(":::::::::::::::::::")
-        // this.curPosition.forEach(value => {
-        //     console.log(value.stmt)
-        //     console.log(value.stack)
-        // })
-        // console.log(":::::::::::::::::::")
 
         histori.push({ nodes: this.toNodes(this.curPosition), by: this.input[counter].value })
         counter++
@@ -698,517 +617,6 @@ export class PDA extends Computer {
                 stack: stack
             })
         })
-    }
-
-    nfaToDfa = (): GraphCore => {
-        const startIds = this.startStatements.map((v) => v.id)
-        const fakeEdges = [...this.edges]
-        startIds.forEach((v) => fakeEdges.push({
-            from: 999,
-            to: v,
-            transitions: new Set<TransitionParams[]>([[{ title: EPS }]]),
-            localValue: []
-        }))
-        const fakeStart = { id: 999, isAdmit: false }
-        const fakeNodes: NodeCore[] = [fakeStart, ...this.nodes]
-        const fakeAutomat = new PDA({ edges: fakeEdges, nodes: fakeNodes }, [fakeStart], [])
-
-        console.log(fakeAutomat)
-
-        const nextStepPosition = (position: position, by: number): position[] => {
-            return fakeAutomat.cellMatrix(position.stmt.idLogic, by).map(v => ({ stmt: v }))
-        }
-
-        const _nextStepPositions = (positions: position[], by: number): position[] => {
-            let acc: position[] = []
-            positions.map((v) =>
-                nextStepPosition(v, by)).forEach((ps) =>
-                    ps.forEach((p) => acc.push(p)))
-            return acc
-        }
-
-        const nextStepPositions = (positions: position[], by: number): position[] => {
-
-            const afterEps = (positions: position[]): position[] => {
-                if (fakeAutomat.epsId === undefined) {
-                    return positions
-                }
-                const acc: position[][] = []
-                const EPStack = new Stack<string>()
-                EPStack.push(EPS)
-                positions.forEach((position) => {
-                    const tmp = fakeAutomat.epsilonStep(position.stmt.idLogic, EPS, EPStack, [])
-                    if (tmp !== undefined) {
-                        acc.push(tmp)
-                    }
-                })
-
-                const flatted: position[] = []
-                acc.forEach((ps) => ps.forEach((p) => flatted.push(p)))
-
-                return flatted
-            }
-
-            return afterEps(_nextStepPositions(afterEps(positions), by))
-        }
-
-        const pop = () => stack.shift()
-
-        const push = (v: position[]): void => {
-            stack.push(v)
-        }
-
-        // this.restart()
-        fakeAutomat.restart()
-
-        const stack: position[][] = []
-        const table: position[][][] = []
-        const set: ImSet<position[]> = new ImSet<position[]>()
-        // const startPos = this.curPosition
-        const startPos = fakeAutomat.curPosition
-
-        push(startPos)
-
-        while (stack.length > 0) {
-            let head = pop()
-            let acc: position[][] = []
-
-
-            if (head === undefined || head.length < 1) {
-                break;
-            }
-            if (set.has(head)) {
-                continue
-            }
-            set.add(head.map((v) => (
-                {
-                    stmt: {
-                        id: v.stmt.id,
-                        idLogic: v.stmt.idLogic,
-                        isAdmit: v.stmt.isAdmit
-                    },
-                    stack: undefined
-                }))
-            )
-
-            fakeAutomat.alphabet.forEach((value) => {
-                if (value !== fakeAutomat.epsId) {
-                    let to: position[] = nextStepPositions(head!, value)
-                    const wasPushed: number[] = []
-                    let __to: position[] = to.map((v) => {
-                        if (wasPushed.includes(v.stmt.idLogic)) {
-                            return {stmt: {id: -100, idLogic: -100, isAdmit: false}, stack: undefined}
-                        }
-                        wasPushed.push(v.stmt.idLogic)
-                        return (
-                            {
-                                stmt: {
-                                    id: v.stmt.id,
-                                    idLogic: v.stmt.idLogic,
-                                    isAdmit: v.stmt.isAdmit
-                                },
-                                stack: undefined
-                            })
-                    }
-                    )
-                    const _to: position[] = __to.filter((v) => v?.stmt.idLogic !== -100)
-                    acc.push(_to)
-                    if (to.length > 0 && !set.has(to) && !set.has(_to)) {
-                        push(_to)
-                    }
-                }
-            })
-            table.push(acc)
-
-            console.log('OOOOOOOOOO')
-            stack.forEach(v => v.forEach(vv => console.log(vv)))
-            console.log('LLLL')
-            set.getStorage().forEach(v => v.forEach(vv => console.log(vv)))
-            console.log('LLLL')
-            console.log()
-        }
-
-        const _edges: EdgeCore[] = []
-        table.forEach((ps, from) => {
-            fakeAutomat.alphabet.forEach((tr, letter) => {
-                if (tr !== fakeAutomat.epsId && ps[tr].length !== 0) {
-                    _edges.push({
-                        from: from,
-                        to: set.getIter(ps[tr]),
-                        transitions: new Set<TransitionParams[]>([[{ title: letter }]])
-                    })
-                }
-            })
-        })
-
-        const nodes: NodeCore[] = set.getStorage().map((v) => ({
-            id: set.getIter(v),
-            isAdmit: fakeAutomat.haveAdmitting(v),
-        }))
-
-        const edges: EdgeCore[] = []
-
-        _edges.sort((a, b) => a.from - b.from || a.to - b.to)
-        const newEdges: EdgeCore[] = []
-        for (let i = 0; i < _edges.length; i++) {
-            const acc: TransitionParams[] = []
-            let delta = 0
-            let j = i
-            while (j < _edges.length && _edges[i].from === _edges[j].from && _edges[i].to === _edges[j].to) {
-                let tmp: string = ''
-                _edges[j].transitions.forEach((_) => _.forEach((v) => tmp = v.title))
-                acc.push({ title: tmp })
-
-                j++
-            }
-            i = j - 1
-
-            edges.push({
-                from: _edges[i].from,
-                to: _edges[i].to,
-                transitions: new Set<TransitionParams[]>([acc])
-            })
-
-        }
-
-        return { nodes: nodes, edges: edges }
-    }
-
-
-    // move to Nfa
-    // nfaToDfa = (): GraphCore => {
-    //     const nextStepPosition = (position: position, by: number): position[] => {
-    //         return this.cellMatrix(position.stmt.idLogic, by).map(v => ({ stmt: v }))
-    //     }
-
-    //     const _nextStepPositions = (positions: position[], by: number): position[] => {
-    //         let acc: position[] = []
-    //         positions.map((v) =>
-    //             nextStepPosition(v, by)).forEach((ps) =>
-    //                 ps.forEach((p) => acc.push(p)))
-    //         return acc
-    //     }
-
-    //     const nextStepPositions = (positions: position[], by: number): position[] => {
-
-    //         const afterEps = (positions: position[]): position[] => {
-    //             if (this.epsId === undefined) {
-    //                 return positions
-    //             }
-    //             const acc: position[][] = []
-    //             const EPStack = new Stack<string>()
-    //             EPStack.push(EPS)
-    //             positions.forEach((position) => {
-    //                 const tmp = this.epsilonStep(position.stmt.idLogic, EPS, EPStack, [])
-    //                 if (tmp !== undefined) {
-    //                     acc.push(tmp)
-    //                 }
-    //             })
-
-    //             const flatted: position[] = []
-    //             acc.forEach((ps) => ps.forEach((p) => flatted.push(p)))
-
-    //             return flatted
-    //         }
-
-    //         return afterEps(_nextStepPositions(afterEps(positions), by))
-    //     }
-
-    //     const pop = () => stack.shift()
-
-    //     const push = (v: position[]): void => {
-    //         stack.push(v)
-    //     }
-
-    //     this.restart()
-
-    //     const stack: position[][] = []
-    //     const table: position[][][] = []
-    //     const set: ImSet<position[]> = new ImSet<position[]>()
-    //     const startPos = this.curPosition
-
-    //     push(startPos)
-
-    //     while (stack.length > 0) {
-    //         let head = pop()
-    //         let acc: position[][] = []
-
-    //         if (head === undefined || head.length < 1) {
-    //             break;
-    //         }
-    //         if (set.has(head)) {
-    //             continue
-    //         }
-    //         set.add(head.map((v) => (
-    //             {
-    //                 stmt: {
-    //                     id: v.stmt.id,
-    //                     idLogic: v.stmt.idLogic,
-    //                     isAdmit: v.stmt.isAdmit
-    //                 },
-    //                 stack: undefined
-    //             }))
-    //         )
-
-    //         this.alphabet.forEach((value) => {
-    //             if (value !== this.epsId) {
-    //                 let to: position[] = nextStepPositions(head!, value)
-    //                 let _to: position[] = to.map((v) => (
-    //                     {
-    //                         stmt: {
-    //                             id: v.stmt.id,
-    //                             idLogic: v.stmt.idLogic,
-    //                             isAdmit: v.stmt.isAdmit
-    //                         },
-    //                         stack: undefined
-    //                     })
-    //                 )
-    //                 acc.push(_to)
-    //                 if (to.length > 0 && !set.has(to) && !set.has(_to)) {
-    //                     push(_to)
-    //                 }
-    //             }
-    //         })
-    //         table.push(acc)
-    //     }
-
-    //     const _edges: EdgeCore[] = []
-    //     table.forEach((ps, from) => {
-    //         this.alphabet.forEach((tr, letter) => {
-    //             if (tr !== this.epsId && ps[tr].length !== 0) {
-    //                 _edges.push({
-    //                     from: from,
-    //                     to: set.getIter(ps[tr]),
-    //                     transitions: new Set<TransitionParams[]>([[{ title: letter }]])
-    //                 })
-    //             }
-    //         })
-    //     })
-
-    //     const nodes: NodeCore[] = set.getStorage().map((v) => ({
-    //         id: set.getIter(v),
-    //         isAdmit: this.haveAdmitting(v),
-    //     }))
-
-    //     const edges: EdgeCore[] = []
-
-    //     _edges.sort((a, b) => a.from - b.from || a.to - b.to)
-    //     const newEdges: EdgeCore[] = []
-    //     for (let i = 0; i < _edges.length; i++) {
-    //         const acc: TransitionParams[] = []
-    //         let delta = 0
-    //         let j = i
-    //         while (j < _edges.length && _edges[i].from === _edges[j].from && _edges[i].to === _edges[j].to) {
-    //             let tmp: string = ''
-    //             _edges[j].transitions.forEach((_) => _.forEach((v) => tmp = v.title))
-    //             acc.push({ title: tmp })
-
-    //             j++
-    //         }
-    //         i = j - 1
-
-    //         edges.push({
-    //             from: _edges[i].from,
-    //             to: _edges[i].to,
-    //             transitions: new Set<TransitionParams[]>([acc])
-    //         })
-
-    //     }
-
-    //     return { nodes: nodes, edges: edges }
-    // }
-
-
-    //https://www.usna.edu/Users/cs/wcbrown/courses/F17SI340/lec/l22/lec.html
-    minimizeDfa = (): GraphEval => {
-        this.restart()
-        const startId = this.curPosition[0].stmt.idLogic
-
-        type groupElement = {
-            number: number
-            node: statement,
-        }
-
-        const cutBy = (by: number): statementCell[] => {
-            const acc: statementCell[] = []
-            this.matrix.forEach((_, it) => acc.push(this.cellMatrix(it, by)[0]))
-            return acc
-        }
-
-        const _lookUp = (group: groupElement[]) => (id: number): groupElement => {
-            return group[id]
-        }
-
-        const _getJump = (table: groupElement[][]) => (by: number) => (id: number): groupElement => {
-            return table[by][id]
-        }
-
-        const createTableT = (zero: groupElement[]): groupElement[][] => {
-            const lookUp = _lookUp(zero)
-            const table: groupElement[][] = []
-            this.alphabet.forEach((tr) => {
-                const acc: groupElement[] = []
-                const cutted = cutBy(tr)
-                cutted.forEach((cell) => {
-                    acc.push(lookUp(cell.idLogic))
-                })
-                table.push(acc)
-            })
-            return table
-        }
-
-        const _updateGroups = (zero: groupElement[]) => (groups: groupElement[][]) => (getJump: (id: number) => groupElement) => (group: groupElement[]): { fst: groupElement[], snd: groupElement[] } => {
-            const jmpGrp = getJump(group[0].node.idLogic).number
-            const newGrp: groupElement[] = []
-            const newNumber = groups.length + 1
-            const toRm: number[] = []
-
-            group.forEach((value, index) => {
-                if (getJump(value.node.idLogic).number !== jmpGrp) {
-                    value.number = newNumber
-                    toRm.push(value.node.idLogic)
-                    newGrp.push(value)
-                }
-            })
-
-            for (let i = 0; i < group.length; i++) {
-                if (toRm.includes(group[i].node.idLogic)) {
-                    group.splice(i, 1)
-                    i--
-                }
-            }
-
-            if (newGrp.length > 0) {
-                groups.push(newGrp)
-                return { fst: group, snd: newGrp }
-            }
-            return { fst: [], snd: [] }
-        }
-
-        const stack: groupElement[][] = []
-
-        const pop = (): groupElement[] | undefined => stack.shift()
-
-        const push = (v: groupElement[]) => stack.push(v)
-
-        const zero: groupElement[] = []
-        const first: groupElement[] = []
-        const second: groupElement[] = []
-        this.statements.forEach((statement) => {
-            let element: groupElement = { number: -1, node: { idLogic: -1, id: -1, isAdmit: false } }
-            if (statement.isAdmit) {
-                element = { number: 1, node: statement }
-                first.push(element)
-            } else {
-                element = { number: 2, node: statement }
-                second.push(element)
-            }
-            zero.push(element)
-        })
-
-        const byEveryLetter =
-            this.matrix.reduce((acc, line) =>
-                acc && line.reduce((accLine: boolean, cells) => accLine && cells.length > 0, acc)
-                , true)
-
-        if (first.length < 1 || !byEveryLetter) {
-            // console.log('CATHTHT')
-            throw new NonMinimizable()
-        }
-        // плюс если есть пробелы в таблице!
-
-        const groups: groupElement[][] = []
-        groups.push(first)
-        groups.push(second)
-
-        const table = createTableT(zero)
-
-        this.alphabet.forEach((tr) => {
-            groups.forEach((stmt) => push(stmt))
-            const getJump = _getJump(table)(tr)
-            const updateGroups = _updateGroups(zero)(groups)(getJump)
-            while (stack.length > 0) {
-                const head = pop()
-                if (head === undefined) {
-                    break
-                }
-                const newGrp = updateGroups(head)
-                if (newGrp.fst.length > 0) {
-                    push(newGrp.fst)
-                    push(newGrp.snd)
-                }
-            }
-        })
-
-        const toPositions = (group: groupElement[]): position[] => group.map((g) => ({ stmt: g.node }))
-
-        const grpAfterJmp = (group: groupElement[], by: number): number => _getJump(table)(by)(group[0].node.idLogic).number
-
-        const nodes: NodeCore[] = groups.map((group) => ({ id: group[0].number, isAdmit: this.haveAdmitting(toPositions(group)) }))
-        const edges: EdgeCore[] = groups.reduce((acc: EdgeCore[], g) => {
-            this.alphabet.forEach((tr, letter) => {
-                acc.push({
-                    from: g[0].number,
-                    to: grpAfterJmp(g, tr),
-                    transitions: new Set<TransitionParams[]>([[{ title: letter }]])
-                })
-            })
-            return acc
-        }, [])
-
-
-        edges.sort((a, b) => a.from - b.from || a.to - b.to)
-        const newEdges: EdgeCore[] = []
-        for (let i = 0; i < edges.length; i++) {
-            const acc: TransitionParams[] = []
-            let delta = 0
-            let j = i
-            while (j < edges.length && edges[i].from === edges[j].from && edges[i].to === edges[j].to) {
-                let tmp: string = ''
-                edges[j].transitions.forEach((_) => _.forEach((v) => tmp = v.title))
-                acc.push({ title: tmp })
-
-                j++
-            }
-            i = j - 1
-
-            newEdges.push({
-                from: edges[i].from,
-                to: edges[i].to,
-                transitions: new Set<TransitionParams[]>([acc])
-            })
-
-        }
-        // for (let i = 0; i < edges.length; i++) {
-        //     const acc: TransitionParams[] = []
-        //     let delta = 0
-        //     for (let j = i; j < edges.length; j++) {
-        //         if (edges[i].from === edges[j].from && edges[i].to === edges[j].to) {
-        //             acc.push(Array.from(edges[j].transitions)[0][0])
-        //             delta++
-        //         }
-        //     }
-        //     edges.push({
-        //         from: edges[i].from,
-        //         to: edges[i].to,
-        //         transitions: new Set<TransitionParams[]>([acc])
-        //     })
-        //     i += delta - 1
-        // }
-
-        // console.log(nodes)
-
-        const startGrp = groups.filter((g) => {
-            const gIds = g.map(v => v.node.idLogic)
-            return gIds.includes(startId)
-        })
-
-        console.log('edgesedgesedgesedgesedges')
-        console.log(edges)
-        console.log('edgesedgesedgesedgesedges')
-        const start = nodes[startGrp[0][0].number - 1]
-
-        return { graphcore: { nodes: nodes, edges: newEdges }, start }
     }
 
 }
@@ -1309,97 +717,3 @@ export class ImSet<T extends Record<any, any>> {
         return this.set
     }
 }
-
-let nfa = new PDA(
-    {
-        nodes: [
-            { id: 1, isAdmit: false },
-            { id: 2, isAdmit: false },
-        ],
-        edges: [
-            {
-                from: 1, to: 1, transitions: new Set([[{ title: '0' }]])
-            },
-            {
-                from: 1, to: 2, transitions: new Set([[{ title: '0' }]])
-            },
-
-            {
-                from: 2, to: 1, transitions: new Set([[{ title: '0' }]])
-            },
-        ]
-    },
-    [
-        { id: 1, isAdmit: false }], [],
-)
-console.log('jaj')
-nfa.nfaToDfa()
-// console.log(nfa.isDeterministic())
-// nfa.step()
-// const aa = nfa.run()
-
-// console.log('_____-_--')
-
-// aa.histTrace!.forEach(v => {
-//     // console.log(v.byEpsPred)
-//     console.log(v.byEpsAfter)
-//     // console.log(v.byLetter)
-//     console.log()
-// })
-
-// const a = nfa.step()
-// console.log()
-// console.log()
-// console.log('Letter')
-// console.log(a.byLetter)
-// console.log('byEpsPred')
-// console.log(a.byEpsPred)
-// console.log('byEpsAfter')
-// console.log(a.byEpsAfter)
-// a.tree?.forEach((v) => {
-//     v.forEach((vv) => console.log(vv.by, vv.from, vv.value))
-//     console.log()
-// })
-
-
-// let nfa = new PDA(
-//     {
-//         nodes: [
-//             {id: 0, isAdmit: false},
-//             {id: 1, isAdmit: false},
-//             {id: 2, isAdmit: false},
-//             {id: 3, isAdmit: false},
-//             {id: 4, isAdmit: true},
-//             {id: 5, isAdmit: true},
-//             {id: 6, isAdmit: false},
-//
-//         ],
-//         edges: [
-//
-//             {from: 0, to: 1, transitions: new Set([    [{title:      '0' }]])},
-//             {from: 0, to: 2, transitions: new Set([    [{title:      '1' }]])},
-//
-//             {from: 1, to: 3, transitions: new Set([    [{title:      '0' }]])},
-//             {from: 1, to: 4, transitions: new Set([    [{title:      '1' }]])},
-//
-//             {from: 2, to: 3, transitions: new Set([    [{title:      '0' }]])},
-//             {from: 2, to: 5, transitions: new Set([    [{title:      '1' }]])},
-//
-//             {from: 3, to: 3, transitions: new Set([    [{title:      '0' }, {title:      '1' }]])},
-//             // {from: 3, to: 3, transitions: new Set([    [{title:      '1' }]])},
-//
-//             {from: 4, to: 4, transitions: new Set([    [{title:      '0' }]])},
-//             {from: 4, to: 6, transitions: new Set([    [{title:      '1' }]])},
-//
-//             {from: 5, to: 5, transitions: new Set([    [{title:      '0' }]])},
-//             {from: 5, to: 6, transitions: new Set([    [{title:      '1' }]])},
-//
-//             {from: 6, to: 6, transitions: new Set([    [{title:      '0' }, {title:      '1' }]])},
-//             // {from: 6, to: 6, transitions: new Set([    [{title:      '1' }]])},
-//
-//
-//         ]
-//     }, [{id: 0, isAdmit: false}], ["0", "1", "0"], )
-//
-// nfa.nfaToDfa()
-// console.log(nfa.run())

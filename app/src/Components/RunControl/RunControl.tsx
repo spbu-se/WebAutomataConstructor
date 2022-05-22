@@ -281,7 +281,7 @@ class RunControl extends React.Component<runControlProps, runControlState> {
                         stackDown: v.stackDown,
                         label: `${v.id}`,
                         isAdmit: v.isAdmit,
-                        isInitial: false,
+                        isInitial: true,
                         isCurrent: false,
                         id: this.props.getLastHistNodeId() + paddingTreeId,
                         idd: v.id
@@ -744,9 +744,8 @@ class RunControl extends React.Component<runControlProps, runControlState> {
             case "dfa":
                 return creatButtons(this.buttonDfa)
             case "nfa": 
-                return creatButtons(this.buttonNfa)
             case "nfa-eps":
-                return creatButtons(this.buttonsTree)
+                return creatButtons(this.buttonNfa)
             case "tm":
                 return creatButtons(this.buttonsNoRun)
             case "pda":

@@ -39,6 +39,9 @@ export abstract class Computer {
         return this.input
     }
 
+    public getAlphabet() {
+        return this.alphabet
+    }
 
     public byEmptyStackAdmt = (isAdmt: boolean): void => {
         throw new Error("PDA attribute")
@@ -138,7 +141,7 @@ export abstract class Computer {
         })
     }
 
-    protected cellMatrix(i: number, j: number): statementCell[] {
+    public cellMatrix(i: number, j: number): statementCell[] {
         return this.matrix[i][j]
     }
 
@@ -147,7 +150,6 @@ export abstract class Computer {
     }
 
     protected constructor(graph: GraphCore, startStatements: NodeCore[]) {
-        // this.setStartStatements(graph, startStatements)
 
         graph.edges
             .sort((a, b) => a.from - b.from)
@@ -162,7 +164,6 @@ export abstract class Computer {
             this.edges[i].localValue = []
             this.edges[i].transitions.forEach(value =>
                 value.forEach(value1 => this.edges[i].localValue!.push(value1))
-                //    this.edges[i].localValue!.push(value)
             )
         }
 

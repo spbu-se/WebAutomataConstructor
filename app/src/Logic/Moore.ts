@@ -1,5 +1,4 @@
 import { node } from "../react-graph-vis-types";
-// import NonDeterministic from "./Exceptions";
 import { EdgeCore, GraphCore, GraphEval, GraphEvalMultiStart, NodeCore, TransitionParams } from "./IGraphTypes";
 import { OutputAutomata } from "./OutputAutomata";
 import { Edge, Step } from "./Types";
@@ -41,55 +40,7 @@ export class Moore extends OutputAutomata {
     }
 
     step = this.oaStep
-    // (): Step => {
-    //     if (!super.isDeterministic()) {
-    //         throw new NonDeterministic()
-    //     }
-    //     return this.oaRun()
-    // }
+
 
     run = this.oaRun
-    // (): Step => {
-    //     if (!super.isDeterministic()) {
-    //         throw new NonDeterministic()
-    //     }
-    //     return this.oaRun()
-    // }
 }
-
-
-// let nfa = new Moore(
-//     {
-//         nodes: [
-//             { id: 0, isAdmit: false, output: 'b' },
-//             { id: 1, isAdmit: false, output: 'b' },
-//             // { id: 2, isAdmit: false, output: 'a' },
-//             // { id: 3, isAdmit: false, output: '3' },
-//         ],
-//         edges: [
-//             // { from: 0, to: 0, transitions: new Set([[{ title: '1' }]]) },
-//             { from: 0, to: 1, transitions: new Set([[{ title: '0' }]]) },
-//             { from: 0, to: 0, transitions: new Set([[{ title: '0' }]]) },
-
-//             // { from: 1, to: 1, transitions: new Set([[{ title: '0' }]]) },
-//             // { from: 1, to: 2, transitions: new Set([[{ title: '1' }]]) },
-
-//             // { from: 2, to: 1, transitions: new Set([[{ title: '0' }]]) },
-//             // { from: 2, to: 0, transitions: new Set([[{ title: '1' }]]) },
-//         ]
-//     }, [{ id: 0, isAdmit: false }], ["0"])
-
-// // console.log(nfa.run())
-// // console.log(nfa.mooreToMealy().start)
-// // edges.forEach(v => console.log(v.from, v.to, v.transitions))
-
-// console.log(nfa.run())
-// // const conv = nfa.moorToMealy()
-// // conv.graphcore.edges.forEach(edge => {
-// //     console.log(edge.from)
-// //     console.log(edge.to)
-// //     console.log(edge.transitions)
-// // })
-// // conv.graphcore.nodes.forEach(node => {
-// //     console.log(node)
-// // })

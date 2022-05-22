@@ -23,23 +23,3 @@ export class DMoore extends Moore {
         return this.oaRun()
     }
 }
-let nfa = new DMoore(
-    {
-        nodes: [
-            { id: 0, isAdmit: false,  },
-            { id: 1, isAdmit: false,   },
-            { id: 2, isAdmit: false,   },
-            // { id: 3, isAdmit: false, output: '3' },
-        ],
-        edges: [
-            { from: 0, to: 0, transitions: new Set([[{ title: '1' }]]) },
-            { from: 0, to: 1, transitions: new Set([[{ title: '1' }]]) },
-
-            // { from: 1, to: 1, transitions: new Set([[{ title: '0' }]]) },
-            // { from: 1, to: 2, transitions: new Set([[{ title: '1' }]]) },
-
-            // { from: 2, to: 1, transitions: new Set([[{ title: '0' }]]) },
-            // { from: 2, to: 0, transitions: new Set([[{ title: '1' }]]) },
-        ]
-    }, [{ id: 0, isAdmit: false }], [])
-console.log(nfa.isDeterministic())

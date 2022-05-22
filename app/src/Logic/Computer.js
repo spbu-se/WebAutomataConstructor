@@ -16,7 +16,6 @@ exports.EPS = 'Epsilon';
 exports.BOTTOM = "Z0";
 var Computer = /** @class */ (function () {
     function Computer(graph, startStatements) {
-        // this.setStartStatements(graph, startStatements)
         var _this = this;
         this.input = [];
         this.alphabet = new Map();
@@ -61,9 +60,7 @@ var Computer = /** @class */ (function () {
             this_1.edges[i].localValue = [];
             this_1.edges[i].transitions.forEach(function (value) {
                 return value.forEach(function (value1) { return _this.edges[i].localValue.push(value1); });
-            }
-            //    this.edges[i].localValue!.push(value)
-            );
+            });
         };
         var this_1 = this;
         for (var i = 0; i < this.edges.length; i++) {
@@ -78,6 +75,9 @@ var Computer = /** @class */ (function () {
     }
     Computer.prototype.getInput = function () {
         return this.input;
+    };
+    Computer.prototype.getAlphabet = function () {
+        return this.alphabet;
     };
     Computer.prototype.getAlphabetFromEdges = function () {
         var _this = this;

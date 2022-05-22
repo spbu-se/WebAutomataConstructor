@@ -722,7 +722,8 @@ class App extends React.Component<appProps, appState> {
 
     ContextMenu = (computerType: null | ComputerType) => {
         switch (computerType) {
-            case "nfa": {
+            case "nfa":
+            case "nfa-eps": {
                 return this.NFAContextMenu
             }
             case "dfa": {

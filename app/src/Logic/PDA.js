@@ -23,18 +23,10 @@ var __assign = (this && this.__assign) || function () {
     };
     return __assign.apply(this, arguments);
 };
-var __spreadArrays = (this && this.__spreadArrays) || function () {
-    for (var s = 0, i = 0, il = arguments.length; i < il; i++) s += arguments[i].length;
-    for (var r = Array(s), k = 0, i = 0; i < il; i++)
-        for (var a = arguments[i], j = 0, jl = a.length; j < jl; j++, k++)
-            r[k] = a[j];
-    return r;
-};
 exports.__esModule = true;
 var Computer_1 = require("./Computer");
 var Stack_1 = require("./Stack");
 var lodash_1 = require("lodash");
-var Exceptions_1 = require("./Exceptions");
 var PDA = /** @class */ (function (_super) {
     __extends(PDA, _super);
     function PDA(graph, startStatements, input, byEmpty) {
@@ -50,26 +42,7 @@ var PDA = /** @class */ (function (_super) {
         _this.haveEpsilon = function () {
             return _this.epsId !== undefined;
         };
-        // isDeterministic0(): boolean {
-        //     let ret = true
-        //     this.matrix.forEach(value => {
-        //         value.forEach(value1 => {
-        //             if (value1.length > 1) {
-        //                 let tmp: statementCell = value1[0]
-        //                 value1.forEach((value2, index) => {
-        //                     if (index !== 0 && tmp.stackDown === undefined && value2.stackDown || index !== 0 && tmp.stackDown === value2.stackDown ) {
-        //                         ret = false
-        //                     }
-        //                 })
-        //             }
-        //         })
-        //     })
-        //     return ret && (!this.haveEpsilon())
-        // }
         _this.getStartStatements = function () {
-            // console.log('this.startStatements')
-            // console.log(this.curPosition)
-            // console.log('this.startStatements')
             var curs = _this.curPosition.map(function (v) {
                 var _a;
                 var stmt = v.stmt;
@@ -89,10 +62,6 @@ var PDA = /** @class */ (function (_super) {
             _this.counterSteps = ret.counter;
             _this.historiStep = ret.history;
             _this.treeHist = ret.tree ? ret.tree : [];
-            // console.log("STEP stck: ")
-            // ret.history.forEach(value => value.nodes.forEach(value1 => console.log(value1.stack)))
-            // console.log("STEP admit: ")
-            // console.log(ret.isAdmit)
             return ret;
         };
         _this.pdaRun = function () {
@@ -122,10 +91,6 @@ var PDA = /** @class */ (function (_super) {
         };
         _this.step = _this.pdaStep;
         _this.run = _this.pdaRun;
-        // (): Step => {
-        //     return { counter: 0, history: [], isAdmit: false, nodes: [] }
-        // }
-        // this.pdaRun
         _this._step = function (counter, tr, histori, unitHsit, histTrace) {
             var byEpsPred = [];
             var byEpsAfter = [];
@@ -184,12 +149,6 @@ var PDA = /** @class */ (function (_super) {
             }
             else {
                 rmRepeations();
-                // console.log(":::::::::::::::::::")
-                // this.curPosition.forEach(value => {
-                //     console.log(value.stmt)
-                //     console.log(value.stack)
-                // })
-                // console.log(":::::::::::::::::::")
                 _this.treeHist.push(unitHsit);
                 histTrace.push({ byEpsPred: byEpsPred, byEpsAfter: byEpsAfter, byLetter: byLetter });
                 return {
@@ -203,12 +162,6 @@ var PDA = /** @class */ (function (_super) {
                 };
             }
             rmRepeations();
-            // console.log(":::::::::::::::::::")
-            // this.curPosition.forEach(value => {
-            //     console.log(value.stmt)
-            //     console.log(value.stack)
-            // })
-            // console.log(":::::::::::::::::::")
             histori.push({ nodes: _this.toNodes(_this.curPosition), by: _this.input[counter].value });
             counter++;
             _this.treeHist.push(unitHsit);
@@ -237,453 +190,10 @@ var PDA = /** @class */ (function (_super) {
                 });
             });
         };
-        _this.nfaToDfa = function () {
-            var startIds = _this.startStatements.map(function (v) { return v.id; });
-            var fakeEdges = __spreadArrays(_this.edges);
-            startIds.forEach(function (v) { return fakeEdges.push({
-                from: 999,
-                to: v,
-                transitions: new Set([[{ title: Computer_1.EPS }]]),
-                localValue: []
-            }); });
-            var fakeStart = { id: 999, isAdmit: false };
-            var fakeNodes = __spreadArrays([fakeStart], _this.nodes);
-            var fakeAutomat = new PDA({ edges: fakeEdges, nodes: fakeNodes }, [fakeStart], []);
-            console.log(fakeAutomat);
-            var nextStepPosition = function (position, by) {
-                return fakeAutomat.cellMatrix(position.stmt.idLogic, by).map(function (v) { return ({ stmt: v }); });
-            };
-            var _nextStepPositions = function (positions, by) {
-                var acc = [];
-                positions.map(function (v) {
-                    return nextStepPosition(v, by);
-                }).forEach(function (ps) {
-                    return ps.forEach(function (p) { return acc.push(p); });
-                });
-                return acc;
-            };
-            var nextStepPositions = function (positions, by) {
-                var afterEps = function (positions) {
-                    if (fakeAutomat.epsId === undefined) {
-                        return positions;
-                    }
-                    var acc = [];
-                    var EPStack = new Stack_1.Stack();
-                    EPStack.push(Computer_1.EPS);
-                    positions.forEach(function (position) {
-                        var tmp = fakeAutomat.epsilonStep(position.stmt.idLogic, Computer_1.EPS, EPStack, []);
-                        if (tmp !== undefined) {
-                            acc.push(tmp);
-                        }
-                    });
-                    var flatted = [];
-                    acc.forEach(function (ps) { return ps.forEach(function (p) { return flatted.push(p); }); });
-                    return flatted;
-                };
-                return afterEps(_nextStepPositions(afterEps(positions), by));
-            };
-            var pop = function () { return stack.shift(); };
-            var push = function (v) {
-                stack.push(v);
-            };
-            // this.restart()
-            fakeAutomat.restart();
-            var stack = [];
-            var table = [];
-            var set = new ImSet();
-            // const startPos = this.curPosition
-            var startPos = fakeAutomat.curPosition;
-            push(startPos);
-            var _loop_1 = function () {
-                var head = pop();
-                var acc = [];
-                if (head === undefined || head.length < 1) {
-                    return "break";
-                }
-                if (set.has(head)) {
-                    return "continue";
-                }
-                set.add(head.map(function (v) { return ({
-                    stmt: {
-                        id: v.stmt.id,
-                        idLogic: v.stmt.idLogic,
-                        isAdmit: v.stmt.isAdmit
-                    },
-                    stack: undefined
-                }); }));
-                fakeAutomat.alphabet.forEach(function (value) {
-                    if (value !== fakeAutomat.epsId) {
-                        var to = nextStepPositions(head, value);
-                        var wasPushed_1 = [];
-                        var __to = to.map(function (v) {
-                            if (wasPushed_1.includes(v.stmt.idLogic)) {
-                                return { stmt: { id: -100, idLogic: -100, isAdmit: false }, stack: undefined };
-                            }
-                            wasPushed_1.push(v.stmt.idLogic);
-                            return ({
-                                stmt: {
-                                    id: v.stmt.id,
-                                    idLogic: v.stmt.idLogic,
-                                    isAdmit: v.stmt.isAdmit
-                                },
-                                stack: undefined
-                            });
-                        });
-                        var _to = __to.filter(function (v) { return (v === null || v === void 0 ? void 0 : v.stmt.idLogic) !== -100; });
-                        acc.push(_to);
-                        if (to.length > 0 && !set.has(to) && !set.has(_to)) {
-                            push(_to);
-                        }
-                    }
-                });
-                table.push(acc);
-                console.log('OOOOOOOOOO');
-                stack.forEach(function (v) { return v.forEach(function (vv) { return console.log(vv); }); });
-                console.log('LLLL');
-                set.getStorage().forEach(function (v) { return v.forEach(function (vv) { return console.log(vv); }); });
-                console.log('LLLL');
-                console.log();
-            };
-            while (stack.length > 0) {
-                var state_1 = _loop_1();
-                if (state_1 === "break")
-                    break;
-            }
-            var _edges = [];
-            table.forEach(function (ps, from) {
-                fakeAutomat.alphabet.forEach(function (tr, letter) {
-                    if (tr !== fakeAutomat.epsId && ps[tr].length !== 0) {
-                        _edges.push({
-                            from: from,
-                            to: set.getIter(ps[tr]),
-                            transitions: new Set([[{ title: letter }]])
-                        });
-                    }
-                });
-            });
-            var nodes = set.getStorage().map(function (v) { return ({
-                id: set.getIter(v),
-                isAdmit: fakeAutomat.haveAdmitting(v)
-            }); });
-            var edges = [];
-            _edges.sort(function (a, b) { return a.from - b.from || a.to - b.to; });
-            var newEdges = [];
-            for (var i = 0; i < _edges.length; i++) {
-                var acc = [];
-                var delta = 0;
-                var j = i;
-                var _loop_2 = function () {
-                    var tmp = '';
-                    _edges[j].transitions.forEach(function (_) { return _.forEach(function (v) { return tmp = v.title; }); });
-                    acc.push({ title: tmp });
-                    j++;
-                };
-                while (j < _edges.length && _edges[i].from === _edges[j].from && _edges[i].to === _edges[j].to) {
-                    _loop_2();
-                }
-                i = j - 1;
-                edges.push({
-                    from: _edges[i].from,
-                    to: _edges[i].to,
-                    transitions: new Set([acc])
-                });
-            }
-            return { nodes: nodes, edges: edges };
-        };
-        // move to Nfa
-        // nfaToDfa = (): GraphCore => {
-        //     const nextStepPosition = (position: position, by: number): position[] => {
-        //         return this.cellMatrix(position.stmt.idLogic, by).map(v => ({ stmt: v }))
-        //     }
-        //     const _nextStepPositions = (positions: position[], by: number): position[] => {
-        //         let acc: position[] = []
-        //         positions.map((v) =>
-        //             nextStepPosition(v, by)).forEach((ps) =>
-        //                 ps.forEach((p) => acc.push(p)))
-        //         return acc
-        //     }
-        //     const nextStepPositions = (positions: position[], by: number): position[] => {
-        //         const afterEps = (positions: position[]): position[] => {
-        //             if (this.epsId === undefined) {
-        //                 return positions
-        //             }
-        //             const acc: position[][] = []
-        //             const EPStack = new Stack<string>()
-        //             EPStack.push(EPS)
-        //             positions.forEach((position) => {
-        //                 const tmp = this.epsilonStep(position.stmt.idLogic, EPS, EPStack, [])
-        //                 if (tmp !== undefined) {
-        //                     acc.push(tmp)
-        //                 }
-        //             })
-        //             const flatted: position[] = []
-        //             acc.forEach((ps) => ps.forEach((p) => flatted.push(p)))
-        //             return flatted
-        //         }
-        //         return afterEps(_nextStepPositions(afterEps(positions), by))
-        //     }
-        //     const pop = () => stack.shift()
-        //     const push = (v: position[]): void => {
-        //         stack.push(v)
-        //     }
-        //     this.restart()
-        //     const stack: position[][] = []
-        //     const table: position[][][] = []
-        //     const set: ImSet<position[]> = new ImSet<position[]>()
-        //     const startPos = this.curPosition
-        //     push(startPos)
-        //     while (stack.length > 0) {
-        //         let head = pop()
-        //         let acc: position[][] = []
-        //         if (head === undefined || head.length < 1) {
-        //             break;
-        //         }
-        //         if (set.has(head)) {
-        //             continue
-        //         }
-        //         set.add(head.map((v) => (
-        //             {
-        //                 stmt: {
-        //                     id: v.stmt.id,
-        //                     idLogic: v.stmt.idLogic,
-        //                     isAdmit: v.stmt.isAdmit
-        //                 },
-        //                 stack: undefined
-        //             }))
-        //         )
-        //         this.alphabet.forEach((value) => {
-        //             if (value !== this.epsId) {
-        //                 let to: position[] = nextStepPositions(head!, value)
-        //                 let _to: position[] = to.map((v) => (
-        //                     {
-        //                         stmt: {
-        //                             id: v.stmt.id,
-        //                             idLogic: v.stmt.idLogic,
-        //                             isAdmit: v.stmt.isAdmit
-        //                         },
-        //                         stack: undefined
-        //                     })
-        //                 )
-        //                 acc.push(_to)
-        //                 if (to.length > 0 && !set.has(to) && !set.has(_to)) {
-        //                     push(_to)
-        //                 }
-        //             }
-        //         })
-        //         table.push(acc)
-        //     }
-        //     const _edges: EdgeCore[] = []
-        //     table.forEach((ps, from) => {
-        //         this.alphabet.forEach((tr, letter) => {
-        //             if (tr !== this.epsId && ps[tr].length !== 0) {
-        //                 _edges.push({
-        //                     from: from,
-        //                     to: set.getIter(ps[tr]),
-        //                     transitions: new Set<TransitionParams[]>([[{ title: letter }]])
-        //                 })
-        //             }
-        //         })
-        //     })
-        //     const nodes: NodeCore[] = set.getStorage().map((v) => ({
-        //         id: set.getIter(v),
-        //         isAdmit: this.haveAdmitting(v),
-        //     }))
-        //     const edges: EdgeCore[] = []
-        //     _edges.sort((a, b) => a.from - b.from || a.to - b.to)
-        //     const newEdges: EdgeCore[] = []
-        //     for (let i = 0; i < _edges.length; i++) {
-        //         const acc: TransitionParams[] = []
-        //         let delta = 0
-        //         let j = i
-        //         while (j < _edges.length && _edges[i].from === _edges[j].from && _edges[i].to === _edges[j].to) {
-        //             let tmp: string = ''
-        //             _edges[j].transitions.forEach((_) => _.forEach((v) => tmp = v.title))
-        //             acc.push({ title: tmp })
-        //             j++
-        //         }
-        //         i = j - 1
-        //         edges.push({
-        //             from: _edges[i].from,
-        //             to: _edges[i].to,
-        //             transitions: new Set<TransitionParams[]>([acc])
-        //         })
-        //     }
-        //     return { nodes: nodes, edges: edges }
-        // }
-        //https://www.usna.edu/Users/cs/wcbrown/courses/F17SI340/lec/l22/lec.html
-        _this.minimizeDfa = function () {
-            _this.restart();
-            var startId = _this.curPosition[0].stmt.idLogic;
-            var cutBy = function (by) {
-                var acc = [];
-                _this.matrix.forEach(function (_, it) { return acc.push(_this.cellMatrix(it, by)[0]); });
-                return acc;
-            };
-            var _lookUp = function (group) { return function (id) {
-                return group[id];
-            }; };
-            var _getJump = function (table) { return function (by) { return function (id) {
-                return table[by][id];
-            }; }; };
-            var createTableT = function (zero) {
-                var lookUp = _lookUp(zero);
-                var table = [];
-                _this.alphabet.forEach(function (tr) {
-                    var acc = [];
-                    var cutted = cutBy(tr);
-                    cutted.forEach(function (cell) {
-                        acc.push(lookUp(cell.idLogic));
-                    });
-                    table.push(acc);
-                });
-                return table;
-            };
-            var _updateGroups = function (zero) { return function (groups) { return function (getJump) { return function (group) {
-                var jmpGrp = getJump(group[0].node.idLogic).number;
-                var newGrp = [];
-                var newNumber = groups.length + 1;
-                var toRm = [];
-                group.forEach(function (value, index) {
-                    if (getJump(value.node.idLogic).number !== jmpGrp) {
-                        value.number = newNumber;
-                        toRm.push(value.node.idLogic);
-                        newGrp.push(value);
-                    }
-                });
-                for (var i = 0; i < group.length; i++) {
-                    if (toRm.includes(group[i].node.idLogic)) {
-                        group.splice(i, 1);
-                        i--;
-                    }
-                }
-                if (newGrp.length > 0) {
-                    groups.push(newGrp);
-                    return { fst: group, snd: newGrp };
-                }
-                return { fst: [], snd: [] };
-            }; }; }; };
-            var stack = [];
-            var pop = function () { return stack.shift(); };
-            var push = function (v) { return stack.push(v); };
-            var zero = [];
-            var first = [];
-            var second = [];
-            _this.statements.forEach(function (statement) {
-                var element = { number: -1, node: { idLogic: -1, id: -1, isAdmit: false } };
-                if (statement.isAdmit) {
-                    element = { number: 1, node: statement };
-                    first.push(element);
-                }
-                else {
-                    element = { number: 2, node: statement };
-                    second.push(element);
-                }
-                zero.push(element);
-            });
-            var byEveryLetter = _this.matrix.reduce(function (acc, line) {
-                return acc && line.reduce(function (accLine, cells) { return accLine && cells.length > 0; }, acc);
-            }, true);
-            if (first.length < 1 || !byEveryLetter) {
-                // console.log('CATHTHT')
-                throw new Exceptions_1.NonMinimizable();
-            }
-            // плюс если есть пробелы в таблице!
-            var groups = [];
-            groups.push(first);
-            groups.push(second);
-            var table = createTableT(zero);
-            _this.alphabet.forEach(function (tr) {
-                groups.forEach(function (stmt) { return push(stmt); });
-                var getJump = _getJump(table)(tr);
-                var updateGroups = _updateGroups(zero)(groups)(getJump);
-                while (stack.length > 0) {
-                    var head = pop();
-                    if (head === undefined) {
-                        break;
-                    }
-                    var newGrp = updateGroups(head);
-                    if (newGrp.fst.length > 0) {
-                        push(newGrp.fst);
-                        push(newGrp.snd);
-                    }
-                }
-            });
-            var toPositions = function (group) { return group.map(function (g) { return ({ stmt: g.node }); }); };
-            var grpAfterJmp = function (group, by) { return _getJump(table)(by)(group[0].node.idLogic).number; };
-            var nodes = groups.map(function (group) { return ({ id: group[0].number, isAdmit: _this.haveAdmitting(toPositions(group)) }); });
-            var edges = groups.reduce(function (acc, g) {
-                _this.alphabet.forEach(function (tr, letter) {
-                    acc.push({
-                        from: g[0].number,
-                        to: grpAfterJmp(g, tr),
-                        transitions: new Set([[{ title: letter }]])
-                    });
-                });
-                return acc;
-            }, []);
-            edges.sort(function (a, b) { return a.from - b.from || a.to - b.to; });
-            var newEdges = [];
-            for (var i = 0; i < edges.length; i++) {
-                var acc = [];
-                var delta = 0;
-                var j = i;
-                var _loop_3 = function () {
-                    var tmp = '';
-                    edges[j].transitions.forEach(function (_) { return _.forEach(function (v) { return tmp = v.title; }); });
-                    acc.push({ title: tmp });
-                    j++;
-                };
-                while (j < edges.length && edges[i].from === edges[j].from && edges[i].to === edges[j].to) {
-                    _loop_3();
-                }
-                i = j - 1;
-                newEdges.push({
-                    from: edges[i].from,
-                    to: edges[i].to,
-                    transitions: new Set([acc])
-                });
-            }
-            // for (let i = 0; i < edges.length; i++) {
-            //     const acc: TransitionParams[] = []
-            //     let delta = 0
-            //     for (let j = i; j < edges.length; j++) {
-            //         if (edges[i].from === edges[j].from && edges[i].to === edges[j].to) {
-            //             acc.push(Array.from(edges[j].transitions)[0][0])
-            //             delta++
-            //         }
-            //     }
-            //     edges.push({
-            //         from: edges[i].from,
-            //         to: edges[i].to,
-            //         transitions: new Set<TransitionParams[]>([acc])
-            //     })
-            //     i += delta - 1
-            // }
-            // console.log(nodes)
-            var startGrp = groups.filter(function (g) {
-                var gIds = g.map(function (v) { return v.node.idLogic; });
-                return gIds.includes(startId);
-            });
-            console.log('edgesedgesedgesedgesedges');
-            console.log(edges);
-            console.log('edgesedgesedgesedgesedges');
-            var start = nodes[startGrp[0][0].number - 1];
-            return { graphcore: { nodes: nodes, edges: newEdges }, start: start };
-        };
         _this.admitByEmptyStack = byEmpty;
         _this.epsId = _this.alphabet.get(Computer_1.EPS);
-        // this.createMatrix()
-        // this.matrix.forEach(value => {
-        //     value.forEach(value1 => value1.forEach(value2 => {
-        //         console.log(value2.idLogic)
-        //         console.log(value2.stackDown)
-        //         console.log(value2.stackPush)
-        //         console.log(value2.stack)
-        //
-        //     }))
-        // })
         _this.stack.push(Computer_1.BOTTOM);
-        _this.curPosition = []; //{stack: new Stack<string>(), stmt: startStatements}
+        _this.curPosition = [];
         _this.treeHist = [];
         startStatements.forEach(function (value) {
             var stack = new Stack_1.Stack();
@@ -698,25 +208,8 @@ var PDA = /** @class */ (function (_super) {
             _this.curPosition.forEach(function (value) {
                 _this.cycleEps(value.stmt.idLogic, value.stack);
             });
-            ////// this.cycleEps(this.curPosition[0].stmt.idLogic, this.curPosition[0].stack!)
-        } //
+        }
         return _this;
-        // console.log('{{{{{{{{{{}}}}}}}}}}')
-        // console.log(this.curPosition)
-        // console.log(this.startStatements)
-        // console.log('{{{{{{{{{{}}}}}}}}}}')
-        // console.log('-------------------------')
-        // console.log(this.isDeterministic())
-        // console.log("ALPHBT")
-        // this.alphabet.forEach((value, key) => console.log(value, key))
-        // console.log("STMTS")
-        // this.statements.forEach(value => console.log(value))
-        // console.log("MTX")
-        // this.matrix.forEach(value => {
-        //     console.log()
-        //     value.forEach(value1 => console.log(value1))
-        // })
-        // console.log('-------------------------')
     }
     PDA.prototype.copyPushList = function (value) {
         var _a;
@@ -822,8 +315,6 @@ var PDA = /** @class */ (function (_super) {
         var permutes = this.cellMatrix(curLId, this.epsId)[0] !== undefined
             ? PDA.permute0(this.cellMatrix(curLId, this.epsId))
             : [(this.cellMatrix(curLId, this.epsId))];
-        // permutes.push(this.cellMatrix(curLId, this.epsId))
-        // let permutes: statementCell[][] = PDA.permute(this.cellMatrix(curLId, this.epsId))
         var cycle = function (cell, idx, idLogic, stack) {
             visited[idx] = true;
             cell.forEach(function (value, index) {
@@ -908,12 +399,9 @@ var PDA = /** @class */ (function (_super) {
                 by: Computer_1.EPS,
                 oldStack: stack,
                 stackDown: stackDown
-                /////////
-                //?
             });
             hist.push({ by: Computer_1.EPS, from: this.nodes[curLId], value: this.nodes[stmt.idLogic] });
         }
-        // hist.push(histUnit)
         return positions;
     };
     PDA.prototype.matchPushEpsVal = function (value, newStack) {
@@ -963,7 +451,6 @@ var PDA = /** @class */ (function (_super) {
                         by: getLetter(transformedInput),
                         oldStack: stack,
                         stackDown: stackDown
-                        //? 
                     });
                     hist.push({ by: getLetter(transformedInput), from: _this.nodes[curLId], value: _this.nodes[value.idLogic] });
                     break;
@@ -978,7 +465,6 @@ var PDA = /** @class */ (function (_super) {
                         by: getLetter(transformedInput),
                         oldStack: stack,
                         stackDown: Computer_1.EPS
-                        //? 
                     });
                     hist.push({ by: getLetter(transformedInput), from: _this.nodes[curLId], value: _this.nodes[value.idLogic] });
                     break;
@@ -1124,88 +610,3 @@ var ImSet = /** @class */ (function () {
     return ImSet;
 }());
 exports.ImSet = ImSet;
-var nfa = new PDA({
-    nodes: [
-        { id: 1, isAdmit: false },
-        { id: 2, isAdmit: false },
-    ],
-    edges: [
-        {
-            from: 1, to: 1, transitions: new Set([[{ title: '0' }]])
-        },
-        {
-            from: 1, to: 2, transitions: new Set([[{ title: '0' }]])
-        },
-        {
-            from: 2, to: 1, transitions: new Set([[{ title: '0' }]])
-        },
-    ]
-}, [
-    { id: 1, isAdmit: false }
-], []);
-console.log('jaj');
-nfa.nfaToDfa();
-// console.log(nfa.isDeterministic())
-// nfa.step()
-// const aa = nfa.run()
-// console.log('_____-_--')
-// aa.histTrace!.forEach(v => {
-//     // console.log(v.byEpsPred)
-//     console.log(v.byEpsAfter)
-//     // console.log(v.byLetter)
-//     console.log()
-// })
-// const a = nfa.step()
-// console.log()
-// console.log()
-// console.log('Letter')
-// console.log(a.byLetter)
-// console.log('byEpsPred')
-// console.log(a.byEpsPred)
-// console.log('byEpsAfter')
-// console.log(a.byEpsAfter)
-// a.tree?.forEach((v) => {
-//     v.forEach((vv) => console.log(vv.by, vv.from, vv.value))
-//     console.log()
-// })
-// let nfa = new PDA(
-//     {
-//         nodes: [
-//             {id: 0, isAdmit: false},
-//             {id: 1, isAdmit: false},
-//             {id: 2, isAdmit: false},
-//             {id: 3, isAdmit: false},
-//             {id: 4, isAdmit: true},
-//             {id: 5, isAdmit: true},
-//             {id: 6, isAdmit: false},
-//
-//         ],
-//         edges: [
-//
-//             {from: 0, to: 1, transitions: new Set([    [{title:      '0' }]])},
-//             {from: 0, to: 2, transitions: new Set([    [{title:      '1' }]])},
-//
-//             {from: 1, to: 3, transitions: new Set([    [{title:      '0' }]])},
-//             {from: 1, to: 4, transitions: new Set([    [{title:      '1' }]])},
-//
-//             {from: 2, to: 3, transitions: new Set([    [{title:      '0' }]])},
-//             {from: 2, to: 5, transitions: new Set([    [{title:      '1' }]])},
-//
-//             {from: 3, to: 3, transitions: new Set([    [{title:      '0' }, {title:      '1' }]])},
-//             // {from: 3, to: 3, transitions: new Set([    [{title:      '1' }]])},
-//
-//             {from: 4, to: 4, transitions: new Set([    [{title:      '0' }]])},
-//             {from: 4, to: 6, transitions: new Set([    [{title:      '1' }]])},
-//
-//             {from: 5, to: 5, transitions: new Set([    [{title:      '0' }]])},
-//             {from: 5, to: 6, transitions: new Set([    [{title:      '1' }]])},
-//
-//             {from: 6, to: 6, transitions: new Set([    [{title:      '0' }, {title:      '1' }]])},
-//             // {from: 6, to: 6, transitions: new Set([    [{title:      '1' }]])},
-//
-//
-//         ]
-//     }, [{id: 0, isAdmit: false}], ["0", "1", "0"], )
-//
-// nfa.nfaToDfa()
-// console.log(nfa.run())

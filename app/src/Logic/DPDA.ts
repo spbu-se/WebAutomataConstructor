@@ -28,15 +28,7 @@ export class DPDA extends PDA {
     constructor(graph: GraphCore, startStatement: NodeCore[], input: string[], byEmpty?: boolean) {
         super(graph, startStatement, input, byEmpty)
         this.setInput(input)
-        // if (!super.isDeterministic()) {
-        //     throw new Error("Is not determenistic")
-        // }
     }
-
-    // step = this.pdaStep
-
-    // run = this.pdaRun
-
 
     step = (): Step => {
         if (!super.isDeterministic()) {

@@ -10,7 +10,6 @@ export type Output = string
 
 export type Edge = {
     localValue: TransitionParams[]
-        // string[]
 } & EdgeCore
 
 export type statement = {
@@ -24,8 +23,8 @@ export type History = {
 
 export interface HistUnit {
     by: any,
-    from: NodeCore //number, //NodeCore
-    value: NodeCore // number //NodeCore
+    from: NodeCore 
+    value: NodeCore
     
 }
 
