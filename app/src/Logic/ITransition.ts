@@ -1,7 +1,5 @@
-type functionTransition = (func: any) => any // string/set<string>/... ???
+type functionTransition = (func: any) => any 
 
 export interface Transition {
     getTransitionFromFunc: (foo : functionTransition) => Set<string>
-    //foo: { (): void, (): number, .... } []
-//...(....) => Set<string>
 }

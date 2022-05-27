@@ -1,7 +1,6 @@
 import { Interface } from "readline";
 import { edge } from "../react-graph-vis-types";
 import { Computer, statementCell } from "./Computer";
-// import {NonDeterministic} from "./Exceptions";
 import { EdgeCore, GraphCore, GraphEvalMultiStart, NodeCore, TransitionParams } from "./IGraphTypes";
 import { OutputAutomata } from "./OutputAutomata";
 import { Output, position, statement, Step } from "./Types";

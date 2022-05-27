@@ -120,7 +120,6 @@ export abstract class Computer {
                     stDwn = EPS
                     stPsh = [EPS]
                 }
-                // console.log(statementTo.move)
                 this.matrix[statementFrom.idLogic][letterId].push({
                     ...statementTo,
                     stackDown: stDwn,

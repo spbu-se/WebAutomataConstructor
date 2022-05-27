@@ -41,7 +41,6 @@ class NodeControl extends React.Component<nodeControlProps, nodeControlState> {
         if (this.props.node?.id !== prevState.prevNodeId) {
             this.setState({
                 label: this.props.node?.label || "",
-                    // + ((" | " + this.props.node?.output || "")) 
                     
                 isAdmit: this.props.node?.isAdmit || false,
                 isInitial: this.props.node?.isInitial || false,

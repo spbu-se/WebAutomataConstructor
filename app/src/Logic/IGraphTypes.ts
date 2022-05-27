@@ -31,10 +31,6 @@ export interface EdgeCore  {
     from: number
     to: number
     transitions: Set<TransitionParams[]>
-
-    // transitions: Set<string>
-    // stackDown?: string
-    // stackPush?: string[]
 }
 
 export interface GraphCore  {

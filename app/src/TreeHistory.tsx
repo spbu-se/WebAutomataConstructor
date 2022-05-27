@@ -50,7 +50,6 @@ export const MyUseKey = (key: any, condition: boolean) => {
 }
 
 export const TreeHistory = (props: PropsVisNet) => {
-    // A reference to the div rendered by this component
     const [domNode, setdomNode] = useState(useRef<HTMLDivElement>(null));
 
     const [options, setOptions] = useState<Options>({
@@ -60,13 +59,6 @@ export const TreeHistory = (props: PropsVisNet) => {
                 type: "discrete",
                 roundness: 0.5
             },
-            // color: {
-            //     //color:'#848484',
-            //     highlight:'#848484',
-            //     hover: '#d3d2cd',
-            //     inherit: true,
-            //     opacity:1.0
-            // },
             color: "#000000",
             width: 0.5,
             arrows: {
@@ -82,31 +74,26 @@ export const TreeHistory = (props: PropsVisNet) => {
             addEdge: function (data: { from: any; to: any; }, callback: (arg0: any) => void) {
                 console.log('add edge', data);
                 callback(data);
-                // after each adding you will be back to addEdge mode
+
                 setKeyPressed(false)
 
                 props.network.current.disableEditMode()
-                // addEdgeMode();
             }
 
         },
         interaction: {
-            // dragView: false,
             keyboard: false,
             dragNodes: true,
         },
         layout: {
          hierarchical: {
-        //  direction: directionInput,
          treeSpacing:200,
          direction: 'LR',
          parentCentralization: false,
          sortMethod: 'directed',
          shakeTowards: 'roots'
-        //  directed
       },
     },
-        // layout: { improvedLayout: false },
         nodes: {
             shapeProperties: {
                 interpolation: false
@@ -124,7 +111,6 @@ export const TreeHistory = (props: PropsVisNet) => {
                     background: "#ffffff"
                 }
             },
-            // color: "#ffffff",
         },
         physics: {
             enabled: false
@@ -141,10 +127,7 @@ export const TreeHistory = (props: PropsVisNet) => {
                     mouseX: event.clientX - 2,
                     mouseY: event.clientY - 4,
                 }
-                : // repeated contextmenu when it is already open closes it with Chrome 84 on Ubuntu
-                // Other native context menus might behave different.
-                // With this behavior we prevent contextmenu from the backdrop to re-locale existing context menus.
-                null,
+                : null,
         );
     };
 
@@ -222,7 +205,7 @@ export const TreeHistory = (props: PropsVisNet) => {
 
 
     }, [domNode, props.data, props.network, options]);
-    // 
+    
     const refContainer = () => {
         return (
             <div id={"vnc"}

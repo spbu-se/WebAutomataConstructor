@@ -123,7 +123,6 @@ export abstract class OutputAutomata extends Computer {
                 cur: this.nodes[v.idLogic], 
                 from: this.nodes[position.stmt.idLogic]
             }
-            // return ({ position: { stmt: v }, output: v.output })
             return ({ position: ret, output: v.output })
         })
     }
@@ -211,25 +210,3 @@ export abstract class OutputAutomata extends Computer {
     }
 
 }
-
-
-// let nfa = new Moor(
-//     {
-//         nodes: [
-//             { id: 0, isAdmit: false, output: '0' },
-//             { id: 1, isAdmit: false, output: '1' },
-//             { id: 2, isAdmit: false, output: '2' },
-//             { id: 3, isAdmit: false, output: '3' },
-//         ],
-//         edges: [
-//             { from: 0, to: 1, transitions: new Set([[{ title: '5' }]]) },
-//             { from: 1, to: 2, transitions: new Set([[{ title: '10'}]]) },
-//             { from: 2, to: 3, transitions: new Set([[{ title: '10'}]]) },
-//             { from: 3, to: 3, transitions: new Set([[{ title: '5' }]]) },
-        
-//         ]
-//     }, [{ id: 0, isAdmit: false }], ["5"])
-
-// console.log(nfa.run())
-// console.log(nfa.step())
-// console.log(nfa.step())

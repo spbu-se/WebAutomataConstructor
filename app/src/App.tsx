@@ -17,7 +17,7 @@ import RunControl from "./Components/RunControl/RunControl";
 import WelcomePopout from "./Components/WelcomePopout/WelcomePopout";
 import Paper from "@mui/material/Paper";
 import SavingPopout from "./Components/SavingPopout/SavingPopout";
-import {Route, Routes, HashRouter} from "react-router-dom";
+import { Route, Routes, HashRouter } from "react-router-dom";
 import LoginPage from "./Components/Pages/LoginPage/LoginPage";
 import RegisterPage from "./Components/Pages/RegisterPage/RegisterPage";
 import AppHeader from "./Components/AppHeader/AppHeader";
@@ -29,15 +29,16 @@ import {
     DataSet,
     Network,
 } from "vis-network/standalone/esm/vis-network";
-import {Output} from './Logic/Types';
-import {NonDetermenisticModal, NonMinimizableModal} from './ErrorModal';
-import {TreeHistory} from './TreeHistory';
+import { Output } from './Logic/Types';
+import { NonDetermenisticModal, NonMinimizableModal } from './ErrorModal';
+import { TreeHistory } from './TreeHistory';
 import MePage from "./Components/Pages/MePage/MePage";
-import {UserModel} from "./Models/UserModel";
+import { UserModel } from "./Models/UserModel";
 import ApiGetUser from "./Api/apiGetUser";
 import UserPage from './Components/Pages/UserPage/UserPage';
-
-// import {ContextMenu, MenuItem as CotextMenuItem, ContextMenuTrigger} from "react-contextmenu";
+import { computerAction, controlAction } from './action';
+import { Ribbon } from './Ribbon';
+import { ContextMenu } from './ContextMenu';
 
 interface appProps {
 }
@@ -77,56 +78,6 @@ interface appState {
 }
 
 export const ComputerTypeContext = React.createContext<null | ComputerType>(null);
-
-export const computerAction = {
-    init: (() => { }),
-    nfaToDfa: (() => { }),
-    minimizeDfa: (() => { }),
-    mooreToMealy: (() => { }),
-    mealyToMoore: (() => { })
-}
-
-export const controlAction = {
-    changerByStack: (() => { }),
-    run: (() => { }),
-    step: (() => { }),
-    reset: (() => { }),
-}
-
-
-
-interface RibbonProps {
-    computerType: null | ComputerType,
-    wasComputerResetted: boolean,
-    mem: string[] | undefined,
-    ptr: number | undefined
-    memRef: React.RefObject<HTMLDivElement>
-}
-
-export const Ribbon = (props: RibbonProps) => {
-    return (
-        props.computerType === "tm" && props.wasComputerResetted
-            ?
-            <div className="app__mem_ribbon">
-                {
-                    props.mem?.map((value, index) =>
-                        <div
-                            className="app__mem_cell"
-                            style={{ border: `${index === props.ptr ? "#0041d0" : "#000000"} 2px solid` }}
-                        >
-                            {Math.abs(Math.abs(index) - Math.abs(props.ptr!)) <= 5
-                                ? <div ref={props.memRef} />
-                                : <div />
-                            }
-                            {value}
-                            {props.memRef?.current?.scrollIntoView({ behavior: 'smooth' })}
-                        </div>
-                    )
-                }
-            </div>
-            : <div />
-    )
-}
 
 class App extends React.Component<appProps, appState> {
 
@@ -180,7 +131,7 @@ class App extends React.Component<appProps, appState> {
             errIsNonMinimizable: false,
 
             showTree: false,
-            History: () => ( <div></div> ),
+            History: () => (<div></div>),
             user: null
         };
     }
@@ -226,14 +177,14 @@ class App extends React.Component<appProps, appState> {
 
     logout = () => {
         document.cookie = `jwt=""; path=/; secure; max-age=-1`;
-        this.setState({isLogin: false});
+        this.setState({ isLogin: false });
         this.updateCurrentUser();
     }
 
     updateCurrentUser = async () => {
         await ApiGetUser()
-            .then(user => this.setState({user: user}))
-            .catch(() => this.setState({user: null}));
+            .then(user => this.setState({ user: user }))
+            .catch(() => this.setState({ user: null }));
     }
 
     setUser = (user: UserModel) => {
@@ -438,353 +389,50 @@ class App extends React.Component<appProps, appState> {
         this.setState({ mem: mem, ptr: ptr });
     }
 
-    NFAContextMenu = (handleContextMenu: any, handleClose: any) => {
-        return (
-            <div onContextMenu={handleContextMenu}>
-                <div onClick={handleClose}>
-                    <button
-                        className={"button-context-menu"}
-                        onClick={controlAction.step}
-                    >
-                        {"Шаг"}
-                    </button>
-                </div>
-                <div onClick={handleClose}>
-                    <button
-                        className={"button-context-menu"}
-                        onClick={controlAction.run}
-                    >
-                        {"Запуск"}
-                    </button>
-                </div>
-                <div onClick={handleClose}>
-                    <button
-                        className={"button-context-menu"}
-                        onClick={controlAction.reset}
-                    >
-                        {"Сброс"}
-                    </button>
-                </div>
-                <div onClick={handleClose}>
-                    <button
-                        className={"button-context-menu"}
-                        onClick={computerAction.nfaToDfa}
-                    >
-                        {"НКА->ДКА"}
-                    </button>
-                </div>
-                <div onClick={handleClose}>
-                    <button
-                        className={"button-context-menu"}
-                        onClick={this.treeVisible}
-                    >
-                        {this.treeContextInfo()}
-                    </button>
-                </div>
-            </div>
-        )
-    }
-
     treeVisible = () => {
-        this.setState({ showTree: !this.state.showTree})
+        this.setState({ showTree: !this.state.showTree })
         return !this.state.showTree
     }
 
     treeContextInfo = () => (this.state.showTree ? "Закрыть" : "Открыть") + " дерево вычислений"
-
-    DFAContextMenu = (handleContextMenu: any, handleClose: any) => {
-        return (
-            <div onContextMenu={handleContextMenu}>
-                <div onClick={handleClose}>
-                    <button
-                        className={"button-context-menu"}
-                        onClick={controlAction.step}
-                    >
-                        {"Шаг"}
-                    </button>
-                </div>
-                <div onClick={handleClose}>
-                    <button
-                        className={"button-context-menu"}
-                        onClick={controlAction.run}
-                    >
-                        {"Запуск"}
-                    </button>
-                </div>
-                <div onClick={handleClose}>
-                    <button
-                        className={"button-context-menu"}
-                        onClick={controlAction.reset}
-                    >
-                        {"Сброс"}
-                    </button>
-                </div>
-                <div onClick={handleClose}>
-                    <button
-                        className={"button-context-menu"}
-                        onClick={computerAction.minimizeDfa}
-                    >
-                        {"Минимизровать"}
-                    </button>
-                </div>
-                <div onClick={handleClose}>
-                    <button
-                        className={"button-context-menu"}
-                        onClick={this.treeVisible}
-                    >
-                        {this.treeContextInfo()}
-                    </button>
-                </div>
-            </div>
-        )
-    }
-
-    MealyContextMenu = (handleContextMenu: any, handleClose: any) => {
-        return (
-            <div onContextMenu={handleContextMenu}>
-                <div onClick={handleClose}>
-                    <button
-                        className={"button-context-menu"}
-                        onClick={controlAction.step}
-                    >
-                        {"Шаг"}
-                    </button>
-                </div>
-                <div onClick={handleClose}>
-                    <button
-                        className={"button-context-menu"}
-                        onClick={controlAction.run}
-                    >
-                        {"Запуск"}
-                    </button>
-                </div>
-                <div onClick={handleClose}>
-                    <button
-                        className={"button-context-menu"}
-                        onClick={controlAction.reset}
-                    >
-                        {"Сброс"}
-                    </button>
-                </div>
-                <div onClick={handleClose}>
-                    <button
-                        className={"button-context-menu"}
-                        onClick={computerAction.mealyToMoore}
-                    >
-                        {"Мур"}
-                    </button>
-                </div>
-                <div onClick={handleClose}>
-                    <button
-                        className={"button-context-menu"}
-                        onClick={this.treeVisible}
-                    >
-                        {this.treeContextInfo()}
-                    </button>
-                </div>
-            </div>
-        )
-    }
-
-    MooreContextMenu = (handleContextMenu: any, handleClose: any) => {
-        return (
-            <div onContextMenu={handleContextMenu}>
-                <div onClick={handleClose}>
-                    <button
-                        className={"button-context-menu"}
-                        onClick={controlAction.step}
-                    >
-                        {"Шаг"}
-                    </button>
-                </div>
-                <div onClick={handleClose}>
-                    <button
-                        className={"button-context-menu"}
-                        onClick={controlAction.run}
-                    >
-                        {"Запуск"}
-                    </button>
-                </div>
-                <div onClick={handleClose}>
-                    <button
-                        className={"button-context-menu"}
-                        onClick={controlAction.reset}
-                    >
-                        {"Сброс"}
-                    </button>
-                </div>
-                <div onClick={handleClose}>
-                    <button
-                        className={"button-context-menu"}
-                        onClick={computerAction.mooreToMealy}
-                    >
-                        {"Мили"}
-                    </button>
-                </div>
-                <div onClick={handleClose}>
-                    <button
-                        className={"button-context-menu"}
-                        onClick={this.treeVisible}
-                    >
-                        {this.treeContextInfo()}
-                    </button>
-                </div>
-            </div>
-        )
-    }
-
-    PDAContextMenu = (handleContextMenu: any, handleClose: any) => {
-        return (
-            <div onContextMenu={handleContextMenu}>
-                <div onClick={handleClose}>
-                    <button
-                        className={"button-context-menu"}
-                        onClick={controlAction.step}
-                    >
-                        {"Шаг"}
-                    </button>
-                </div>
-                <div onClick={handleClose}>
-                    <button
-                        className={"button-context-menu"}
-                        onClick={controlAction.run}
-                    >
-                        {"Запуск"}
-                    </button>
-                </div>
-                <div onClick={handleClose}>
-                    <button
-                        className={"button-context-menu"}
-                        onClick={controlAction.reset}
-                    >
-                        {"Сброс"}
-                    </button>
-                </div>
-                <div onClick={handleClose}>
-                    <button
-                        className={"button-context-menu"}
-                        onClick={controlAction.changerByStack}
-
-                    >
-                        {this.state.byEmptyStack ? "По стеку" : "По состоянию"}
-                    </button>
-                </div>
-                <div onClick={handleClose}>
-                    <button
-                        className={"button-context-menu"}
-                        onClick={this.treeVisible}
-                    >
-                        {this.treeContextInfo()}
-                    </button>
-                </div>
-            </div>
-        )
-    }
-
-    AnotherContextMenu = (handleContextMenu: any, handleClose: any) => {
-        return (
-            <div onContextMenu={handleContextMenu}>
-                <div onClick={handleClose}>
-                    <button
-                        className={"button-context-menu"}
-                        onClick={controlAction.step}
-                    >
-                        {"Шаг"}
-                    </button>
-                </div>
-                <div onClick={handleClose}>
-                    <button
-                        className={"button-context-menu"}
-                        onClick={controlAction.run}
-                    >
-                        {"Запуск"}
-                    </button>
-                </div>
-                <div onClick={handleClose}>
-                    <button
-                        className={"button-context-menu"}
-                        onClick={controlAction.reset}
-                    >
-                        {"Сброс"}
-                    </button>
-                </div>
-                <div onClick={handleClose}>
-                    <button
-                        className={"button-context-menu"}
-                        onClick={this.treeVisible}
-                    >
-                        {this.treeContextInfo()}
-                    </button>
-                </div>
-            </div>
-        )
-    }
-
-    ContextMenu = (computerType: null | ComputerType) => {
-        switch (computerType) {
-            case "nfa":
-            case "nfa-eps": {
-                return this.NFAContextMenu
-            }
-            case "dfa": {
-                return this.DFAContextMenu
-            }
-            case "mealy":
-            case "dmealy": {
-                return this.MealyContextMenu
-            }
-            case "moore":
-            case "dmoore": {
-                return this.MooreContextMenu
-            }
-            case "pda":
-            case "dpda": {
-                return this.PDAContextMenu
-            }
-            default: {
-                return this.AnotherContextMenu
-            }
-        }
-    }
-
 
     render() {
         return (
             <HashRouter>
                 <Routes>
                     <Route path="/login" element={
-                        <LoginPage/>
-                    }/>
+                        <LoginPage />
+                    } />
                     <Route path="/register" element={
-                        <RegisterPage/>
-                    }/>
+                        <RegisterPage />
+                    } />
                     <Route path="/registered" element={
-                        <RegisteredPage/>
-                    }/>
+                        <RegisteredPage />
+                    } />
                     <Route path="/success-login" element={
-                        <SuccessLoginPage updateCurrentUser={this.updateCurrentUser}/>
-                    }/>
+                        <SuccessLoginPage updateCurrentUser={this.updateCurrentUser} />
+                    } />
                     <Route path="/me" element={
                         <MePage user={this.state.user}
-                                onAuthFailed={this.logout}
-                                changeComputerType={(computerType, graph: graph | null) => {
-                                    const defaultGraph = graph || computersInfo[computerType!].defaultGraph;
-                                    graphToElements(defaultGraph).nodes.forEach((v) => console.log(v))
+                            onAuthFailed={this.logout}
+                            changeComputerType={(computerType, graph: graph | null) => {
+                                const defaultGraph = graph || computersInfo[computerType!].defaultGraph;
+                                graphToElements(defaultGraph).nodes.forEach((v) => console.log(v))
 
-                                    this.lastNodeId = defaultGraph.nodes.length;
-                                    this.setState({
-                                            computerType: computerType,
-                                            elements: graphToElements(defaultGraph)
-                                        }
-                                        , () => this.updateGraph()
-                                    );
+                                this.lastNodeId = defaultGraph.nodes.length;
+                                this.setState({
+                                    computerType: computerType,
+                                    elements: graphToElements(defaultGraph)
                                 }
-                                }
-                                setUser={this.setUser}
+                                    , () => this.updateGraph()
+                                );
+                            }
+                            }
+                            setUser={this.setUser}
                         />
-                    }/>
+                    } />
                     <Route path="/user/:userId" element={
-                        <UserPage 
+                        <UserPage
                             changeComputerType={
                                 (computerType, graph: graph | null) => {
                                     const defaultGraph = graph || computersInfo[computerType!].defaultGraph;
@@ -792,15 +440,15 @@ class App extends React.Component<appProps, appState> {
 
                                     this.lastNodeId = defaultGraph.nodes.length;
                                     this.setState({
-                                            computerType: computerType,
-                                            elements: graphToElements(defaultGraph)
-                                        }
+                                        computerType: computerType,
+                                        elements: graphToElements(defaultGraph)
+                                    }
                                         , () => this.updateGraph()
                                     );
                                 }
                             }
                         />
-                    }/>
+                    } />
                     <Route path="/" element={
                         <ComputerTypeContext.Provider value={this.state.computerType}>
                             <div className="app">
@@ -818,9 +466,9 @@ class App extends React.Component<appProps, appState> {
 
                                         this.lastNodeId = defaultGraph.nodes.length;
                                         this.setState({
-                                                computerType: computerType,
-                                                elements: graphToElements(defaultGraph)
-                                            }
+                                            computerType: computerType,
+                                            elements: graphToElements(defaultGraph)
+                                        }
                                             , () => this.updateGraph()
                                         );
                                     }}
@@ -829,11 +477,11 @@ class App extends React.Component<appProps, appState> {
                                 {this.state.popout}
 
                                 <SavingPopout open={this.state.savePopoutOpen}
-                                              onClose={this.closeSavePopout}
-                                              isLogin={this.state.isLogin}
-                                              onAuthFailed={this.logout}
-                                              graph={elementsToGraph(this.state.elements)}
-                                              computerType={this.state.computerType!}/>
+                                    onClose={this.closeSavePopout}
+                                    isLogin={this.state.isLogin}
+                                    onAuthFailed={this.logout}
+                                    graph={elementsToGraph(this.state.elements)}
+                                    computerType={this.state.computerType!} />
                                 <div className="history-container">
                                     {this.state.History()}
                                 </div>
@@ -886,7 +534,12 @@ class App extends React.Component<appProps, appState> {
                                         onClick3={this.deselectNode}
                                         onClick4={this.deselectEdge}
                                         network={this.network}
-                                        contextMenu={this.ContextMenu(this.state.computerType)}
+                                        contextMenu={ContextMenu({
+                                            byEmptyStack: this.state.byEmptyStack,
+                                            computerType: this.state.computerType,
+                                            treeContextInfo: this.treeContextInfo,
+                                            treeVisible: this.treeVisible
+                                        })}
                                     />
                                 </div>
 
@@ -902,7 +555,12 @@ class App extends React.Component<appProps, appState> {
                                             onClick3={this.deselectNode}
                                             onClick4={this.deselectEdge}
                                             network={this.networkTST}
-                                            contextMenu={this.ContextMenu(this.state.computerType)}
+                                            contextMenu={ContextMenu({
+                                                byEmptyStack: this.state.byEmptyStack,
+                                                computerType: this.state.computerType,
+                                                treeContextInfo: this.treeContextInfo,
+                                                treeVisible: this.treeVisible
+                                            })}
                                         />
                                     </div>
                                     : <div />}
@@ -950,7 +608,7 @@ class App extends React.Component<appProps, appState> {
                                         setStep={(f: () => void) => controlAction.step = f}
                                         setReset={(f: () => void) => controlAction.reset = f}
                                         setHistory={(jsx: () => JSX.Element) => this.setState({ History: jsx },
-                                            () => this.historyEndRef?.current?.scrollIntoView({ behavior: 'smooth' }) )}
+                                            () => this.historyEndRef?.current?.scrollIntoView({ behavior: 'smooth' }))}
                                         historyEndRef={this.historyEndRef}
                                         setIsNonDetermenistic={this.setIsNonDetermenistic}
                                         setIsNonMinimizable={this.setIsNonMinimizable}
@@ -962,7 +620,7 @@ class App extends React.Component<appProps, appState> {
 
                             </div>
                         </ComputerTypeContext.Provider>
-                    }/>
+                    } />
                 </Routes>
             </HashRouter>
 

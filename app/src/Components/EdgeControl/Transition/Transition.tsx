@@ -1,6 +1,5 @@
 import React, {AllHTMLAttributes} from "react";
 import "./Transition.css";
-// import HighlightOffIcon from '@material-ui/icons/HighlightOff';
 import {TransitionParams} from "../../../Logic/IGraphTypes";
 import HighlightOffIcon from '@mui/icons-material/HighlightOff';
 import {getTransitionsTitles, transitionsToLabel} from "../../../utils";

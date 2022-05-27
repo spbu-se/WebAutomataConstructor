@@ -142,7 +142,7 @@ export class PDA extends Computer {
                 if (value.idLogic === idLogic) {
                     if (value.stackDown === stack.peek()) {
                         let newCycleStack: Stack<string> = stack.cpyTo(new Stack<string>())
-                        this.matchPushEpsVal(value, newCycleStack)//
+                        this.matchPushEpsVal(value, newCycleStack)
                         this.rmRepetitions(
                             htable,
                             { stmt: this.statements.get(idLogic), stack: newCycleStack },
@@ -380,7 +380,7 @@ export class PDA extends Computer {
         })
         this.setInput(input)
 
-        if (this.epsId) {//
+        if (this.epsId) {
             this.curPosition.forEach(value => {
                 this.cycleEps(value.stmt.idLogic, value.stack!)
             })
