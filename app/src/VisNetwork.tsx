@@ -1,18 +1,15 @@
 import React, { useEffect, useRef, useState, useLayoutEffect, useCallback } from "react";
 import {
-    // DataSet,
     Network,
     Options,
     Data, 
 } from "vis-network/peer";
 import { DataSet } from "vis-data/peer";
 import { Timeline } from "vis-timeline/peer";
-// vis-network/standalone/esm/vis-network
 import { Move, NodeCore } from "./Logic/IGraphTypes";
 import { edge, graph, node } from "./react-graph-vis-types";
 import { Menu, MenuItem, MenuList, Paper, Typography } from "@mui/material";
 import { useKey } from "rooks";
-// import { Timeline } from "vis-network";
 
 interface PropsVisNet {
     nodes: DataSet<node>,
@@ -63,13 +60,6 @@ export const VisNetwork = (props: PropsVisNet) => {
                 type: "discrete",
                 roundness: 0.5
             },
-            // color: {
-            //     //color:'#848484',
-            //     highlight:'#848484',
-            //     hover: '#d3d2cd',
-            //     inherit: true,
-            //     opacity:1.0
-            // },
             color: "#000000",
             width: 0.5,
             arrows: {
@@ -85,19 +75,11 @@ export const VisNetwork = (props: PropsVisNet) => {
             addEdge: function (data: { from: any; to: any; }, callback: (arg0: any) => void) {
                 console.log('add edge', data);
                 callback(data);
-                // after each adding you will be back to addEdge mode
                 setKeyPressed(false)
-
                 props.network.current.disableEditMode()
-                // addEdgeMode();
             }
 
         },
-        // interaction: {
-        //     dragView: false,
-        //     keyboard: false,
-        //     dragNodes: false,
-        // },
         layout: { improvedLayout: false },
         nodes: {
             shapeProperties: {
@@ -116,7 +98,6 @@ export const VisNetwork = (props: PropsVisNet) => {
                     background: "#ffffff"
                 }
             },
-            // color: "#ffffff",
         },
         physics: {
             enabled: false
@@ -133,10 +114,7 @@ export const VisNetwork = (props: PropsVisNet) => {
                     mouseX: event.clientX - 2,
                     mouseY: event.clientY - 4,
                 }
-                : // repeated contextmenu when it is already open closes it with Chrome 84 on Ubuntu
-                // Other native context menus might behave different.
-                // With this behavior we prevent contextmenu from the backdrop to re-locale existing context menus.
-                null,
+                : null,
         );
     };
 
@@ -170,11 +148,8 @@ export const VisNetwork = (props: PropsVisNet) => {
     }, [keyPressed]);
 
 
-  // DOM element where the Timeline will be attached
   const [container, _co] = useState(useRef<HTMLDivElement>(null)) ;
-//   document.getElementById("visualization");
 
-  // Create a DataSet (allows two way data-binding)
   const items = new DataSet([
     { id: 1, content: "item 1", start: "2014-04-20" },
     { id: 2, content: "item 2", start: "2014-04-14" },
@@ -184,10 +159,7 @@ export const VisNetwork = (props: PropsVisNet) => {
     { id: 6, content: "item 6", start: "2014-04-27", type: "point" }
   ]);
 
-  // Configuration for the Timeline
   const timeLineOptions = {};
-
-  // Create a Timeline
 
 
     useEffect(() => {
@@ -200,16 +172,13 @@ export const VisNetwork = (props: PropsVisNet) => {
             window.removeEventListener("keyup", handleUserKeyUnPress);
         };
     }, [handleUserKeyPress])
+
     const timeline = React.createRef<Timeline | null>();
-    // const timeline
 
     useLayoutEffect(() => {
 
         if (domNode.current) {
             props.network.current = new Network(domNode.current, props.data, options);
-            // timeline = new Timeline(container, items, options)
-            // timeline.current = new Timeline(container.current, items, timeLineOptions);
-
             console.log("HERE<-domNode.current")
         }
 
@@ -240,7 +209,7 @@ export const VisNetwork = (props: PropsVisNet) => {
 
 
     }, [domNode, props.data, props.network, options]);
-    // 
+
     const refContainer = () => {
         return (
             <div id={"network"}
