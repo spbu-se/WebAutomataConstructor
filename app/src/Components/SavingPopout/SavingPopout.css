@@ -1,0 +1,28 @@
+.saving-popout__body {
+    display: flex;
+
+    margin-bottom: 32px;
+}
+
+.saving-popout__body__sidebar {
+    margin-right: 16px;
+}
+
+.saving-popout__body__main__paper {
+    width: 440px;
+    height: 196px;
+
+    overflow-y: auto;
+}
+
+.saving-popout__save-name-input {
+    width: 100%;
+}
+
+.saving-popout__body__main__skeleton {
+    padding: 16px;
+}
+
+.saving-popout__body__main__skeleton__bar {
+    margin-bottom: 8px;
+}

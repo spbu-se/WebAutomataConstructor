@@ -1,0 +1,103 @@
+.run-control__item:not(:last-child) {
+    margin-bottom: 8px;
+}
+
+.run-control__buttons {
+    display: flex;
+}
+
+.run-control__button:not(:last-child) {
+    margin-right: 16px;
+}
+
+.run-control__input__row {
+    display: flex;
+}
+
+.run-control__input-value {
+    height: 48px;
+    line-height: 48px;
+    font-size: 24px;
+}
+
+.run-control__input__span--current {
+    font-weight: 600;
+    padding-left: 6px;
+    padding-right: 6px;
+}
+
+.run-control__result{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    height: 48px;
+
+    margin-left: auto;
+}
+
+.run-control__history__header {
+    margin-top: 24px;
+}
+
+.run-control__history__scroll {
+    position: fixed;
+    margin: 8px auto 48px;
+
+    height: 100px;
+    min-width: 200px ;
+    /* margin-top: 12px;
+    margin-bottom: 12px;*/
+
+    overflow-y: auto;  
+}
+
+.run-control__history__row {
+    display: flex;
+}
+
+.run-control__history__row:not(:last-child) {
+    margin-bottom: 12px
+}
+
+.run-control__history__index {
+    min-width: 32px;
+
+    line-height: 36px;
+    font-size: 18px;
+    font-weight: 500;
+}
+
+.run-control__history__node {
+    height: 36px;
+    min-width: 20px;
+
+    padding-left: 8px;
+    padding-right: 8px;
+    
+    border-radius: 8px;
+
+    font-size: 18px;
+    line-height: 36px;
+    text-align: center;
+}
+
+.run-control__history__node:not(:last-child) {
+    margin-right: 8px;
+}
+
+.run-control__history__placeholder {
+    /* margin:  */
+    /* 36px auto 48px; */
+    width: 60%;
+    /* height: 0%; */
+    /* padding-bottom: 1em; */
+
+    color: var(--secondary);
+    text-align: left;
+
+}
+
+.display-linebreak {
+    white-space: pre-line;
+}

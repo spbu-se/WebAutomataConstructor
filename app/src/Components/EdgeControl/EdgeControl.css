@@ -1,0 +1,45 @@
+.edge-control__item:not(:last-child){
+    margin-bottom: 8px;
+}
+
+.edge-control__transitions {
+    display: flex;
+}
+
+.edge-control__transition:not(:last-child) {
+    margin-right: 8px;
+}
+
+.edge-control__edit-transitions {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 32px;
+    height: 32px;
+}
+
+.edge-control__edit-transitions {
+    margin-left: auto;
+}
+
+.edge-control__buttons {
+    display: flex;
+    margin-top: 8%;
+}
+
+.edge-control__button:not(:last-child) {
+    margin-right: 16px;
+    
+}
+.edge-control__header {
+    margin-top: 24px;
+}
+
+.edge-control__placeholder {
+    margin: 36px auto 48px;
+    width: 60%;
+
+    color: var(--secondary);
+    text-align: center;
+}

@@ -1,0 +1,26 @@
+.welcome-popout__body {
+    height: 392px;
+
+    overflow-y: auto;
+}
+
+.welcome-popout__body__cloud-skeleton {
+    margin-left: 16px;
+    margin-right: 16px;
+}
+
+.welcome-popout__body__cloud-skeleton__rectangle:not(:last-child) {
+    margin-bottom: 8px;
+}
+
+.welcome-popout__create-empty-button {
+    margin-right: 16px !important;
+}
+
+.welcome-popout__footer {
+    margin-top: 24px;
+}
+
+.welcome-popout__github-icon {
+    color: black !important;
+}

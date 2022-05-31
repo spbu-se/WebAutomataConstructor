@@ -1,0 +1,11 @@
+.control-wrapper--hidden {
+    visibility: hidden;
+}
+
+.control-wrapper--content {
+    margin: 16px;
+}
+
+.control-wrapper--child {
+    margin-top: 12px;
+}

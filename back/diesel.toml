@@ -1,0 +1,2 @@
+[print_schema]
+file = "core/src/database/schema.rs"

@@ -2,9 +2,14 @@
 
 # dependencies
 app/node_modules
+app/package-lock.json
 
 # webstorm idea
 app/.idea
+.idea
 
 # production
 app/build
+app/$HOME
+
+.env

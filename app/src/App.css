@@ -1,0 +1,127 @@
+.app__right-menu {
+    position: fixed;
+    height: 100%;
+    width: 400px;
+    right: 0;
+
+    padding: 16px;
+
+    background-color: white;
+}
+
+.app__right-menu > div:not(:last-child) {
+    margin-bottom: 8px;
+}
+
+.field__container {
+    position: fixed;
+    height: 100%;
+    width: 100%;
+    z-index: 0;
+    background-color: #fff;
+}
+
+.eval-tree {
+    position:fixed ;
+    border-style: solid;
+    border-width: thin;
+    border-color: #0041d0;
+    /* justify-content: left; */
+    right: 16px;
+    /* margin-left: auto; */
+    /* margin-right: 0em; */
+
+    height: 55%;
+    width: 30%;
+    z-index: 1;
+    background-color: #fff;
+    	
+    /* display:none; */
+}
+
+.history-container {
+    position: absolute;
+    
+    left: 16px;
+    top: 40px;
+
+    z-index: 1;
+}
+
+.hint-container {
+    position: absolute;
+    left: 16px;
+    bottom: 16px;
+
+    z-index: 1;
+}
+
+.hint {
+    padding: 16px;
+}
+
+.hint:not(:last-child) {
+    margin-bottom: 8px;
+}
+
+.app__mem_field {
+    display: flex;
+    /*left: 50%;*/
+    /*margin-right: -50%;*/
+    position: absolute;
+    z-index: 1;
+}
+
+
+.app__mem_ribbon {
+    max-width: 500px;
+    overflow: scroll;
+    display: flex;
+
+    position: absolute;
+    left: 50%;
+    margin-right: -50%;
+    transform: translate(-50%, -50%);
+
+    bottom: 64px;
+
+    z-index: 1;
+
+
+}
+
+.app__mem_cell {
+    height: 36px;
+    min-width: 20px;
+
+    padding-left: 8px;
+    padding-right: 8px;
+
+    border-radius: 8px;
+
+    font-size: 18px;
+    line-height: 36px;
+    text-align: center;
+
+    margin-right: 8px;
+
+    /*display: flex;*/
+    flex-direction: row;
+}
+
+
+.button-context-menu {
+    display: block;
+    width: 100%;
+    border: none;
+    background-color: #ffffff;
+    padding: 14px 28px;
+    font-size: 16px;
+    cursor: pointer;
+    text-align: center;
+}
+
+.button-context-menu:hover{
+    background-color: rgba(0, 0, 0, 0.03);
+
+}

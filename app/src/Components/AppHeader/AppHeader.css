@@ -1,0 +1,11 @@
+.app__header__left, .app__header__right {
+    display: flex;
+}
+
+.app__header__right {
+    margin-left: auto;
+}
+
+.app__header__button:not(:last-child) {
+    margin-right: 16px;
+}
