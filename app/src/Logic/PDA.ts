@@ -234,12 +234,12 @@ export class PDA extends Computer {
         for (let i = 0; i < endsOfEpsWay.length; i++) {
             let stmt = this.statements.get(this.nodes[endsOfEpsWay[i].idLogic].id)
             positions.push({
-                stmt: stmt, stack: endsOfEpsWay[i].top
-                , from: this.nodes[curLId]
-                , cur: this.nodes[stmt.idLogic]
-                , by: EPS
-                , oldStack: stack
-                , stackDown: stackDown
+                stmt: stmt, stack: endsOfEpsWay[i].top, 
+                from: this.nodes[curLId], 
+                cur: this.nodes[stmt.idLogic], 
+                by: EPS, 
+                oldStack: stack, 
+                stackDown: stackDown
             })
             hist.push({ by: EPS, from: this.nodes[curLId], value: this.nodes[stmt.idLogic] })
         }
@@ -290,12 +290,13 @@ export class PDA extends Computer {
                     let newStack = stack.cpyTo(new Stack<string>())
                     this.matchPushEpsVal(value, newStack)
                     positions.push({
-                        stmt: this.statements.get(value.id), stack: newStack
-                        , from: this.nodes[curLId]
-                        , cur: this.nodes[value.idLogic]
-                        , by: getLetter(transformedInput)
-                        , oldStack: stack
-                        , stackDown
+                        stmt: this.statements.get(value.id), 
+                        stack: newStack, 
+                        from: this.nodes[curLId], 
+                        cur: this.nodes[value.idLogic], 
+                        by: getLetter(transformedInput), 
+                        oldStack: stack, 
+                        stackDown
                     })
                     hist.push({ by: getLetter(transformedInput), from: this.nodes[curLId], value: this.nodes[value.idLogic] })
                     break
@@ -304,12 +305,13 @@ export class PDA extends Computer {
                     let newStack: Stack<string> = stack.cpyTo(new Stack<string>())
                     this.matchDownEpsVal(value, newStack)
                     positions.push({
-                        stmt: this.statements.get(value.id), stack: newStack
-                        , from: this.nodes[curLId]
-                        , cur: this.nodes[value.idLogic]
-                        , by: getLetter(transformedInput)
-                        , oldStack: stack
-                        , stackDown: EPS
+                        stmt: this.statements.get(value.id), 
+                        stack: newStack,
+                        from: this.nodes[curLId],
+                        cur: this.nodes[value.idLogic],
+                        by: getLetter(transformedInput),
+                        oldStack: stack,
+                        stackDown: EPS
                     })
                     hist.push({ by: getLetter(transformedInput), from: this.nodes[curLId], value: this.nodes[value.idLogic] })
                     break
