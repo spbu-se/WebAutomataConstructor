@@ -14,8 +14,7 @@ export class activeTransition extends Computer {
             return true
         return false;
     }
-    //здесь получаем набор ребер с одинаковым названием и делаем так, чтобы из вершины фром или вершин фром отнялась одна метка а в ту 
-    // прибавилась одна
+    
     private changeCountTags(value: EdgeCore[]): void {
         
         value.forEach(value1 => {

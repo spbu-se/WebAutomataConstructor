@@ -12,7 +12,7 @@ export interface NodeCore {
     oldStack?: string[],
     stackDown?: string,
     countTags?: number,
-    isChangedTag?: boolean
+    isChangedTags?: boolean
 }
 
 export enum Move {
