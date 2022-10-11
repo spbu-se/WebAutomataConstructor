@@ -1,4 +1,6 @@
-import { History, HistTrace, position, Step } from "./Types";
+import { History, position, Step } from "./Types";
+//import { HistTrace } from "./Types";
+//export{};
 import { GraphCore, NodeCore, EdgeCore } from "./IGraphTypes";
 import { Computer, EPS, statementCell } from "./Computer";
 
