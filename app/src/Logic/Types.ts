@@ -37,3 +37,5 @@ export type position = {
     stmt: statement,
     stack?: Stack<string>
 }
+
+console.log("jfhkfjf");

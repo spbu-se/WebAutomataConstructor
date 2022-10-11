@@ -11,6 +11,7 @@ var __assign = (this && this.__assign) || function () {
     return __assign.apply(this, arguments);
 };
 exports.__esModule = true;
+exports.Computer = exports.BOTTOM = exports.EPS = exports.eof = void 0;
 exports.eof = { isAdmit: false, idLogic: -1, id: -1 };
 exports.EPS = 'Epsilon';
 exports.BOTTOM = "Z0";

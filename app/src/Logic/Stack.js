@@ -1,5 +1,6 @@
 "use strict";
 exports.__esModule = true;
+exports.Stack = void 0;
 var Stack = /** @class */ (function () {
     function Stack(capacity) {
         if (capacity === void 0) { capacity = Infinity; }
