@@ -77,7 +77,7 @@ let nfa = new Moore(
             // { from: 2, to: 1, transitions: new Set([[{ title: '0' }]]) },
             // { from: 2, to: 0, transitions: new Set([[{ title: '1' }]]) },
         ]
-    }, [{ id: 0, isAdmit: false }], ["1"])
+    }, [{ id: 0, isAdmit: false }], ["0"])
 
 // console.log(nfa.run())
 // console.log(nfa.mooreToMealy().start)
