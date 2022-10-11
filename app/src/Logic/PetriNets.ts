@@ -248,28 +248,41 @@ console.log("tevirp");
 
 }
 
-
     let petri = new PetriNets({
+        nodes: [
+            { id: 0, isAdmit: false, countTokens: 1 }, 
+            { id: 1, isAdmit: false, countTokens: 1 }, 
+            { id: 2, isAdmit: false, countTokens: 0},
+        ],
+        edges: [
+            { from: 0, to: 2, transitions: new Set([[{title: 'a', numberOfArcs: 1 }]]) }, 
+            { from: 0, to: 2, transitions: new Set([[{title: 'a', numberOfArcs: 1 }]]) },
+        ]
+    }, [{id: 0, isAdmit: false }], ["a"])
+    console.log(petri.run());
+    console.log(petri.step());
 
-            nodes: [
-                { id: 0, isAdmit: false, countTokens: 1 }, 
-                { id: 1, isAdmit: false, countTokens: 0 },
-                { id: 2, isAdmit: false, countTokens: 0 }, 
-                { id: 3, isAdmit: false, countTokens: 2 },
-                { id: 4, isAdmit: false, countTokens: 1 },
-            ],
-            edges: [
-                { from: 0, to: 1, transitions: new Set([[{ title: 'a', numberOfArcs: 1 }]]) },
-                { from: 0, to: 2, transitions: new Set([[{ title: 'a', numberOfArcs: 1 }]]) }, 
-                { from: 0, to: 3, transitions: new Set([[{ title: 'a', numberOfArcs: 2 }]]) }, 
-                { from: 1, to: 1, transitions: new Set([[{ title: 'b', numberOfArcs: 1 }]]) },
-                { from: 2, to: 1, transitions: new Set([[{ title: 'b', numberOfArcs: 1 }]]) }, 
-                { from: 3, to: 1, transitions: new Set([[{ title: 'b', numberOfArcs: 1 }]]) },
-                { from: 3, to: 4, transitions: new Set([[{ title: 'c', numberOfArcs: 2 }]]) },
-                { from: 4, to: 2, transitions: new Set([[{ title: 'd', numberOfArcs: 1 }]]) },
-                { from: 4, to: 3, transitions: new Set([[{ title: 'd', numberOfArcs: 1 }]]) },
-            ]
-        },  [{ id: 0, isAdmit: false }], ["a"])
+    // let petri = new PetriNets({
+
+    //         nodes: [
+    //             { id: 0, isAdmit: false, countTokens: 1 }, 
+    //             { id: 1, isAdmit: false, countTokens: 0 },
+    //             { id: 2, isAdmit: false, countTokens: 0 }, 
+    //             { id: 3, isAdmit: false, countTokens: 2 },
+    //             { id: 4, isAdmit: false, countTokens: 1 },
+    //         ],
+    //         edges: [
+    //             { from: 0, to: 1, transitions: new Set([[{ title: 'a', numberOfArcs: 1 }]]) },
+    //             { from: 0, to: 2, transitions: new Set([[{ title: 'a', numberOfArcs: 1 }]]) }, 
+    //             { from: 0, to: 3, transitions: new Set([[{ title: 'a', numberOfArcs: 2 }]]) }, 
+    //             { from: 1, to: 1, transitions: new Set([[{ title: 'b', numberOfArcs: 1 }]]) },
+    //             { from: 2, to: 1, transitions: new Set([[{ title: 'b', numberOfArcs: 1 }]]) }, 
+    //             { from: 3, to: 1, transitions: new Set([[{ title: 'b', numberOfArcs: 1 }]]) },
+    //             { from: 3, to: 4, transitions: new Set([[{ title: 'c', numberOfArcs: 2 }]]) },
+    //             { from: 4, to: 2, transitions: new Set([[{ title: 'd', numberOfArcs: 1 }]]) },
+    //             { from: 4, to: 3, transitions: new Set([[{ title: 'd', numberOfArcs: 1 }]]) },
+    //         ]
+    //     },  [{ id: 0, isAdmit: false }], ["a"])
 
      // let nfa = new Moor(
 //     {

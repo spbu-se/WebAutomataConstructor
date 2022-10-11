@@ -235,11 +235,11 @@ var PetriNets = /** @class */ (function (_super) {
 exports.PetriNets = PetriNets;
 var petri = new PetriNets({
     nodes: [
-        { id: 0, isAdmit: false, label: "P0 | 1" },
-        { id: 1, isAdmit: false, label: "P1 | 0" },
-        { id: 2, isAdmit: false, label: "P2 | 0" },
-        { id: 3, isAdmit: false, label: "P3 | 2" },
-        { id: 4, isAdmit: false, label: "P4 | 1" },
+        { id: 0, isAdmit: false, countTokens: 1 },
+        { id: 1, isAdmit: false, countTokens: 0 },
+        { id: 2, isAdmit: false, countTokens: 0 },
+        { id: 3, isAdmit: false, countTokens: 2 },
+        { id: 4, isAdmit: false, countTokens: 1 },
     ],
     edges: [
         { from: 0, to: 1, transitions: new Set([[{ title: 'a', numberOfArcs: 1 }]]) },
