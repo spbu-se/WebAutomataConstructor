@@ -1,11 +1,18 @@
 import { Output } from "./Types";
 
-export interface NodeCore  {
-    id: number
-    isAdmit: boolean
-    stack?: string[]
-    move?: Move
-    output?: Output
+export interface NodeCore {
+    id: number,
+    isAdmit: boolean,
+    stack?: string[],
+    move?: Move,
+    output?: Output,
+    from?: NodeCore,
+    cur?: NodeCore,
+    by?: any,
+    oldStack?: string[],
+    stackDown?: string,
+    countTokens?: number,
+    isChangedTokens?: boolean,
 }
 
 export enum Move {
@@ -19,6 +26,7 @@ export interface TransitionParams {
     stackPush?: string[]
     move?: Move
     output?: Output
+    numberOfArcs?: number
 }
 
 
@@ -26,10 +34,6 @@ export interface EdgeCore  {
     from: number
     to: number
     transitions: Set<TransitionParams[]>
-
-    // transitions: Set<string>
-    // stackDown?: string
-    // stackPush?: string[]
 }
 
 export interface GraphCore  {
