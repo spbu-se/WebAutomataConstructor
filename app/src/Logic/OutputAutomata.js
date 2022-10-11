@@ -3,10 +3,12 @@ var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
         extendStatics = Object.setPrototypeOf ||
             ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+            function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
         return extendStatics(d, b);
     };
     return function (d, b) {
+        if (typeof b !== "function" && b !== null)
+            throw new TypeError("Class extends value " + String(b) + " is not a constructor or null");
         extendStatics(d, b);
         function __() { this.constructor = d; }
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
@@ -24,6 +26,7 @@ var __assign = (this && this.__assign) || function () {
     return __assign.apply(this, arguments);
 };
 exports.__esModule = true;
+exports.OutputAutomata = void 0;
 var Computer_1 = require("./Computer");
 var OutputAutomata = /** @class */ (function (_super) {
     __extends(OutputAutomata, _super);
@@ -82,6 +85,7 @@ var OutputAutomata = /** @class */ (function (_super) {
                 output: output
             };
         };
+        _this.haveEpsilon = function () { return _this.alphabet.get(Computer_1.EPS) !== undefined; };
         _this.nextStepPosition = function (position, by) {
             return _this.cellMatrix(position.stmt.idLogic, by).map(function (v) { return ({ position: { stmt: v }, output: v.output }); });
         };

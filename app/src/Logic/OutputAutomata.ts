@@ -1,4 +1,4 @@
-import { Computer } from "./Computer";
+import { Computer, EPS } from "./Computer";
 import { GraphCore, NodeCore } from "./IGraphTypes";
 import { Output, position, Step, History } from "./Types";
 
@@ -113,6 +113,8 @@ export abstract class OutputAutomata extends Computer {
     protected haveAdmitting(positions: position[]): boolean {
         return positions.reduce((acc: boolean, p) => acc && p.stmt.isAdmit, true)
     }
+
+    public haveEpsilon = () => this.alphabet.get(EPS) !== undefined;
 
     protected nextStepPosition = (position: position, by: number): { position: position, output: Output | undefined }[] => {
         return this.cellMatrix(position.stmt.idLogic, by).map(v => ({ position: { stmt: v }, output: v.output }))
