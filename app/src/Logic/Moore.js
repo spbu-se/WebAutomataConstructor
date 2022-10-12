@@ -80,6 +80,8 @@ var nfa = new Moore({
         // { from: 2, to: 0, transitions: new Set([[{ title: '1' }]]) },
     ]
 }, [{ id: 0, isAdmit: false }], ["0"]);
+console.log("It's petri run \n ".concat(nfa.run()));
+console.log("It's petri step \n ".concat(nfa.step()));
 // console.log(nfa.run())
 // console.log(nfa.mooreToMealy().start)
 // edges.forEach(v => console.log(v.from, v.to, v.transitions))

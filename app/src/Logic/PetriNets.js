@@ -17,12 +17,10 @@ var __extends = (this && this.__extends) || (function () {
 exports.__esModule = true;
 exports.PetriNets = void 0;
 var Computer_1 = require("./Computer");
-console.log("tevirp");
 var PetriNets = /** @class */ (function (_super) {
     __extends(PetriNets, _super);
     function PetriNets(graph, startStatements, input) {
         var _this = _super.call(this, graph, startStatements) || this;
-        _this.curPosition = [];
         _this.givesEdgeByType = function (from) {
             var result;
             result = _this.edges[0];
@@ -54,10 +52,6 @@ var PetriNets = /** @class */ (function (_super) {
             }); });
             return toNodes;
         };
-        /*Нужно написать функцию которая будет находить все активные переходы. (У Андрея функция находит следующий шаг
-        а потом как-то находятся ) У меня функция находит все множества переходов и
-        собирает из них таблицу
-        */
         _this.nextStepPosition = function (position, by) {
             return _this.cellMatrix(position.stmt.idLogic, by).map(function (v) {
                 var getLetter = function (id) {
@@ -101,6 +95,7 @@ var PetriNets = /** @class */ (function (_super) {
                 curPosition: _this.curPosition,
                 historiStep: _this.historiStep
             };
+            console.log("ref seems worked ".concat(ref.counterSteps, ", ").concat(ref.curPosition, ", ").concat(ref.historiStep));
             var after = _this._step(ref, []);
             _this.counterSteps = ref.counterSteps;
             _this.curPosition = ref.curPosition;
@@ -112,7 +107,6 @@ var PetriNets = /** @class */ (function (_super) {
                 history: after.history,
                 isAdmit: after.isAdmit,
                 nodes: after.nodes,
-                output: after.output,
                 byLetter: after.byLetter
             };
         };
@@ -129,7 +123,7 @@ var PetriNets = /** @class */ (function (_super) {
                 };
                 var after = _this._step(ref, histTrace);
                 _this.counterStepsForResult = ref.counterSteps;
-                console.log(_this.counterStepsForResult);
+                //console.log(this.counterStepsForResult)
                 _this.curPosition = ref.curPosition;
                 _this.historiRun = ref.historiStep;
                 _this.curPosition.forEach(function (curPos) { return curPositionMatrix.push(curPos.cur); });
@@ -147,9 +141,11 @@ var PetriNets = /** @class */ (function (_super) {
             var _a;
             var byLetter = [];
             var trNum = _this.alphabet.get((_a = _this.input[ref.counterSteps]) === null || _a === void 0 ? void 0 : _a.value);
+            console.log("trNum ".concat(trNum));
             var nextPositions = _this.nextStepPositions(ref.curPosition, trNum);
             ref.curPosition = nextPositions;
             var nodesOfCurPos = _this.toNodes(ref.curPosition);
+            nodesOfCurPos.forEach(function (node) { return console.log("nodeOfCurPos ".concat(node.id, ", ").concat(node.by)); });
             nodesOfCurPos.forEach(function (node) { return byLetter.push(node); });
             ref.historiStep.push({ nodes: nodesOfCurPos, by: trNum });
             if (ref.curPosition.length > 0) {
@@ -182,13 +178,28 @@ var PetriNets = /** @class */ (function (_super) {
             _this.curPosition.push({
                 stmt: _this.statements.get(value.id)
             });
+            console.log("startStatements ".concat(value.id));
         });
-        _this.nodes = graph.nodes;
+        //this.nodes = graph.nodes;
         _this.setInput(input);
+        _this.counterSteps = 0;
+        console.log("ALPHBT");
+        _this.alphabet.forEach(function (value, key) { return console.log(value, key); });
+        console.log("STMTS");
+        _this.statements.forEach(function (value) { return console.log(value); });
+        console.log("CURPOS");
+        console.log(_this.curPosition);
+        console.log("MATRIX");
+        _this.matrix.forEach(function (value) {
+            console.log();
+            value.forEach(function (value1) { return console.log(value1); });
+            console.log("end of MATRIX");
+        });
         return _this;
     }
     PetriNets.prototype.isTransitionActive = function (isActiveNode) {
         var _a;
+        var result = false;
         var curNumberOfArcs = 0;
         var way = this.alphabet.get((_a = this.input[this.counterSteps]) === null || _a === void 0 ? void 0 : _a.value);
         this.edges.forEach(function (edge) { return edge.transitions.forEach(function (transition) { return transition.forEach(function (tr) {
@@ -197,9 +208,11 @@ var PetriNets = /** @class */ (function (_super) {
             }
         }); }); });
         if (isActiveNode.countTokens >= curNumberOfArcs) {
-            return true;
+            result = true;
+            return result;
         }
-        return false;
+        console.log("result isTransitionActive ".concat(result));
+        return result;
     };
     PetriNets.prototype.changecountTokens = function (nodesForChange) {
         var _this = this;
@@ -213,6 +226,7 @@ var PetriNets = /** @class */ (function (_super) {
                 }
             });
         });
+        console.log('I am in changecountTokens');
         this.nodes.forEach(function (node) { return node.isChangedTokens = false; });
     };
     PetriNets.prototype.minusToken = function (value) {
@@ -220,12 +234,14 @@ var PetriNets = /** @class */ (function (_super) {
             value.countTokens--;
             value.isChangedTokens = true;
         }
+        console.log("i was in minusToken ".concat(value.countTokens));
     };
     PetriNets.prototype.plusToken = function (value) {
         if ((value.countTokens !== undefined) && (!value.isChangedTokens)) {
             value.countTokens++;
             value.isChangedTokens = true;
         }
+        console.log("I was in plusToken countTokens ".concat(value.countTokens));
     };
     PetriNets.prototype.haveAdmitting = function (positions) {
         return positions.reduce(function (acc, p) { return acc && p.stmt.isAdmit; }, true);
@@ -236,23 +252,36 @@ exports.PetriNets = PetriNets;
 var petri = new PetriNets({
     nodes: [
         { id: 0, isAdmit: false, countTokens: 1 },
-        { id: 1, isAdmit: false, countTokens: 0 },
+        { id: 1, isAdmit: false, countTokens: 1 },
         { id: 2, isAdmit: false, countTokens: 0 },
-        { id: 3, isAdmit: false, countTokens: 2 },
-        { id: 4, isAdmit: false, countTokens: 1 },
     ],
     edges: [
-        { from: 0, to: 1, transitions: new Set([[{ title: 'a', numberOfArcs: 1 }]]) },
         { from: 0, to: 2, transitions: new Set([[{ title: 'a', numberOfArcs: 1 }]]) },
-        { from: 0, to: 3, transitions: new Set([[{ title: 'a', numberOfArcs: 2 }]]) },
-        { from: 1, to: 1, transitions: new Set([[{ title: 'b', numberOfArcs: 1 }]]) },
-        { from: 2, to: 1, transitions: new Set([[{ title: 'b', numberOfArcs: 1 }]]) },
-        { from: 3, to: 1, transitions: new Set([[{ title: 'b', numberOfArcs: 1 }]]) },
-        { from: 3, to: 4, transitions: new Set([[{ title: 'c', numberOfArcs: 2 }]]) },
-        { from: 4, to: 2, transitions: new Set([[{ title: 'd', numberOfArcs: 1 }]]) },
-        { from: 4, to: 3, transitions: new Set([[{ title: 'd', numberOfArcs: 1 }]]) },
+        { from: 0, to: 2, transitions: new Set([[{ title: 'a', numberOfArcs: 1 }]]) },
     ]
-}, [{ id: 0, isAdmit: false }], ["a"]);
+}, [{ id: 0, isAdmit: false }, { id: 1, isAdmit: false }], ["a"]);
+//console.log(`It's petri run \n ${petri.run()}`);
+console.log("It's petri step \n ".concat(petri.step()));
+// let petri = new PetriNets({
+//         nodes: [
+//             { id: 0, isAdmit: false, countTokens: 1 }, 
+//             { id: 1, isAdmit: false, countTokens: 0 },
+//             { id: 2, isAdmit: false, countTokens: 0 }, 
+//             { id: 3, isAdmit: false, countTokens: 2 },
+//             { id: 4, isAdmit: false, countTokens: 1 },
+//         ],
+//         edges: [
+//             { from: 0, to: 1, transitions: new Set([[{ title: 'a', numberOfArcs: 1 }]]) },
+//             { from: 0, to: 2, transitions: new Set([[{ title: 'a', numberOfArcs: 1 }]]) }, 
+//             { from: 0, to: 3, transitions: new Set([[{ title: 'a', numberOfArcs: 2 }]]) }, 
+//             { from: 1, to: 1, transitions: new Set([[{ title: 'b', numberOfArcs: 1 }]]) },
+//             { from: 2, to: 1, transitions: new Set([[{ title: 'b', numberOfArcs: 1 }]]) }, 
+//             { from: 3, to: 1, transitions: new Set([[{ title: 'b', numberOfArcs: 1 }]]) },
+//             { from: 3, to: 4, transitions: new Set([[{ title: 'c', numberOfArcs: 2 }]]) },
+//             { from: 4, to: 2, transitions: new Set([[{ title: 'd', numberOfArcs: 1 }]]) },
+//             { from: 4, to: 3, transitions: new Set([[{ title: 'd', numberOfArcs: 1 }]]) },
+//         ]
+//     },  [{ id: 0, isAdmit: false }], ["a"])
 // let nfa = new Moor(
 //     {
 //         nodes: [
@@ -264,10 +293,12 @@ var petri = new PetriNets({
 //         edges: [
 //             { from: 0, to: 1, transitions: new Set([[{ title: '5' }]]) },
 //             { from: 1, to: 2, transitions: new Set([[{ title: '10'}]]) },
-//             { from: 2, to: 3, transitions: new Set([[{ title: '10'}]]) },
+//             { from: 2, to: 3, transitions: new Set([[{ titlhe: '10'}]]) },
 //             { from: 3, to: 3, transitions: new Set([[{ title: '5' }]]) },
 //         ]
 //     }, [{ id: 0, isAdmit: false }], ["5"])
 // console.log(nfa.run())
 // console.log(nfa.step())
 // console.log(nfa.step())
+var node = { id: 1, isAdmit: false, countTokens: 3 };
+petri.isTransitionActive({ id: 1, isAdmit: false, countTokens: 1 });

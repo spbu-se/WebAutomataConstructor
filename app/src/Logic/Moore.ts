@@ -78,6 +78,8 @@ let nfa = new Moore(
             // { from: 2, to: 0, transitions: new Set([[{ title: '1' }]]) },
         ]
     }, [{ id: 0, isAdmit: false }], ["0"])
+    console.log(`It's petri run \n ${nfa.run()}`);
+    console.log(`It's petri step \n ${nfa.step()}`);
 
 // console.log(nfa.run())
 // console.log(nfa.mooreToMealy().start)

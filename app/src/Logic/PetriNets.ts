@@ -1,26 +1,17 @@
-import { History, position, Step, HistTrace } from "./Types";
+import { History, position, Step, HistTrace, statement } from "./Types";
 import { GraphCore, NodeCore, EdgeCore } from "./IGraphTypes";
-import { Computer, EPS, statementCell } from "./Computer";
+import { Computer, EPS } from "./Computer";
+import { NFA } from "./NFA";
 
-console.log("tevirp");
+
+export type statementCell = {
+    readonly countTokens: number
+    readonly isChangedTokens: boolean
+} & statement
+
  export class PetriNets extends Computer { 
 
-    protected curPosition: position[] = [];
-
-    private isTransitionActive(isActiveNode: NodeCore): boolean {
-        let curNumberOfArcs: number = 0;
-        let way = this.alphabet.get(this.input[this.counterSteps]?.value);
-        this.edges.forEach(edge => edge.transitions.forEach(transition => transition.forEach(tr => {
-            if (tr.title === way) {
-                curNumberOfArcs = tr.numberOfArcs!;
-        }})))
-        if (isActiveNode.countTokens! >= curNumberOfArcs) {
-            return true;
-        }
-        return false;
-    }
-
-    
+    protected curPosition: position[];
 
     constructor(graph: GraphCore, startStatements: NodeCore[], input: string[]) {
         super(graph, startStatements)
@@ -29,9 +20,43 @@ console.log("tevirp");
             this.curPosition.push({
                 stmt: this.statements.get(value.id),
             })
+            console.log(`startStatements ${value.id}`);
         })
-        this.nodes = graph.nodes;
+        //this.nodes = graph.nodes;
         this.setInput(input);
+        this.counterSteps = 0;
+
+        
+        console.log("ALPHBT")
+        this.alphabet.forEach((value, key) => console.log(value, key))
+        console.log("STMTS")
+        this.statements.forEach(value => console.log(value))
+        console.log("CURPOS")
+        console.log(this.curPosition)
+        console.log("MATRIX")
+        this.matrix.forEach(value => {
+            console.log()
+            value.forEach(value1 => console.log(value1))
+            console.log(`end of MATRIX`);
+        })
+    }
+
+    public isTransitionActive(isActiveNode: NodeCore): boolean {
+        let result = false;
+        let curNumberOfArcs: number = 0;
+        let way = this.alphabet.get(this.input[this.counterSteps]?.value);
+        this.edges.forEach(edge => edge.transitions.forEach(transition => transition.forEach(tr => {
+            if (tr.title === way) {
+                curNumberOfArcs = tr.numberOfArcs!;
+        }})))
+
+
+        if (isActiveNode.countTokens! >= curNumberOfArcs) {
+            result = true;
+            return result;
+        }
+        console.log(`result isTransitionActive ${result}`);
+        return result;
     }
 
     private changecountTokens(nodesForChange: NodeCore[]): void {
@@ -46,6 +71,7 @@ console.log("tevirp");
                 }
             })   
         })
+        console.log('I am in changecountTokens');
         this.nodes.forEach(node => node.isChangedTokens = false)
     }
 
@@ -55,6 +81,7 @@ console.log("tevirp");
             value.countTokens--;
             value.isChangedTokens = true;
         }
+        console.log(`i was in minusToken ${value.countTokens}`);
     }
 
     private plusToken(value: NodeCore): void {
@@ -62,6 +89,7 @@ console.log("tevirp");
             value.countTokens++;
             value.isChangedTokens = true;
         }
+        console.log(`I was in plusToken countTokens ${value.countTokens}`);
     }
 
     protected givesEdgeByType = (from: number): EdgeCore => {
@@ -98,11 +126,6 @@ console.log("tevirp");
         }))  
         return toNodes;      
     }
-
-    /*Нужно написать функцию которая будет находить все активные переходы. (У Андрея функция находит следующий шаг 
-    а потом как-то находятся ) У меня функция находит все множества переходов и 
-    собирает из них таблицу
-    */
 
     protected nextStepPosition = (position: position, by: number): position[] => {
         return this.cellMatrix(position.stmt.idLogic, by).map(v => {
@@ -149,6 +172,7 @@ console.log("tevirp");
             curPosition: this.curPosition, 
             historiStep: this.historiStep 
         }
+        console.log(`ref seems worked ${ref.counterSteps}, ${ref.curPosition}, ${ref.historiStep}`);
         const after = this._step(ref, [])
         this.counterSteps = ref.counterSteps
         this.curPosition = ref.curPosition
@@ -162,7 +186,6 @@ console.log("tevirp");
             history: after.history,
             isAdmit: after.isAdmit,
             nodes: after.nodes,
-            output: after.output,
             byLetter: after.byLetter
         }
     }
@@ -182,7 +205,7 @@ console.log("tevirp");
             }
             const after = this._step(ref, histTrace)
             this.counterStepsForResult = ref.counterSteps
-            console.log(this.counterStepsForResult)
+            //console.log(this.counterStepsForResult)
             this.curPosition = ref.curPosition
             this.historiRun = ref.historiStep
             this.curPosition.forEach(curPos => curPositionMatrix.push(curPos.cur!));
@@ -208,11 +231,13 @@ console.log("tevirp");
     protected _step = (ref: {counterSteps: number, curPosition: position[], historiStep: History[] }, histTrace: HistTrace[]): Step => {
         const byLetter: NodeCore[] = [];
         const trNum = this.alphabet.get(this.input[ref.counterSteps]?.value)
+        console.log(`trNum ${trNum}`);
         const nextPositions = this.nextStepPositions(ref.curPosition, trNum)
 
         ref.curPosition = nextPositions;
 
         const nodesOfCurPos = this.toNodes(ref.curPosition)
+        nodesOfCurPos.forEach(node => console.log(`nodeOfCurPos ${node.id}, ${node.by}`))
         nodesOfCurPos.forEach((node) => byLetter.push(node))
 
         ref.historiStep.push({nodes: nodesOfCurPos, by: trNum })
@@ -258,9 +283,10 @@ console.log("tevirp");
             { from: 0, to: 2, transitions: new Set([[{title: 'a', numberOfArcs: 1 }]]) }, 
             { from: 0, to: 2, transitions: new Set([[{title: 'a', numberOfArcs: 1 }]]) },
         ]
-    }, [{id: 0, isAdmit: false }], ["a"])
-    console.log(petri.run());
-    console.log(petri.step());
+    }, [{id: 0, isAdmit: false }, { id: 1, isAdmit: false }], ["a"])
+    
+    //console.log(`It's petri run \n ${petri.run()}`);
+    console.log(`It's petri step \n ${petri.step()}`);
 
     // let petri = new PetriNets({
 
@@ -295,7 +321,7 @@ console.log("tevirp");
 //         edges: [
 //             { from: 0, to: 1, transitions: new Set([[{ title: '5' }]]) },
 //             { from: 1, to: 2, transitions: new Set([[{ title: '10'}]]) },
-//             { from: 2, to: 3, transitions: new Set([[{ title: '10'}]]) },
+//             { from: 2, to: 3, transitions: new Set([[{ titlhe: '10'}]]) },
 //             { from: 3, to: 3, transitions: new Set([[{ title: '5' }]]) },
         
 //         ]
@@ -304,3 +330,5 @@ console.log("tevirp");
 // console.log(nfa.run())
 // console.log(nfa.step())
 // console.log(nfa.step())
+let node: NodeCore = { id: 1, isAdmit: false, countTokens: 3 };
+petri.isTransitionActive({ id: 1, isAdmit: false, countTokens: 1 });

@@ -17,7 +17,6 @@ exports.EPS = 'Epsilon';
 exports.BOTTOM = "Z0";
 var Computer = /** @class */ (function () {
     function Computer(graph, startStatements) {
-        // this.setStartStatements(graph, startStatements)
         var _this = this;
         this.input = [];
         this.alphabet = new Map();
@@ -47,6 +46,9 @@ var Computer = /** @class */ (function () {
         this.getCurrNode = function () {
             return _this.currentNode.id;
         };
+        this.getStartStatements = function () {
+            return _this.startStatements;
+        };
         graph.edges
             .sort(function (a, b) { return a.from - b.from; })
             .forEach(function (value) { return _this.edges.push({
@@ -59,9 +61,7 @@ var Computer = /** @class */ (function () {
             this_1.edges[i].localValue = [];
             this_1.edges[i].transitions.forEach(function (value) {
                 return value.forEach(function (value1) { return _this.edges[i].localValue.push(value1); });
-            }
-            //    this.edges[i].localValue!.push(value)
-            );
+            });
         };
         var this_1 = this;
         for (var i = 0; i < this.edges.length; i++) {
@@ -74,6 +74,12 @@ var Computer = /** @class */ (function () {
         this.nodes = graph.nodes;
         this.createMatrix();
     }
+    Computer.prototype.getInput = function () {
+        return this.input;
+    };
+    Computer.prototype.getAlphabet = function () {
+        return this.alphabet;
+    };
     Computer.prototype.getAlphabetFromEdges = function () {
         var _this = this;
         var alphabetSet = new Set();
@@ -107,7 +113,6 @@ var Computer = /** @class */ (function () {
             this.matrix[i] = [];
             for (var j = 0; j < this.alphabet.size; j++) {
                 this.matrix[i][j] = [];
-                //{idLogic: -1, id: -1, isAdmit: false, stackDown: "empty", stackPush: []}
             }
         }
         for (var i = 0; i < this.edges.length; i++) {
@@ -115,31 +120,28 @@ var Computer = /** @class */ (function () {
             var statementTo = this.statements.get(this.edges[i].to);
             for (var j = 0; j < this.edges[i].localValue.length; j++) {
                 var letterId = this.alphabet.get(this.edges[i].localValue[j].title);
-                // if (letterId === undefined) {
-                //     throw new Error("A")
-                // }
                 if (letterId === undefined) {
                     continue;
                 }
-                console.log(letterId);
-                console.log(this.edges[i].localValue[j].title);
+                console.log("letterId ".concat(letterId));
+                console.log("this.edges[i].localValue[j].title ".concat(this.edges[i].localValue[j].title));
                 var stDwn = this.edges[i].localValue[j].stackDown;
                 var stPsh = this.edges[i].localValue[j].stackPush;
                 var mv = this.edges[i].localValue[j].move;
                 var output = this.edges[i].localValue[j].output === undefined ? statementTo.output : this.edges[i].localValue[j].output;
+                var numOfArcs = this.edges[i].localValue[j].numberOfArcs;
                 if (stDwn === undefined || stPsh === undefined || stDwn === "" || stPsh.length === 0) {
                     stDwn = exports.EPS;
                     stPsh = [exports.EPS];
                 }
-                // console.log(statementTo.move)
-                this.matrix[statementFrom.idLogic][letterId].push(__assign(__assign({}, statementTo), { stackDown: stDwn, stackPush: stPsh, move: mv, output: output }));
+                this.matrix[statementFrom.idLogic][letterId].push(__assign(__assign({}, statementTo), { stackDown: stDwn, stackPush: stPsh, move: mv, output: output, numberOfArcs: numOfArcs }));
             }
         }
-        this.alphabet.forEach(function (value, key) { return console.log(value, ' ', key); });
-        this.statements.forEach(function (value) { return console.log(value); });
+        this.alphabet.forEach(function (value, key) { return console.log("value ' ' key ".concat(value, ", ' ', ").concat(key)); });
+        this.statements.forEach(function (value) { return console.log("value ".concat(value)); });
         this.matrix.forEach(function (value) {
             console.log();
-            value.forEach(function (value1) { return console.log(value1); });
+            value.forEach(function (value1) { return console.log("value1 ".concat(value1)); });
         });
     };
     Computer.prototype.cellMatrix = function (i, j) {
