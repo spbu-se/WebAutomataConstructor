@@ -58,66 +58,37 @@ import { NFA } from "./NFA";
             }
         })
 
-        // this.edges.forEach(edge => edge.transitions.forEach(transition => transition.forEach(tr => {
-        //     console.log(`tr title = ${tr.title}, edge.from == ${edge.from}, edge.to == ${edge.from}, isActiveNode from id == ${isActiveNode.from?.id}
-        //     , isActiveNode id === ${isActiveNode.id}`);
-        //     if ((tr.title === way) && (isActiveNode.from?.id === edge.from) && (isActiveNode.id === edge.to)) {
-        //         curNumberOfArcs = tr.numberOfArcs!;
-        //         console.log(`tr.title ${tr.title} and way ${way}`);
-        // }})))
-
-        //console.log(`Node id ${isActiveNode.id} and node.countTokens ${isActiveNode.countTokens!} and curNumberArcs ${curNumberOfArcs}`)
-
         if ((isActiveNode.countTokens! >= curNumberOfArcs) && (isActiveNode.countTokens! > 0)) {
             result = true;
             console.log(`result is ${result}`);
             return result;
         }
-        //console.log(`result isTransitionActive ${result}`);
-        //console.log("-----------------------------------------------------------------------------------------------");
+       
         return result;
     }
 
-    private changeCountTokens(idForChange: number[]): void {
-
-        let nodesForChange: NodeCore[] = [];
-        idForChange.forEach(id => this.nodes.forEach(node => {
-            if (id === node.id) {
-                nodesForChange.push(node);
-                //console.log(`nodesForChange`);
-                //console.log(node);
-            }
-        }))
-        let plus: NodeCore[] = [];
-        this.toNodes(this.curPosition).forEach(toNode => plus.push(toNode));
-        plus.forEach(pl => this.plusToken(pl));
-        console.log(`nodesForChange`);
+    private changeCountTokens(idForChange: position[]): void {
+        console.log(`changeCountTokens`);
+        console.log(idForChange);
+        console.log(`end list pos for change`);
         
-        nodesForChange.forEach(node => console.log(node));
-        nodesForChange.forEach(nodeForChange => {
-            //this.edges.forEach(edge => {
-                //if (edge.from === nodeForChange.id) {
-                    this.minusToken(nodeForChange)
-                    //edgePlusToken.push(edge);
-                //}
-                // if (edge.to === nodeForChange.id) {
-                //     this.plusToken(nodeForChange)
-                // }
-            }
-            )   
-       
-        console.log('I am in changeCountTokens');
-        console.log(nodesForChange);
+        idForChange.forEach(id => {
+            this.plusToken(id.cur!);
+            this.minusToken(id.from!);
+        })
+
+        console.log(`after changeCountTokens`)
+        console.log(idForChange);
         this.nodes.forEach(node => node.isChangedTokens = false)
     }
 
 
     private minusToken(value: NodeCore): void {
-        if ((value.countTokens !== undefined) && (!value.isChangedTokens)) {
+        //if ((value.countTokens !== undefined) && (!value.isChangedTokens)) {
+        if ((value.countTokens !== undefined) && (!value.isChangedTokens)) {    
             value.countTokens--;
             value.isChangedTokens = true;
         }
-        //console.log(`i was in minusToken ${value.countTokens}`);
     }
 
     private plusToken(value: NodeCore): void {
@@ -128,26 +99,6 @@ import { NFA } from "./NFA";
         //console.log(`I was in plusToken countTokens ${value.countTokens}`);
     }
 
-    // protected givesEdgeByType = (from: number, schet: number): EdgeCore => {
-    //     let check: number = 0;
-    //     let result: EdgeCore;
-    //     result = this.edges[0];
-    //     this.edges.forEach(edge => edge.transitions.forEach(transition => transition.forEach(way => {
-    //         //console.log(`way.title ${way.title} and input ${this.input[this.counterSteps]?.value} and edge.from ${edge.from} and from ${from}`);
-    //         console.log(`check ${check}`);
-    //         console.log(`schet ${schet}`);
-    //         if (way.title === (this.input[this.counterSteps]?.value) &&  (edge.from === from)) {
-    //             check++;
-    //             if ( check === schet )
-    //             result = edge;
-                
-    //             //console.log(edge);
-    //             return result;
-    //         }
-    //     }))) 
-    //     return result;
-    // }
-
     public haveEpsilon = () => this.alphabet.get(EPS) !== undefined;
 
     protected toNodes = (positions: position[]): NodeCore[] => {
@@ -156,12 +107,9 @@ import { NFA } from "./NFA";
         let schet: number = 0;
         
         positions.forEach(position => {
-            //console.log(`position.cur! ${position.cur!.id}`);
-            //if (this.isTransitionActive(position.cur!)) {
             this.edges.forEach(edge => edge.transitions.forEach(transition => transition.forEach(way => {
                 if ((way.title === (this.input[this.counterSteps]?.value)) && (edge.from === position.stmt.id)){
                     edgesMap.push(edge);
-                    console.log(`edge from ${edge.from} and edge to ${edge.to}`);
                 }
             })))
         })
@@ -174,10 +122,8 @@ import { NFA } from "./NFA";
         }))  
         //toNodes_.forEach(toNode => console.log(toNode.id));
         let toNodes = Array.from(new Set(toNodes_))
-        toNodes.forEach(toNode => console.log(`toNode ${toNode.id}`))
         return toNodes;      
     }
-
 
     protected nextStepPosition = (position: position, by: number): position[] => {
         return this.cellMatrix(position.stmt.idLogic, by).map(v => {
@@ -190,7 +136,7 @@ import { NFA } from "./NFA";
                 })
                 return ret
             }
-    
+
             const ret: position = { 
                 stmt: v, 
                 by: getLetter(by), 
@@ -228,12 +174,7 @@ import { NFA } from "./NFA";
         this.counterSteps = ref.counterSteps
         this.curPosition = ref.curPosition
         this.historiStep = ref.historiStep
-        //this.curPosition.forEach(curPos => curPositionMatrix.push(curPos.cur!));
-        console.log(`this curPosition`);
-        console.log(this.curPosition);
-        //this.changeCountTokens(this.curPosition);
-        
-        //console.log(`counter ${after.counter}, history ${after.history.length}, isAdmit ${after.isAdmit}, nodes ${after.nodes[0].id}, byLetter ${after.byLetter}`);
+
         return {
             counter: after.counter,
             history: after.history,
@@ -248,39 +189,29 @@ import { NFA } from "./NFA";
         
         this.historiRun = []
         this.counterStepsForResult = 0
-        console.log("-------------------------------------------------------------------");
         for (let i = 0; i < this.input.length; i++) {
             const ref = { 
                 counterSteps: this.counterStepsForResult,
                 curPosition: this.curPosition, 
                 historiStep: this.historiRun
             }
-            this.curPosition.forEach(curPos => console.log(`curPos in Run ${curPos.stmt.id}`))
 
-            console.log(`ref.counterSteps ${ref.counterSteps} and ref.historiRun ${this.historiRun}`);
+            console.log(`BEFORE AFTER`);
+            console.log(ref.counterSteps);
+            console.log(ref.curPosition);
+            console.log(ref.historiStep);
 
             const after = this._step(ref, histTrace)
+            console.log(`AFTER AFTER :)`);
+            console.log(ref.counterSteps);
+            console.log(ref.curPosition);
+            console.log(ref.historiStep);
+            console.log(`END AFTER`);
             this.counterStepsForResult = ref.counterSteps
-            //ref.curPosition = this.nextStepPositions(this.curPosition, this.alphabet.get(this.input[this.counterSteps]?.value));
-
-            //console.log(this.counterStepsForResult)
             this.curPosition = ref.curPosition
             this.historiRun = ref.historiStep
-            //this.curPosition.forEach(curPos => curPositionMatrix.push(curPos.cur!));
-            //this.changeCountTokens(this.curPosition);
-        
         }
-        console.log(`petri return`)
-        this.historiRun.forEach(hist => console.log(`historyRun ${hist.by}`))
-        console.log(`this.counterStepsForResult === ${this.counterStepsForResult} and this.historiRun ${this.historiRun} and this.haveAdmitting(this.curPosition)
-        ${this.haveAdmitting(this.curPosition)} and this.toNodes(this.curPosition) ${this.toNodes(this.curPosition)}`);
-        //this.curPosition = this.nextStepPositions(this.curPosition, this.alphabet.get(this.input[this.counterSteps]?.value))
-        console.log(`this curPosition after changes`);
-        this.curPosition.forEach(curPos => {
-            console.log(`begin curPos`);
-            console.log(curPos)
-        });
-        //this.curPosition.forEach(curPos => console.log(`this.curPosition in pnRun ${curPos.cur!.id}`));
+        
         return { 
             counter: this.counterStepsForResult, 
             history: this.historiRun, 
@@ -298,10 +229,7 @@ import { NFA } from "./NFA";
     protected checkTransition(ref: {counterSteps: number, curPosition: position[], historiStep: History[] }){
 
         this.curPosition.forEach(curPos => {
-            console.log(`this curPOsition ${curPos.cur?.id}`);
-            //this.isTransitionActive(curPos.stmt.id);
             if (this.isTransitionActive(curPos.stmt.id) === false){
-                console.log(`srabotal perehod v stepe`);
                 return this.isTransitionActive
             }
        })
@@ -309,39 +237,18 @@ import { NFA } from "./NFA";
     }
 
     protected _step = (ref: {counterSteps: number, curPosition: position[], historiStep: History[] }, histTrace: HistTrace[]): Step => {
-        console.log(`STEP BEGIN`);
         const byLetter: NodeCore[] = [];
         const trNum = this.alphabet.get(this.input[ref.counterSteps]?.value)
-        console.log(`TRACE NUMBER ${trNum}`);
-        //this.changeCountTokens(this.curPosition);
-        // if (this.checkTransition(ref)) {
-        //     console.log(`nu if srabotal v stepe poluchaetsa`)
-        //     ref.counterSteps++;
-        //     return {
-        //         counter: ref.counterSteps,
-        //         history: ref.historiStep, 
-        //         nodes: this.toNodes(this.curPosition),
-        //         isAdmit: this.haveAdmitting(this.curPosition),
-        //         byLetter, 
-        //         histTrace
-        //     }
-        // }
-
+        
         const nextPositions = this.nextStepPositions(ref.curPosition, trNum)
-        //let nowPositions: position[] = [];
-        //nextPositions.forEach(next => nowPositions.push(next.));
-        let numChange: number[] = [];
-        nextPositions.forEach(next => numChange.push(next.from?.id!))
-        this.changeCountTokens(numChange);
+       
         ref.curPosition = nextPositions;
-        console.log(`NEXTSTEPPOSITIONS`);
-        ref.curPosition.forEach(cr => console.log(cr));
-        console.log(`END OF NEXTSTEPPOSITIONS`);
-
+        this.changeCountTokens(ref.curPosition);
+        
         const nodesOfCurPos = this.toNodes(ref.curPosition)
-        //nodesOfCurPos.forEach(node => console.log(`nodeOfCurPos ${node.id}, ${node.by}`))
+       
         nodesOfCurPos.forEach((node) => byLetter.push(node))
-        console.log(``);
+
 
         ref.historiStep.push({nodes: nodesOfCurPos, by: trNum })
         if (ref.curPosition.length > 0) {
@@ -376,51 +283,51 @@ import { NFA } from "./NFA";
 
 }
 
-let petri = new PetriNets({
-    nodes: [
-        { id: 0, isAdmit: false, countTokens: 0, isChangedTokens: false }, 
-        { id: 1, isAdmit: false, countTokens: 1, isChangedTokens: false }, 
-        { id: 2, isAdmit: false, countTokens: 0, isChangedTokens: false },
-    ],
-    edges: [
-        { from: 0, to: 2, transitions: new Set([[{title: 'a', numberOfArcs: 1 }]]) }, 
-        { from: 1, to: 2, transitions: new Set([[{title: 'a', numberOfArcs: 1 }]]) },
-    ]
-}, [{id: 0, isAdmit: false }, { id: 1, isAdmit: false }], ["a"])
-
-//let st = petri.step();
-//console.log(`It's petri run \n ${petri.run()}`)
-//console.log(`It's petri step \n ${petri.step()}`)
-console.log(petri.run());
-//console.log(petri.step());
-
-
-
 // let petri = new PetriNets({
+//     nodes: [
+//         { id: 0, isAdmit: false, countTokens: 1, isChangedTokens: false }, 
+//         { id: 1, isAdmit: false, countTokens: 1, isChangedTokens: false }, 
+//         { id: 2, isAdmit: false, countTokens: 0, isChangedTokens: false },
+//     ],
+//     edges: [
+//         { from: 0, to: 2, transitions: new Set([[{title: 'a', numberOfArcs: 1 }]]) }, 
+//         { from: 1, to: 2, transitions: new Set([[{title: 'a', numberOfArcs: 1 }]]) },
+//     ]
+// }, [{id: 0, isAdmit: false }, { id: 1, isAdmit: false }], ["a"])
 
-//         nodes: [
-//             { id: 0, isAdmit: false, countTokens: 1 }, 
-//             { id: 1, isAdmit: false, countTokens: 0 },
-//             { id: 2, isAdmit: false, countTokens: 0 }, 
-//             { id: 3, isAdmit: false, countTokens: 2 },
-//             { id: 4, isAdmit: false, countTokens: 1 },
-//         ],
-//         edges: [
-//             { from: 0, to: 1, transitions: new Set([[{ title: 'a', numberOfArcs: 1 }]]) },
-//             { from: 0, to: 2, transitions: new Set([[{ title: 'a', numberOfArcs: 1 }]]) }, 
-//             { from: 0, to: 3, transitions: new Set([[{ title: 'a', numberOfArcs: 1 }]]) }, 
-//             { from: 1, to: 1, transitions: new Set([[{ title: 'b', numberOfArcs: 1 }]]) },
-//             { from: 2, to: 1, transitions: new Set([[{ title: 'b', numberOfArcs: 1 }]]) }, 
-//             { from: 3, to: 1, transitions: new Set([[{ title: 'b', numberOfArcs: 1 }]]) },
-//             { from: 3, to: 4, transitions: new Set([[{ title: 'c', numberOfArcs: 1 }]]) },
-//             { from: 4, to: 2, transitions: new Set([[{ title: 'd', numberOfArcs: 1 }]]) },
-//             { from: 4, to: 3, transitions: new Set([[{ title: 'd', numberOfArcs: 1 }]]) },
-//         ]
-//     },  [{ id: 0, isAdmit: false }], ["a", "c"])
+// //let st = petri.step();
 // //console.log(`It's petri run \n ${petri.run()}`)
 // //console.log(`It's petri step \n ${petri.step()}`)
 // console.log(petri.run());
 // //console.log(petri.step());
+
+
+
+let petri = new PetriNets({
+
+        nodes: [
+            { id: 0, isAdmit: false, countTokens: 1 }, 
+            { id: 1, isAdmit: false, countTokens: 0 },
+            { id: 2, isAdmit: false, countTokens: 0 }, 
+            { id: 3, isAdmit: false, countTokens: 2 },
+            { id: 4, isAdmit: false, countTokens: 1 },
+        ],
+        edges: [
+            { from: 0, to: 1, transitions: new Set([[{ title: 'a', numberOfArcs: 1 }]]) },
+            { from: 0, to: 2, transitions: new Set([[{ title: 'a', numberOfArcs: 1 }]]) }, 
+            { from: 0, to: 3, transitions: new Set([[{ title: 'a', numberOfArcs: 1 }]]) }, 
+            { from: 1, to: 1, transitions: new Set([[{ title: 'b', numberOfArcs: 1 }]]) },
+            { from: 2, to: 1, transitions: new Set([[{ title: 'b', numberOfArcs: 1 }]]) }, 
+            { from: 3, to: 1, transitions: new Set([[{ title: 'b', numberOfArcs: 1 }]]) },
+            { from: 3, to: 4, transitions: new Set([[{ title: 'c', numberOfArcs: 1 }]]) },
+            { from: 4, to: 2, transitions: new Set([[{ title: 'd', numberOfArcs: 1 }]]) },
+            { from: 4, to: 3, transitions: new Set([[{ title: 'd', numberOfArcs: 1 }]]) },
+        ]
+    },  [{ id: 0, isAdmit: false }], ["a", "b"])
+//console.log(`It's petri run \n ${petri.run()}`)
+//console.log(`It's petri step \n ${petri.step()}`)
+console.log(petri.run());
+//console.log(petri.step());
 
 
 

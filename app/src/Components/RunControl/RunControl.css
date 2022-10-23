@@ -41,12 +41,15 @@
 }
 
 .run-control__history__scroll {
-    height: 148px;
+    position: fixed;
+    margin: 8px auto 48px;
 
-    margin-top: 12px;
-    margin-bottom: 12px;
+    height: 100px;
+    min-width: 200px ;
+    /* margin-top: 12px;
+    margin-bottom: 12px;*/
 
-    overflow-y: auto;
+    overflow-y: auto;  
 }
 
 .run-control__history__row {
@@ -71,7 +74,7 @@
 
     padding-left: 8px;
     padding-right: 8px;
-
+    
     border-radius: 8px;
 
     font-size: 18px;
@@ -84,11 +87,14 @@
 }
 
 .run-control__history__placeholder {
-    margin: 36px auto 48px;
+    /* margin:  */
+    /* 36px auto 48px; */
     width: 60%;
+    /* height: 0%; */
+    /* padding-bottom: 1em; */
 
     color: var(--secondary);
-    text-align: center;
+    text-align: left;
 
 }
 

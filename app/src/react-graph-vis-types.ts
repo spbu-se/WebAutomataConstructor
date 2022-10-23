@@ -25,7 +25,21 @@ export interface node extends NodeCore {
     x?: number,
     y?: number,
     color?: object,
-    // isAdmit: boolean,
+    isAdmit: boolean,
+    isInitial: boolean,
+    isCurrent: boolean,
+    borderWidth?: number,
+    borderWidthSelected?: number,
+}
+
+export interface histNode extends NodeCore {
+    id: number,
+    idd: number,
+    label: string,
+    x?: number,
+    y?: number,
+    color?: object,
+    isAdmit: boolean,
     isInitial: boolean,
     isCurrent: boolean,
     borderWidth?: number,
@@ -34,8 +48,8 @@ export interface node extends NodeCore {
 
 export interface edge extends EdgeCore {
     id?: string,
-    //from: number,
-    // to: number,
+    from: number,
+    to: number,
     label?: string,
     //transitions: Set<string>//////
 }

@@ -134,7 +134,7 @@ var Computer = /** @class */ (function () {
                     stDwn = exports.EPS;
                     stPsh = [exports.EPS];
                 }
-                this.matrix[statementFrom.idLogic][letterId].push(__assign(__assign({}, statementTo), { stackDown: stDwn, stackPush: stPsh, move: mv, output: output, numberOfArcs: numOfArcs }));
+                this.matrix[statementFrom.idLogic][letterId].push(__assign(__assign({}, statementTo), { stackDown: stDwn, stackPush: stPsh, move: mv, output: output }));
             }
         }
         this.alphabet.forEach(function (value, key) { return console.log("value ' ' key ".concat(value, ", ' ', ").concat(key)); });

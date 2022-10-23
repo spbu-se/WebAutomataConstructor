@@ -71,7 +71,15 @@ var OutputAutomata = /** @class */ (function (_super) {
                     curPosition: _this.curPosition,
                     historiStep: _this.historiRun
                 };
+                console.log("before after");
+                console.log("ref.counterSteps ".concat(ref.counterSteps));
+                console.log("ref.curPosition ".concat(ref.curPosition));
+                console.log("ref.historiStep ".concat(ref.historiStep));
                 var after = _this._step(ref);
+                console.log("after after :)");
+                console.log("ref.counterSteps ".concat(ref.counterSteps));
+                console.log("ref.curPosition ".concat(ref.curPosition));
+                console.log("ref.historiStep ".concat(ref.historiStep));
                 _this.counterStepsForResult = ref.counterSteps;
                 _this.curPosition = ref.curPosition;
                 _this.historiRun = ref.historiStep;

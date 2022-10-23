@@ -82,7 +82,15 @@ export abstract class OutputAutomata extends Computer {
                 curPosition: this.curPosition, 
                 historiStep: this.historiRun 
             }
+            console.log(`before after`);
+            console.log(`ref.counterSteps ${ref.counterSteps}`);
+            console.log(`ref.curPosition ${ref.curPosition}`);
+            console.log(`ref.historiStep ${ref.historiStep}`);
             const after = this._step(ref)
+            console.log(`after after :)`);
+            console.log(`ref.counterSteps ${ref.counterSteps}`);
+            console.log(`ref.curPosition ${ref.curPosition}`);
+            console.log(`ref.historiStep ${ref.historiStep}`);
             this.counterStepsForResult = ref.counterSteps
             this.curPosition = ref.curPosition
             this.historiRun = ref.historiStep

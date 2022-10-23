@@ -128,7 +128,7 @@ export abstract class Computer {
                     stackPush: stPsh,
                     move: mv,
                     output: output,
-                    numberOfArcs: numOfArcs
+                    //numberOfArcs: numOfArcs
                 })
             }
         }

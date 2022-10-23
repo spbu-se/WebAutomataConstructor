@@ -159,31 +159,31 @@ export class Mealy extends OutputAutomata {
 //     }, [{ id: 0, isAdmit: false }], [])
 // console.log(nfa.isDeterministic())
 
-// let nfa = new Mealy(
-//     {
-//         nodes: [
-//             { id: 1, isAdmit: false },
-//             { id: 2, isAdmit: false },
-//             { id: 3, isAdmit: false },
-//             { id: 4, isAdmit: false },
-//         ],
-//         edges: [
-//             { from: 1, to: 1, transitions: new Set([[{ title: 'a', output: '1' }]]) },
-//             { from: 1, to: 2, transitions: new Set([[{ title: 'b', output: '0' }]]) },
+let nfa = new Mealy(
+    {
+        nodes: [
+            { id: 1, isAdmit: false },
+            { id: 2, isAdmit: false },
+            { id: 3, isAdmit: false },
+            { id: 4, isAdmit: false },
+        ],
+        edges: [
+            { from: 1, to: 1, transitions: new Set([[{ title: 'a', output: '1' }]]) },
+            { from: 1, to: 2, transitions: new Set([[{ title: 'b', output: '0' }]]) },
 
-//             { from: 2, to: 4, transitions: new Set([[{ title: 'a', output: '1' }, { title: 'b', output: '1' }]]) },
-//             // { from: 2, to: 2, transitions: new Set([[{ title: 'b', output: '0' }]]) },
+            { from: 2, to: 4, transitions: new Set([[{ title: 'a', output: '1' }, { title: 'b', output: '1' }]]) },
+            // { from: 2, to: 2, transitions: new Set([[{ title: 'b', output: '0' }]]) },
 
-//             { from: 3, to: 3, transitions: new Set([[{ title: 'b', output: '1' }]]) },
-//             { from: 3, to: 2, transitions: new Set([[{ title: 'a', output: '1' }]]) },
+            { from: 3, to: 3, transitions: new Set([[{ title: 'b', output: '1' }]]) },
+            { from: 3, to: 2, transitions: new Set([[{ title: 'a', output: '1' }]]) },
 
-//             { from: 4, to: 1, transitions: new Set([[{ title: 'b', output: '1' }]]) },
-//             { from: 4, to:3, transitions: new Set([[{ title: 'a', output: '0' }]]) },
+            { from: 4, to: 1, transitions: new Set([[{ title: 'b', output: '1' }]]) },
+            { from: 4, to:3, transitions: new Set([[{ title: 'a', output: '0' }]]) },
 
-//         ]
-//     }, [{ id: 1, isAdmit: false }], [])
+        ]
+    }, [{ id: 1, isAdmit: false }], [])
 
-// console.log(nfa.mealyToMoore().graphcore.edges)
+console.log(nfa.mealyToMoore().graphcore.edges)
 
 // let nfa = new Mealy(
 //     {
