@@ -11,6 +11,8 @@ export interface NodeCore {
     by?: any,
     oldStack?: string[],
     stackDown?: string,
+    countTokens?: number,
+    isChangedTokens?: boolean, 
 }
 
 export enum Move {
@@ -24,6 +26,7 @@ export interface TransitionParams {
     stackPush?: string[]
     move?: Move
     output?: Output
+    numberOfArcs?: number
 }
 
 
