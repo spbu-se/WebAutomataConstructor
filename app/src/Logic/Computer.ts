@@ -9,6 +9,7 @@ export type statementCell = {
     readonly stackPush?: string[]
     readonly move?: Move
     readonly output?: Output
+    readonly numberOfArcs?: number
 } & statement
 
 export const eof: statement = { isAdmit: false, idLogic: -1, id: -1 }
@@ -110,8 +111,8 @@ export abstract class Computer {
                 if (letterId === undefined) {
                     continue
                 }
-                console.log(letterId)
-                console.log(this.edges[i].localValue[j].title)
+                console.log(`letterId ${letterId}`)
+                console.log(`this.edges[i].localValue[j].title ${this.edges[i].localValue[j].title}`)
                 let stDwn = this.edges[i].localValue[j].stackDown
                 let stPsh = this.edges[i].localValue[j].stackPush
                 let mv = this.edges[i].localValue[j].move
@@ -125,15 +126,16 @@ export abstract class Computer {
                     stackDown: stDwn,
                     stackPush: stPsh,
                     move: mv,
-                    output: output
+                    output: output,
+                    //numberOfArcs: numOfArcs
                 })
             }
         }
         this.alphabet.forEach((value, key) => console.log(value, ' ', key))
         this.statements.forEach(value => console.log(value))
         this.matrix.forEach(value => {
-            console.log()
-            value.forEach(value1 => console.log(value1))
+           console.log()
+           value.forEach(value1 => console.log(`value1 ${value1}`))
         })
     }
 

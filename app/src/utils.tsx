@@ -138,7 +138,7 @@ export const getTransitionsTitles = (transitions: Set<TransitionParams[]>, frmt:
                     }
                 })
             })
-        }
+        } 
     }
 
     return str

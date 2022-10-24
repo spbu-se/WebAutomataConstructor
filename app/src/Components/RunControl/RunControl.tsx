@@ -28,7 +28,8 @@ import { DPDA } from "../../Logic/DPDA";
 import { DMealy } from "../../Logic/DMealy";
 import { DMoore } from "../../Logic/DMoore";
 import { isAbsolute } from "path";
-import { History } from "./History"
+import { History } from "./History";
+import {PetriNets} from "../../Logic/PetriNets2";
 
 interface runControlProps {
     computerType: ComputerType,
@@ -242,6 +243,8 @@ class RunControl extends React.Component<runControlProps, runControlState> {
                 return new Moore(graph, initialNode, input);
             case "dmoore":
                 return new DMoore(graph, initialNode, input);
+            case "petriNets":
+                return new PetriNets(graph, initialNode, input);
         }
 
     }
@@ -514,7 +517,15 @@ class RunControl extends React.Component<runControlProps, runControlState> {
             history: [],
         },
             () => {
+                {
                 this.initializeComputer()
+                this.props.setHistory(() =>
+                    <History
+                        startNode={this.state.startNode!}
+                        history={this.state.history!}
+                        historyEndRef={this.props.historyEndRef}
+                    />)
+            }
                 this.props.setHistory(() =>
                     <History
                         startNode={this.state.startNode!}
@@ -554,6 +565,7 @@ class RunControl extends React.Component<runControlProps, runControlState> {
                     this.tree(byLetter)
                 }
             })
+
 
             this.setState({ result: result.isAdmit, currentInputIndex: -1, history: [] });
             this.setState({ wasRuned: true })

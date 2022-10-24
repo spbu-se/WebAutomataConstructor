@@ -13,6 +13,7 @@ export type ComputerType
     | "dmoore"
     | "petriNets"
 
+
 export type ComputerInfo = {
     name: string
     description: string,
