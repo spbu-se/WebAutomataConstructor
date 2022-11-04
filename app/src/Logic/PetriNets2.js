@@ -134,7 +134,6 @@ var PetriNets = /** @class */ (function (_super) {
             var _a;
             var byLetter = [];
             var trNum = _this.alphabet.get((_a = _this.input[ref.counterSteps]) === null || _a === void 0 ? void 0 : _a.value);
-            //this.changeCountTokens(this.curPosition);
             var nextPositions = _this.nextStepPositions(ref.curPosition, trNum);
             ref.curPosition = nextPositions;
             _this.changeCountTokens(ref.curPosition);
@@ -230,17 +229,17 @@ var PetriNets = /** @class */ (function (_super) {
         });
         console.log("after changeCountTokens");
         console.log(idForChange);
-        //this.nodes.forEach(node => node.isChangedTokens = false)
+        this.nodes.forEach(function (node) { return node.isChangedTokens = false; });
     };
     PetriNets.prototype.minusToken = function (value) {
         //if ((value.countTokens !== undefined) && (!value.isChangedTokens)) {
-        if ((value.countTokens !== undefined)) {
+        if ((value.countTokens !== undefined) && (!value.isChangedTokens)) {
             value.countTokens--;
             value.isChangedTokens = true;
         }
     };
     PetriNets.prototype.plusToken = function (value) {
-        if ((value.countTokens !== undefined)) {
+        if ((value.countTokens !== undefined) && (!value.isChangedTokens)) {
             value.countTokens++;
             value.isChangedTokens = true;
         }

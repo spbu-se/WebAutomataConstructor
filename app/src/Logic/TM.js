@@ -29,7 +29,6 @@ exports.__esModule = true;
 exports.TM = exports.TMMemory = void 0;
 var IGraphTypes_1 = require("./IGraphTypes");
 var PDA_1 = require("./PDA");
-var Computer_1 = require("./Computer");
 var Exceptions_1 = require("./Exceptions");
 var TMMemory = /** @class */ (function () {
     function TMMemory() {
@@ -89,15 +88,20 @@ var TM = /** @class */ (function (_super) {
         var _this = _super.call(this, graph, startStatement, input) || this;
         _this.mem = new TMMemory();
         _this.__step = function (counter, tr, histori) {
+            var byLetter = [];
+            var from = _this.curPosition[0].stmt;
+            var mv;
             var by = "";
             _this.cellMatrix(_this.curPosition[0].stmt.idLogic, tr).forEach(function (value) {
                 if (value.stackDown === _this.mem.lookUp()) {
                     if (value.move === IGraphTypes_1.Move.R) {
                         _this.mem.mvRight(value.stackDown, value.stackPush[0]);
+                        mv = value.move;
                         by = value.stackDown;
                     }
                     if (value.move === IGraphTypes_1.Move.L) {
                         _this.mem.mvLeft(value.stackDown, value.stackPush[0]);
+                        mv = value.move;
                         by = value.stackDown;
                     }
                     _this.assignCurMt({ stmt: _this.statements.get(value.id) });
@@ -106,18 +110,24 @@ var TM = /** @class */ (function (_super) {
             histori.push({
                 nodes: [_this.nodes[_this.curPosition[0].stmt.idLogic]],
                 by: by
-                // this.input[counter].value
             });
-            console.log("this.mem.getStorage()");
-            console.log(_this.mem.getStorage());
             counter++;
+            byLetter.push({
+                id: _this.curPosition[0].stmt.id,
+                isAdmit: _this.curPosition[0].stmt.isAdmit,
+                by: by,
+                from: from,
+                cur: _this.curPosition[0].stmt,
+                move: mv
+            });
             return {
                 nodes: [_this.nodes[_this.curPosition[0].stmt.idLogic]],
                 isAdmit: _this.curPosition[0].stmt.isAdmit,
                 counter: counter,
                 history: histori,
                 memory: _this.mem.getStorage(),
-                pointer: _this.mem.getPointer()
+                pointer: _this.mem.getPointer(),
+                byLetter: byLetter
             };
         };
         _this.restart = function () {
@@ -168,14 +178,10 @@ var TM = /** @class */ (function (_super) {
             return _this.mtTrun();
         };
         _this.checkMemFormat(graph);
-        // if (!this.isDeterministic()) {
-        //     throw Error ("Not deterministic")
-        // }
         _this.mem.initialize(input);
         _this.curPosition = [{
                 stmt: _this.statements.get(_this.startStatements[0].id)
             }];
-        console.log("MTMTMTMTMTTMMTMTMT::::::::::");
         return _this;
     }
     TM.prototype.checkMemFormat = function (graph) {
@@ -224,73 +230,3 @@ var TM = /** @class */ (function (_super) {
     return TM;
 }(PDA_1.PDA));
 exports.TM = TM;
-var nfa = new TM({
-    nodes: [
-        { id: 1, isAdmit: false },
-        { id: 2, isAdmit: false },
-        // {id: 3, isAdmit: false},
-        // {id: 4, isAdmit: false},
-    ],
-    edges: [
-        { from: 1, to: 2, transitions: new Set([[{ title: Computer_1.EPS, stackDown: '0', stackPush: ['0'], move: IGraphTypes_1.Move.R }, { title: Computer_1.EPS, stackDown: '1', stackPush: ['1'], move: IGraphTypes_1.Move.R }]]) },
-        // { from: 1, to: 2, transitions: new Set([[{title: EPS, stackDown: '_', stackPush: ['_'], move: Move.L} ]]) },
-        // { from: 2, to: 2, transitions: new Set([[{title: EPS, stackDown: '1', stackPush: ['0'], move: Move.L} ]]) },
-        // { from: 2, to: 3, transitions: new Set([[{title: EPS, stackDown: '0', stackPush: ['1'], move: Move.L} ]]) },
-        // { from: 2, to: 4, transitions: new Set([[{title: EPS, stackDown: '_', stackPush: ['1'], move: Move.L} ]]) },
-        // { from: 1, to: 2, transitions: new Set([[ {title: EPS, stackDown: '_', stackPush: ['V'], move: Move.R} ]]) },
-        // { from: 2, to: 2, transitions: new Set([[ {title: EPS, stackDown: '_', stackPush: ['B'], move: Move.R} ]]) },
-        // { from: 2, to: 1, transitions: new Set([[ { title: 'b', stackDown: 'b', stackPush: ['6'], move: Move.R } ]]) },
-        // { from: 3, to: 3, transitions: new Set([[ { title: 'c', stackDown: 'с', stackPush: ['['], move: Move.R } ]]) },
-        // { from: 3, to: 3, transitions: new Set([[ { title: 'c', stackDown: '_', stackPush: [']'], move: Move.R } ]]) },
-        // {from: 1, to: 1, transitions: new Set([{title: 'a', stackDown: 'a', stackPush: ['A'], move: Move.R}])},
-        // {from: 1, to: 2, transitions: new Set([{title: 'c', stackDown: 'b', stackPush: ['V'], move: Move.R}])},
-        // {from: 2, to: 2, transitions: new Set([{title: 'c', stackDown: '_', stackPush: ['V'], move: Move.R}])},
-    ]
-}, [{ id: 1, isAdmit: false }], ['1']);
-console.log(nfa.isDeterministic());
-// let nfa = new TM(
-//     {
-//         nodes: [
-//             {id: 1, isAdmit: false},
-//             {id: 2, isAdmit: false},
-//             {id: 3, isAdmit: false},
-//             {id: 4, isAdmit: false},
-//
-//         ],
-//         edges: [
-//             { from: 1, to: 1, transitions: new Set([[{title: EPS, stackDown: '0', stackPush: ['0'], move: Move.R}, {title: EPS, stackDown: '1', stackPush: ['1'], move: Move.R} ]]) },
-//             { from: 1, to: 2, transitions: new Set([[{title: EPS, stackDown: '_', stackPush: ['_'], move: Move.L} ]]) },
-//             { from: 2, to: 2, transitions: new Set([[{title: EPS, stackDown: '1', stackPush: ['0'], move: Move.L} ]]) },
-//             { from: 2, to: 3, transitions: new Set([[{title: EPS, stackDown: '0', stackPush: ['1'], move: Move.L} ]]) },
-//             { from: 2, to: 4, transitions: new Set([[{title: EPS, stackDown: '_', stackPush: ['1'], move: Move.L} ]]) },
-//
-//             // { from: 1, to: 2, transitions: new Set([[ {title: EPS, stackDown: '_', stackPush: ['V'], move: Move.R} ]]) },
-//             // { from: 2, to: 2, transitions: new Set([[ {title: EPS, stackDown: '_', stackPush: ['B'], move: Move.R} ]]) },
-//             // { from: 2, to: 1, transitions: new Set([[ { title: 'b', stackDown: 'b', stackPush: ['6'], move: Move.R } ]]) },
-//             // { from: 3, to: 3, transitions: new Set([[ { title: 'c', stackDown: 'с', stackPush: ['['], move: Move.R } ]]) },
-//             // { from: 3, to: 3, transitions: new Set([[ { title: 'c', stackDown: '_', stackPush: [']'], move: Move.R } ]]) },
-//
-//             // {from: 1, to: 1, transitions: new Set([{title: 'a', stackDown: 'a', stackPush: ['A'], move: Move.R}])},
-//             // {from: 1, to: 2, transitions: new Set([{title: 'c', stackDown: 'b', stackPush: ['V'], move: Move.R}])},
-//             // {from: 2, to: 2, transitions: new Set([{title: 'c', stackDown: '_', stackPush: ['V'], move: Move.R}])},
-//
-//
-//
-//         ]
-//     },  [{id: 1, isAdmit: false}], ['1'])
-// console.log(nfa.step())
-// console.log(nfa.step())
-// console.log(nfa.step())
-// console.log(nfa.step())
-// console.log(nfa.step())
-// console.log(nfa.step())
-// nfa.setInput(['1'])
-// console.log(nfa.step())
-// console.log(nfa.step())
-// console.log(nfa.step())
-// console.log(nfa.step())
-// console.log(nfa.step())
-// console.log(nfa.step())
-// console.log(nfa.step())
-// console.log(nfa.step())
-// console.log(nfa.step())

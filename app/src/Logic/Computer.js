@@ -129,7 +129,6 @@ var Computer = /** @class */ (function () {
                 var stPsh = this.edges[i].localValue[j].stackPush;
                 var mv = this.edges[i].localValue[j].move;
                 var output = this.edges[i].localValue[j].output === undefined ? statementTo.output : this.edges[i].localValue[j].output;
-                var numOfArcs = this.edges[i].localValue[j].numberOfArcs;
                 if (stDwn === undefined || stPsh === undefined || stDwn === "" || stPsh.length === 0) {
                     stDwn = exports.EPS;
                     stPsh = [exports.EPS];
@@ -137,8 +136,8 @@ var Computer = /** @class */ (function () {
                 this.matrix[statementFrom.idLogic][letterId].push(__assign(__assign({}, statementTo), { stackDown: stDwn, stackPush: stPsh, move: mv, output: output }));
             }
         }
-        this.alphabet.forEach(function (value, key) { return console.log("value ' ' key ".concat(value, ", ' ', ").concat(key)); });
-        this.statements.forEach(function (value) { return console.log("value ".concat(value)); });
+        this.alphabet.forEach(function (value, key) { return console.log(value, ' ', key); });
+        this.statements.forEach(function (value) { return console.log(value); });
         this.matrix.forEach(function (value) {
             console.log();
             value.forEach(function (value1) { return console.log("value1 ".concat(value1)); });
