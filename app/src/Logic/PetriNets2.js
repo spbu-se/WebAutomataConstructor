@@ -14,6 +14,17 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
 exports.__esModule = true;
 exports.PetriNets = void 0;
 var Computer_1 = require("./Computer");
@@ -22,27 +33,45 @@ var PetriNets = /** @class */ (function (_super) {
     function PetriNets(graph, startStatements, input) {
         var _this = _super.call(this, graph, startStatements) || this;
         _this.haveEpsilon = function () { return _this.alphabet.get(Computer_1.EPS) !== undefined; };
-        _this.toNodes = function (positions) {
-            var edgesMap = [];
-            var schet = 0;
-            positions.forEach(function (position) {
-                _this.edges.forEach(function (edge) { return edge.transitions.forEach(function (transition) { return transition.forEach(function (way) {
-                    var _a;
-                    if ((way.title === ((_a = _this.input[_this.counterSteps]) === null || _a === void 0 ? void 0 : _a.value)) && (edge.from === position.stmt.id)) {
-                        edgesMap.push(edge);
-                    }
-                }); }); });
-            });
-            var toNodes_ = [];
-            edgesMap.forEach(function (edge) { return _this.nodes.forEach(function (node) {
-                if (node.id === edge.to) {
-                    toNodes_.push(node);
-                }
-            }); });
-            //toNodes_.forEach(toNode => console.log(toNode.id));
-            var toNodes = Array.from(new Set(toNodes_));
-            return toNodes;
-        };
+        // protected toNodes = (positions: position[]): NodeCore[] => {
+        //     console.log('positionsd')
+        //     positions.forEach(po => console.log(po))
+        //     console.log('end positionsd');
+        //     let edgesMap: EdgeCore[] = [];
+        //     let schet: number = 0;
+        //     positions.forEach(position => {
+        //         this.edges.forEach(edge => edge.transitions.forEach(transition => transition.forEach(way => {
+        //             console.log('START');
+        //             console.log(way.title);
+        //             console.log(this.input[this.counterSteps]?.value)
+        //             console.log(edge.from);
+        //             console.log(position.stmt.id);
+        //             console.log('END');
+        //             if ((way.title === (this.input[this.counterSteps]?.value)) && (edge.from === position.stmt.id)){
+        //                 edgesMap.push(edge);
+        //                 console.log('push srabotal')
+        //             }
+        //         })))
+        //     })
+        //     console.log('edgesMap')
+        //     edgesMap.forEach(edgM => console.log(edgM))
+        //     console.log('edgesMap');
+        //     let toNodes_: NodeCore[] = [];
+        //     edgesMap.forEach(edge => this.nodes.forEach(node => {
+        //         if (node.id === edge.to) {
+        //             toNodes_.push(node);
+        //         }
+        //     }))  
+        //     console.log('posmotrim')
+        //     toNodes_.forEach(toN => console.log(toN))
+        //     console.log('end posmotrim');
+        //     //toNodes_.forEach(toNode => console.log(toNode.id));
+        //     let toNodes = Array.from(new Set(toNodes_))
+        //     console.log('TONODES')
+        //     toNodes.forEach(toNode => console.log(toNode))
+        //     console.log('TONODES')
+        //     return toNodes;      
+        // }
         _this.nextStepPosition = function (position, by) {
             return _this.cellMatrix(position.stmt.idLogic, by).map(function (v) {
                 var getLetter = function (id) {
@@ -86,7 +115,7 @@ var PetriNets = /** @class */ (function (_super) {
                 curPosition: _this.curPosition,
                 historiStep: _this.historiStep
             };
-            var after = _this._step(ref, []);
+            var after = _this._step(ref);
             _this.counterSteps = ref.counterSteps;
             _this.curPosition = ref.curPosition;
             _this.historiStep = ref.historiStep;
@@ -99,7 +128,7 @@ var PetriNets = /** @class */ (function (_super) {
             };
         };
         _this.pnRun = function () {
-            var histTrace = [];
+            console.log('PETRI NET RUN++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++');
             _this.historiRun = [];
             _this.counterStepsForResult = 0;
             for (var i = 0; i < _this.input.length; i++) {
@@ -108,11 +137,11 @@ var PetriNets = /** @class */ (function (_super) {
                     curPosition: _this.curPosition,
                     historiStep: _this.historiRun
                 };
-                console.log("BEFORE AFTER");
-                console.log(ref.counterSteps);
-                console.log(ref.curPosition);
-                console.log(ref.historiStep);
-                var after = _this._step(ref, histTrace);
+                // console.log(`BEFORE AFTER`);
+                // console.log(ref.counterSteps);
+                // console.log(ref.curPosition);
+                // console.log(ref.historiStep);
+                var after = _this._step(ref);
                 console.log("AFTER AFTER :)");
                 console.log(ref.counterSteps);
                 console.log(ref.curPosition);
@@ -121,36 +150,52 @@ var PetriNets = /** @class */ (function (_super) {
                 _this.counterStepsForResult = ref.counterSteps;
                 _this.curPosition = ref.curPosition;
                 _this.historiRun = ref.historiStep;
+                // console.log('HISTORY RUN');
+                // console.log(this.historiRun[0].nodes);
+                // console.log('END HISTORY RUN');
             }
             return {
                 counter: _this.counterStepsForResult,
                 history: _this.historiRun,
                 isAdmit: _this.haveAdmitting(_this.curPosition),
-                nodes: _this.toNodes(_this.curPosition),
-                histTrace: histTrace
+                nodes: _this.toNodes(_this.curPosition)
             };
         };
-        _this._step = function (ref, histTrace) {
+        _this.getNode = function (positions) {
+            var getNod = [];
+            positions.forEach(function (pos) {
+                getNod.push(pos.stmt);
+                console.log("pos.cur");
+                console.log(pos.stmt);
+                console.log("end pos.cur");
+            });
+            return getNod;
+        };
+        _this._step = function (ref) {
             var _a;
             var byLetter = [];
             var trNum = _this.alphabet.get((_a = _this.input[ref.counterSteps]) === null || _a === void 0 ? void 0 : _a.value);
+            ref.historiStep.push({ nodes: _this.getNode(ref.curPosition), by: trNum });
+            console.log('history step');
+            console.log(ref.historiStep[0].nodes);
+            console.log('end history step');
+            if (ref.curPosition.length > 0) {
+                ref.counterSteps++;
+            }
             var nextPositions = _this.nextStepPositions(ref.curPosition, trNum);
             ref.curPosition = nextPositions;
             _this.changeCountTokens(ref.curPosition);
             var nodesOfCurPos = _this.toNodes(ref.curPosition);
             nodesOfCurPos.forEach(function (node) { return byLetter.push(node); });
-            ref.historiStep.push({ nodes: nodesOfCurPos, by: trNum });
-            if (ref.curPosition.length > 0) {
-                ref.counterSteps++;
-            }
-            histTrace.push({ byLetter: byLetter });
+            // console.log('NODEOFCURPOSITION')
+            // console.log(nodesOfCurPos);
+            // console.log('END NODE OF CURPOSITION');
             return {
                 counter: ref.counterSteps,
                 history: ref.historiStep,
                 nodes: nodesOfCurPos,
                 isAdmit: _this.haveAdmitting(_this.curPosition),
-                byLetter: byLetter,
-                histTrace: histTrace
+                byLetter: byLetter
             };
         };
         _this.restart = function () {
@@ -171,24 +216,24 @@ var PetriNets = /** @class */ (function (_super) {
                 stmt: _this.statements.get(value.id)
             });
             //console.log(`this statements get value id ${this.statements.get(value.id)}`)
-            console.log("startStatements ".concat(value.id));
+            //console.log(`startStatements ${value.id}`);
         });
         //this.nodes = graph.nodes;
         _this.setInput(input);
         _this.counterSteps = 0;
-        console.log("ALPHBT");
-        _this.alphabet.forEach(function (value, key) { return console.log(value, key); });
-        console.log("STMTS");
-        _this.statements.forEach(function (value) { return console.log(value); });
-        console.log("CURPOS");
-        console.log(_this.curPosition);
-        console.log("MATRIX");
-        _this.matrix.forEach(function (value) {
-            console.log();
-            value.forEach(function (value1) { return console.log(value1); });
-            console.log("end of MATRIX");
-        });
         return _this;
+        // console.log("ALPHBT")
+        // this.alphabet.forEach((value, key) => console.log(value, key))
+        // console.log("STMTS")
+        // this.statements.forEach(value => console.log(value))
+        // console.log("CURPOS")
+        // console.log(this.curPosition)
+        // console.log("MATRIX")
+        // this.matrix.forEach(value => {
+        //     console.log()
+        //     value.forEach(value1 => console.log(value1))
+        //     console.log(`end of MATRIX`);
+        // })
     }
     PetriNets.prototype.isTransitionActive = function (isActiveId) {
         var _a;
@@ -213,35 +258,43 @@ var PetriNets = /** @class */ (function (_super) {
         });
         if ((isActiveNode.countTokens >= curNumberOfArcs) && (isActiveNode.countTokens > 0)) {
             result = true;
-            console.log("result is ".concat(result));
+            //console.log(`result is ${result}`);
             return result;
         }
         return result;
     };
-    PetriNets.prototype.changeCountTokens = function (idForChange) {
+    PetriNets.prototype.changeCountTokens = function (nodeForChange) {
         var _this = this;
-        console.log("changeCountTokens");
-        console.log(idForChange);
-        console.log("end list pos for change");
-        idForChange.forEach(function (id) {
-            _this.plusToken(id.cur);
-            _this.minusToken(id.from);
+        //console.log(`changeCountTokens`);
+        //console.log(idForChange);
+        //console.log(`end list pos for change`);
+        var lastCurNode;
+        var lastFromNode;
+        nodeForChange.forEach(function (nod) {
+            // if (lastCurNode !== nod.cur && nod.cur !== undefined){
+            _this.plusToken(nod.cur);
+            //     lastCurNode = nod.cur;
+            // }
+            if (lastFromNode !== nod.from && nod.from !== undefined) {
+                _this.minusToken(nod.from);
+                lastFromNode = nod.from;
+            }
         });
-        console.log("after changeCountTokens");
-        console.log(idForChange);
-        this.nodes.forEach(function (node) { return node.isChangedTokens = false; });
+        //console.log(`after changeCountTokens`)
+        //console.log(idForChange);
+        //this.nodes.forEach(node => node.isChangedTokens = false)
     };
     PetriNets.prototype.minusToken = function (value) {
         //if ((value.countTokens !== undefined) && (!value.isChangedTokens)) {
-        if ((value.countTokens !== undefined) && (!value.isChangedTokens)) {
+        if ((value.countTokens !== undefined) && (value.countTokens > 0)) {
             value.countTokens--;
-            value.isChangedTokens = true;
+            //value.isChangedTokens = true;
         }
     };
     PetriNets.prototype.plusToken = function (value) {
-        if ((value.countTokens !== undefined) && (!value.isChangedTokens)) {
+        if ((value.countTokens !== undefined)) {
             value.countTokens++;
-            value.isChangedTokens = true;
+            //value.isChangedTokens = true;
         }
         //console.log(`I was in plusToken countTokens ${value.countTokens}`);
     };
@@ -256,6 +309,20 @@ var PetriNets = /** @class */ (function (_super) {
             }
         });
         return true;
+    };
+    PetriNets.prototype.toNodes = function (positions) {
+        var _this = this;
+        var retNodes = [];
+        positions.forEach(function (value) {
+            var from = {
+                id: value.from.id,
+                isAdmit: value.from.isAdmit,
+                countTokens: value.from.countTokens
+            };
+            var temp = __assign(__assign({}, _this.nodes[value.stmt.idLogic]), { from: from, cur: value.cur, by: value.by });
+            retNodes.push(temp);
+        });
+        return retNodes;
     };
     return PetriNets;
 }(Computer_1.Computer));
@@ -295,10 +362,10 @@ var petri = new PetriNets({
         { from: 4, to: 2, transitions: new Set([[{ title: 'd', numberOfArcs: 1 }]]) },
         { from: 4, to: 3, transitions: new Set([[{ title: 'd', numberOfArcs: 1 }]]) },
     ]
-}, [{ id: 0, isAdmit: false }], ["a", "b"]);
+}, [{ id: 0, isAdmit: false }], ["b"]);
 //console.log(`It's petri run \n ${petri.run()}`)
 //console.log(`It's petri step \n ${petri.step()}`)
-console.log(petri.run());
+console.log(petri.step());
 //console.log(petri.step());
 // let petri = new PetriNets({
 //     nodes: [

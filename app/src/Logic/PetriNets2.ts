@@ -2,6 +2,8 @@ import { History, position, Step, HistTrace, statement } from "./Types";
 import { GraphCore, NodeCore, EdgeCore } from "./IGraphTypes";
 import { Computer, EPS } from "./Computer";
 import { NFA } from "./NFA";
+import { Console } from "console";
+import { positions } from "@mui/system";
 
  export class PetriNets extends Computer { 
 
@@ -15,25 +17,25 @@ import { NFA } from "./NFA";
                 stmt: this.statements.get(value.id),
             })
             //console.log(`this statements get value id ${this.statements.get(value.id)}`)
-            console.log(`startStatements ${value.id}`);
+            //console.log(`startStatements ${value.id}`);
         })
         //this.nodes = graph.nodes;
         this.setInput(input);
         this.counterSteps = 0;
 
         
-        console.log("ALPHBT")
-        this.alphabet.forEach((value, key) => console.log(value, key))
-        console.log("STMTS")
-        this.statements.forEach(value => console.log(value))
-        console.log("CURPOS")
-        console.log(this.curPosition)
-        console.log("MATRIX")
-        this.matrix.forEach(value => {
-            console.log()
-            value.forEach(value1 => console.log(value1))
-            console.log(`end of MATRIX`);
-        })
+        // console.log("ALPHBT")
+        // this.alphabet.forEach((value, key) => console.log(value, key))
+        // console.log("STMTS")
+        // this.statements.forEach(value => console.log(value))
+        // console.log("CURPOS")
+        // console.log(this.curPosition)
+        // console.log("MATRIX")
+        // this.matrix.forEach(value => {
+        //     console.log()
+        //     value.forEach(value1 => console.log(value1))
+        //     console.log(`end of MATRIX`);
+        // })
     }
 
     public isTransitionActive(isActiveId: number): boolean {
@@ -60,70 +62,96 @@ import { NFA } from "./NFA";
 
         if ((isActiveNode.countTokens! >= curNumberOfArcs) && (isActiveNode.countTokens! > 0)) {
             result = true;
-            console.log(`result is ${result}`);
+            //console.log(`result is ${result}`);
             return result;
         }
        
         return result;
     }
 
-    private changeCountTokens(idForChange: position[]): void {
-        console.log(`changeCountTokens`);
-        console.log(idForChange);
-        console.log(`end list pos for change`);
-        
-        idForChange.forEach(id => {
-            this.plusToken(id.cur!);
-            this.minusToken(id.from!);
+    private changeCountTokens(nodeForChange: position[]): void {
+        //console.log(`changeCountTokens`);
+        //console.log(idForChange);
+        //console.log(`end list pos for change`);
+        let lastCurNode: NodeCore;
+        let lastFromNode: NodeCore;
+        nodeForChange.forEach(nod => {
+            // if (lastCurNode !== nod.cur && nod.cur !== undefined){
+                this.plusToken(nod.cur!);
+            //     lastCurNode = nod.cur;
+            // }
+            if (lastFromNode !== nod.from && nod.from !== undefined){
+                this.minusToken(nod.from!);
+                lastFromNode = nod.from;
+            }
         })
 
-        console.log(`after changeCountTokens`)
-        console.log(idForChange);
-        this.nodes.forEach(node => node.isChangedTokens = false)
+        //console.log(`after changeCountTokens`)
+        //console.log(idForChange);
+        //this.nodes.forEach(node => node.isChangedTokens = false)
     }
 
 
     private minusToken(value: NodeCore): void {
         //if ((value.countTokens !== undefined) && (!value.isChangedTokens)) {
-        if ((value.countTokens !== undefined) && (!value.isChangedTokens)) {    
+        if ((value.countTokens !== undefined) && (value.countTokens > 0)) {    
             value.countTokens--;
-            value.isChangedTokens = true;
+            //value.isChangedTokens = true;
         }
     }
 
     private plusToken(value: NodeCore): void {
-        if ((value.countTokens !== undefined) && (!value.isChangedTokens)) {
+        if ((value.countTokens !== undefined)) {
             value.countTokens++;
-            value.isChangedTokens = true;
+            //value.isChangedTokens = true;
         }
         //console.log(`I was in plusToken countTokens ${value.countTokens}`);
     }
 
     public haveEpsilon = () => this.alphabet.get(EPS) !== undefined;
 
-    protected toNodes = (positions: position[]): NodeCore[] => {
+    // protected toNodes = (positions: position[]): NodeCore[] => {
+    //     console.log('positionsd')
+    //     positions.forEach(po => console.log(po))
+    //     console.log('end positionsd');
     
-        let edgesMap: EdgeCore[] = [];
-        let schet: number = 0;
+    //     let edgesMap: EdgeCore[] = [];
+    //     let schet: number = 0;
         
-        positions.forEach(position => {
-            this.edges.forEach(edge => edge.transitions.forEach(transition => transition.forEach(way => {
-                if ((way.title === (this.input[this.counterSteps]?.value)) && (edge.from === position.stmt.id)){
-                    edgesMap.push(edge);
-                }
-            })))
-        })
+    //     positions.forEach(position => {
+    //         this.edges.forEach(edge => edge.transitions.forEach(transition => transition.forEach(way => {
+    //             console.log('START');
+    //             console.log(way.title);
+    //             console.log(this.input[this.counterSteps]?.value)
+    //             console.log(edge.from);
+    //             console.log(position.stmt.id);
+    //             console.log('END');
+    //             if ((way.title === (this.input[this.counterSteps]?.value)) && (edge.from === position.stmt.id)){
+    //                 edgesMap.push(edge);
+    //                 console.log('push srabotal')
+    //             }
+    //         })))
+    //     })
+    //     console.log('edgesMap')
+    //     edgesMap.forEach(edgM => console.log(edgM))
+    //     console.log('edgesMap');
     
-        let toNodes_: NodeCore[] = [];
-        edgesMap.forEach(edge => this.nodes.forEach(node => {
-            if (node.id === edge.to) {
-                toNodes_.push(node);
-            }
-        }))  
-        //toNodes_.forEach(toNode => console.log(toNode.id));
-        let toNodes = Array.from(new Set(toNodes_))
-        return toNodes;      
-    }
+    //     let toNodes_: NodeCore[] = [];
+    //     edgesMap.forEach(edge => this.nodes.forEach(node => {
+    //         if (node.id === edge.to) {
+    //             toNodes_.push(node);
+    //         }
+    //     }))  
+    //     console.log('posmotrim')
+    //     toNodes_.forEach(toN => console.log(toN))
+    //     console.log('end posmotrim');
+    //     //toNodes_.forEach(toNode => console.log(toNode.id));
+    //     let toNodes = Array.from(new Set(toNodes_))
+    //     console.log('TONODES')
+    //     toNodes.forEach(toNode => console.log(toNode))
+    //     console.log('TONODES')
+    //     return toNodes;      
+    // }
 
     protected nextStepPosition = (position: position, by: number): position[] => {
         return this.cellMatrix(position.stmt.idLogic, by).map(v => {
@@ -170,7 +198,7 @@ import { NFA } from "./NFA";
             curPosition: this.curPosition, 
             historiStep: this.historiStep 
         }
-        const after = this._step(ref, [])
+        const after = this._step(ref)
         this.counterSteps = ref.counterSteps
         this.curPosition = ref.curPosition
         this.historiStep = ref.historiStep
@@ -185,7 +213,7 @@ import { NFA } from "./NFA";
     }
     
     pnRun = (): Step => {
-        const histTrace: HistTrace[] = [];
+        console.log('PETRI NET RUN++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++')
         
         this.historiRun = []
         this.counterStepsForResult = 0
@@ -196,20 +224,23 @@ import { NFA } from "./NFA";
                 historiStep: this.historiRun
             }
 
-            console.log(`BEFORE AFTER`);
-            console.log(ref.counterSteps);
-            console.log(ref.curPosition);
-            console.log(ref.historiStep);
+            // console.log(`BEFORE AFTER`);
+            // console.log(ref.counterSteps);
+            // console.log(ref.curPosition);
+            // console.log(ref.historiStep);
 
-            const after = this._step(ref, histTrace)
-            console.log(`AFTER AFTER :)`);
-            console.log(ref.counterSteps);
+            const after = this._step(ref)
+             console.log(`AFTER AFTER :)`);
+             console.log(ref.counterSteps);
             console.log(ref.curPosition);
             console.log(ref.historiStep);
             console.log(`END AFTER`);
             this.counterStepsForResult = ref.counterSteps
             this.curPosition = ref.curPosition
             this.historiRun = ref.historiStep
+            // console.log('HISTORY RUN');
+            // console.log(this.historiRun[0].nodes);
+            // console.log('END HISTORY RUN');
         }
         
         return { 
@@ -217,7 +248,6 @@ import { NFA } from "./NFA";
             history: this.historiRun, 
             isAdmit: this.haveAdmitting(this.curPosition), 
             nodes: this.toNodes(this.curPosition),
-            histTrace
         }
     }
 
@@ -236,10 +266,49 @@ import { NFA } from "./NFA";
        return true;
     }
 
-    protected _step = (ref: {counterSteps: number, curPosition: position[], historiStep: History[] }, histTrace: HistTrace[]): Step => {
+    protected getNode = (positions: position[]): NodeCore[] => {
+        let getNod: NodeCore[] = [];
+        positions.forEach(pos => {
+            getNod.push(pos.stmt)
+            console.log(`pos.cur`);
+            console.log(pos.stmt);
+            console.log(`end pos.cur`);
+        });
+        return getNod
+    }
+
+    private toNodes(positions: position[]): NodeCore[] {
+        let retNodes: NodeCore[] = []
+        positions.forEach(value => {
+            const from: NodeCore = {
+                id: value.from!.id,
+                isAdmit: value.from!.isAdmit,
+                countTokens: value.from!.countTokens
+            }
+
+            let temp: NodeCore = {
+                ...this.nodes[value.stmt.idLogic], 
+                from,
+                cur: value.cur,
+                by: value.by,
+            }
+            retNodes.push(temp)
+        })
+        return retNodes
+    }
+
+    protected _step = (ref: {counterSteps: number, curPosition: position[], historiStep: History[] }): Step => {
         const byLetter: NodeCore[] = [];
         const trNum = this.alphabet.get(this.input[ref.counterSteps]?.value)
-        
+        ref.historiStep.push({nodes: this.getNode(ref.curPosition), by: trNum })
+        console.log('history step');
+        console.log(ref.historiStep[0].nodes);
+        console.log('end history step');
+        if (ref.curPosition.length > 0) {
+            ref.counterSteps++
+        }
+
+
         const nextPositions = this.nextStepPositions(ref.curPosition, trNum)
        
         ref.curPosition = nextPositions;
@@ -248,14 +317,9 @@ import { NFA } from "./NFA";
         const nodesOfCurPos = this.toNodes(ref.curPosition)
        
         nodesOfCurPos.forEach((node) => byLetter.push(node))
-
-
-        ref.historiStep.push({nodes: nodesOfCurPos, by: trNum })
-        if (ref.curPosition.length > 0) {
-            ref.counterSteps++
-        }
-
-        histTrace.push({ byLetter })
+        // console.log('NODEOFCURPOSITION')
+        // console.log(nodesOfCurPos);
+        // console.log('END NODE OF CURPOSITION');
 
         return {
             counter: ref.counterSteps,
@@ -263,7 +327,6 @@ import { NFA } from "./NFA";
             nodes: nodesOfCurPos, 
             isAdmit: this.haveAdmitting(this.curPosition),
             byLetter, 
-            histTrace
         }
     }
 
@@ -323,10 +386,10 @@ let petri = new PetriNets({
             { from: 4, to: 2, transitions: new Set([[{ title: 'd', numberOfArcs: 1 }]]) },
             { from: 4, to: 3, transitions: new Set([[{ title: 'd', numberOfArcs: 1 }]]) },
         ]
-    },  [{ id: 0, isAdmit: false }], ["a", "b"])
+    },  [{ id: 0, isAdmit: false }], ["b"])
 //console.log(`It's petri run \n ${petri.run()}`)
 //console.log(`It's petri step \n ${petri.step()}`)
-console.log(petri.run());
+console.log(petri.step());
 //console.log(petri.step());
 
 

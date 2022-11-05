@@ -11,8 +11,7 @@ export interface NodeCore {
     by?: any,
     oldStack?: string[],
     stackDown?: string,
-    countTokens?: number,
-    isChangedTokens?: boolean, 
+    countTokens?: number, 
 }
 
 export enum Move {
