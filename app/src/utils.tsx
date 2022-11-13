@@ -81,8 +81,8 @@ export const transitionsToLabel = (transitions: Set<TransitionParams[]>, frmt: n
         } else if (frmt === "petriNets") {
                 transitions.forEach(value => {
                     value.forEach((v) => {
-                        if (v.title !== undefined && v.title.length > 0 && v.numberOfArcs !== undefined) {
-                            str += epsSubst(v.title) + " | " + v.numberOfArcs + "\n" + spc
+                        if (v.title !== undefined && v.title.length > 0 && v.countArcs?.InputArcs !== undefined && v.countArcs.OutputArcs !== undefined) {
+                            str += epsSubst(v.title) + " | " + v.countArcs.InputArcs + ", " + v.countArcs.OutputArcs + "\n" + spc
                         }
                     })
                 })
@@ -133,8 +133,8 @@ export const getTransitionsTitles = (transitions: Set<TransitionParams[]>, frmt:
         } else if (frmt === "petriNets") {
             transitions.forEach(value => {
                 value.forEach((v) => {
-                    if (v.title !== undefined && v.title.length > 0 && v.numberOfArcs !== undefined) {
-                        str += epsSubst(v.title) + " | " + v.numberOfArcs + ";\n"
+                    if (v.title !== undefined && v.title.length > 0 && v.countArcs?.InputArcs !== undefined && v.countArcs.OutputArcs !== undefined) {
+                        str += epsSubst(v.title) + " | " + v.countArcs.InputArcs + ", " + v.countArcs.OutputArcs + ";\n"
                     }
                 })
             })

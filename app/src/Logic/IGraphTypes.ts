@@ -19,13 +19,18 @@ export enum Move {
     R,
 }
 
+export type CountArcs = {
+    InputArcs: number,
+    OutputArcs: number,
+}
+
 export interface TransitionParams {
     title: string
     stackDown?: string
     stackPush?: string[]
     move?: Move
     output?: Output
-    numberOfArcs?: number
+    countArcs?: CountArcs
 }
 
 

@@ -32,6 +32,34 @@ var PetriNets = /** @class */ (function (_super) {
     __extends(PetriNets, _super);
     function PetriNets(graph, startStatements, input) {
         var _this = _super.call(this, graph, startStatements) || this;
+        _this.giveNumberArcs = function (pos) {
+            var arcs = { InputArcs: 1, OutputArcs: 1 };
+            _this.edges.forEach(function (edge) { return edge.transitions.forEach(function (tr) { return tr.forEach(function (way) {
+                var _a, _b, _c, _d, _e, _f;
+                // console.log('START');
+                // console.log(`way.title ${way.title}`);
+                // console.log(`this.input[this.counterSteps]?.value ${this.input[this.counterSteps]?.value}`)
+                // console.log(`edge.from ${edge.from}`);
+                // console.log(`edge.to ${edge.to}`)
+                // console.log(`pos.stmt.id ${pos.stmt.id}`);
+                // console.log(`pos.from.id ${pos.from?.id}`)
+                // console.log('END');
+                if ((pos.stmt.id === edge.to) && (edge.from === ((_a = pos.from) === null || _a === void 0 ? void 0 : _a.id)) && (way.title === ((_b = _this.input[_this.counterSteps]) === null || _b === void 0 ? void 0 : _b.value))) {
+                    console.log('START');
+                    console.log("way.title ".concat(way.title));
+                    console.log("this.input[this.counterSteps]?.value ".concat((_c = _this.input[_this.counterSteps]) === null || _c === void 0 ? void 0 : _c.value));
+                    console.log("edge.from ".concat(edge.from));
+                    console.log("edge.to ".concat(edge.to));
+                    console.log("pos.stmt.id ".concat(pos.stmt.id));
+                    console.log("pos.from.id ".concat((_d = pos.from) === null || _d === void 0 ? void 0 : _d.id));
+                    console.log('END');
+                    console.log("number arcs in give count tokens ".concat((_e = way.countArcs) === null || _e === void 0 ? void 0 : _e.InputArcs));
+                    console.log("number arcs in give count tokens ".concat((_f = way.countArcs) === null || _f === void 0 ? void 0 : _f.OutputArcs));
+                    arcs = { InputArcs: way.countArcs.InputArcs, OutputArcs: way.countArcs.OutputArcs };
+                }
+            }); }); });
+            return arcs;
+        };
         _this.haveEpsilon = function () { return _this.alphabet.get(Computer_1.EPS) !== undefined; };
         // protected toNodes = (positions: position[]): NodeCore[] => {
         //     console.log('positionsd')
@@ -235,31 +263,32 @@ var PetriNets = /** @class */ (function (_super) {
         //     console.log(`end of MATRIX`);
         // })
     }
-    PetriNets.prototype.isTransitionActive = function (isActiveId) {
-        var _a;
+    PetriNets.prototype.isTransitionActive = function (isActive) {
+        var _a, _b, _c;
         //console.log("I am in transition active");
-        var isActiveNode = this.startStatements[0];
+        // let isActiveNode: NodeCore = this.startStatements[0];
         var result = false;
-        var curNumberOfArcs = 0;
-        this.nodes.forEach(function (node) {
-            if (node.id === isActiveId)
-                isActiveNode = node;
-        });
+        // let curNumberOfArcs: CountArcs = {InputArcs: 1, OutputArcs: 1};
+        // this.nodes.forEach(node => {
+        //     if (node.id === isActiveId)
+        //         isActiveNode = node; 
+        // })
         var way = (_a = this.input[this.counterSteps]) === null || _a === void 0 ? void 0 : _a.value;
         //console.log(`this.counterSteps ${this.counterSteps}`);
         //console.log(`way ${way}`);
-        this.edges.forEach(function (edge) {
-            if (edge.from === isActiveNode.id) {
-                edge.transitions.forEach(function (transition) { return transition.forEach(function (tr) {
-                    if (tr.title === way)
-                        curNumberOfArcs = tr.numberOfArcs;
-                }); });
-            }
-        });
-        if ((isActiveNode.countTokens >= curNumberOfArcs) && (isActiveNode.countTokens > 0)) {
+        // this.edges.forEach(edge => {
+        //     if (edge.from === isActiveNode.id) {
+        //         edge.transitions.forEach(transition => transition.forEach(tr => {
+        //             if (tr.title === way)
+        //                 curNumberOfArcs = tr.countArcs!;
+        //         }))
+        //     }
+        // })
+        var numberArcs = this.giveNumberArcs(isActive);
+        if ((((_b = isActive.cur) === null || _b === void 0 ? void 0 : _b.countTokens) >= numberArcs.InputArcs) && (((_c = isActive.cur) === null || _c === void 0 ? void 0 : _c.countTokens) > 0)) {
             result = true;
             //console.log(`result is ${result}`);
-            return result;
+            // return result;
         }
         return result;
     };
@@ -272,11 +301,13 @@ var PetriNets = /** @class */ (function (_super) {
         var lastFromNode;
         nodeForChange.forEach(function (nod) {
             // if (lastCurNode !== nod.cur && nod.cur !== undefined){
-            _this.plusToken(nod.cur);
+            var countArcs = _this.giveNumberArcs(nod);
+            console.log("number arcs in changedCountTokens ".concat(countArcs));
+            _this.plusToken(nod.cur, countArcs);
             //     lastCurNode = nod.cur;
             // }
             if (lastFromNode !== nod.from && nod.from !== undefined) {
-                _this.minusToken(nod.from);
+                _this.minusToken(nod.from, countArcs);
                 lastFromNode = nod.from;
             }
         });
@@ -284,16 +315,18 @@ var PetriNets = /** @class */ (function (_super) {
         //console.log(idForChange);
         //this.nodes.forEach(node => node.isChangedTokens = false)
     };
-    PetriNets.prototype.minusToken = function (value) {
+    PetriNets.prototype.minusToken = function (value, countArcs) {
         //if ((value.countTokens !== undefined) && (!value.isChangedTokens)) {
         if ((value.countTokens !== undefined) && (value.countTokens > 0)) {
-            value.countTokens--;
+            console.log("count arcs ".concat(countArcs));
+            value.countTokens -= countArcs.InputArcs;
             //value.isChangedTokens = true;
         }
     };
-    PetriNets.prototype.plusToken = function (value) {
+    PetriNets.prototype.plusToken = function (value, countArcs) {
         if ((value.countTokens !== undefined)) {
-            value.countTokens++;
+            console.log("count arcs ".concat(countArcs));
+            value.countTokens += countArcs.OutputArcs;
             //value.isChangedTokens = true;
         }
         //console.log(`I was in plusToken countTokens ${value.countTokens}`);
@@ -304,7 +337,7 @@ var PetriNets = /** @class */ (function (_super) {
     PetriNets.prototype.checkTransition = function (ref) {
         var _this = this;
         this.curPosition.forEach(function (curPos) {
-            if (_this.isTransitionActive(curPos.stmt.id) === false) {
+            if (_this.isTransitionActive(curPos) === false) {
                 return _this.isTransitionActive;
             }
         });
@@ -352,17 +385,17 @@ var petri = new PetriNets({
         { id: 4, isAdmit: false, countTokens: 1 },
     ],
     edges: [
-        { from: 0, to: 1, transitions: new Set([[{ title: 'a', numberOfArcs: 1 }]]) },
-        { from: 0, to: 2, transitions: new Set([[{ title: 'a', numberOfArcs: 1 }]]) },
-        { from: 0, to: 3, transitions: new Set([[{ title: 'a', numberOfArcs: 1 }]]) },
-        { from: 1, to: 1, transitions: new Set([[{ title: 'b', numberOfArcs: 1 }]]) },
-        { from: 2, to: 1, transitions: new Set([[{ title: 'b', numberOfArcs: 1 }]]) },
-        { from: 3, to: 1, transitions: new Set([[{ title: 'b', numberOfArcs: 1 }]]) },
-        { from: 3, to: 4, transitions: new Set([[{ title: 'c', numberOfArcs: 1 }]]) },
-        { from: 4, to: 2, transitions: new Set([[{ title: 'd', numberOfArcs: 1 }]]) },
-        { from: 4, to: 3, transitions: new Set([[{ title: 'd', numberOfArcs: 1 }]]) },
+        { from: 0, to: 1, transitions: new Set([[{ title: 'a', countArcs: { InputArcs: 1, OutputArcs: 1 } }]]) },
+        { from: 0, to: 2, transitions: new Set([[{ title: 'a', countArcs: { InputArcs: 1, OutputArcs: 1 } }]]) },
+        { from: 0, to: 3, transitions: new Set([[{ title: 'a', countArcs: { InputArcs: 1, OutputArcs: 2 } }]]) },
+        { from: 1, to: 1, transitions: new Set([[{ title: 'b', countArcs: { InputArcs: 1, OutputArcs: 1 } }]]) },
+        { from: 2, to: 1, transitions: new Set([[{ title: 'b', countArcs: { InputArcs: 1, OutputArcs: 1 } }]]) },
+        { from: 3, to: 1, transitions: new Set([[{ title: 'b', countArcs: { InputArcs: 1, OutputArcs: 1 } }]]) },
+        { from: 3, to: 4, transitions: new Set([[{ title: 'c', countArcs: { InputArcs: 1, OutputArcs: 1 } }]]) },
+        { from: 4, to: 2, transitions: new Set([[{ title: 'd', countArcs: { InputArcs: 1, OutputArcs: 1 } }]]) },
+        { from: 4, to: 3, transitions: new Set([[{ title: 'd', countArcs: { InputArcs: 1, OutputArcs: 1 } }]]) },
     ]
-}, [{ id: 0, isAdmit: false }], ["b"]);
+}, [{ id: 0, isAdmit: false }], ["a"]);
 //console.log(`It's petri run \n ${petri.run()}`)
 //console.log(`It's petri step \n ${petri.step()}`)
 console.log(petri.step());
