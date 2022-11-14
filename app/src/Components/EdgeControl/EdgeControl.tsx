@@ -315,6 +315,8 @@ class EdgeControl extends React.Component<EdgeControlProps, EdgeControlState> {
                 return '"a, a | a:Z0;", "eps" для ε. На дне стека "Z0"'
             case "tm":
                 return '"a | a>R;", eps для ε. "R" - вправо, "L" - влево'
+            case "petriNets":
+                return 'Список символов через точку с запятой'
             default: 
                 return '';
         }

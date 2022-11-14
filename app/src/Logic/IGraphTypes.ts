@@ -11,11 +11,17 @@ export interface NodeCore {
     by?: any,
     oldStack?: string[],
     stackDown?: string,
+    countTokens?: number, 
 }
 
 export enum Move {
     L,
     R,
+}
+
+export type CountArcs = {
+    InputArcs: number,
+    OutputArcs: number,
 }
 
 export interface TransitionParams {
@@ -24,6 +30,7 @@ export interface TransitionParams {
     stackPush?: string[]
     move?: Move
     output?: Output
+    countArcs?: CountArcs
 }
 
 
