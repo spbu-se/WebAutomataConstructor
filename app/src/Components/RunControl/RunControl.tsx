@@ -242,8 +242,8 @@ class RunControl extends React.Component<runControlProps, runControlState> {
                 return new Moore(graph, initialNode, input);
             case "dmoore":
                 return new DMoore(graph, initialNode, input);
-            // case "petriNets":
-            //     return new PetriNets(graph, initialNode, input);
+            case "petriNets":
+                return new PetriNets(graph, initialNode, input);
         }
 
     }

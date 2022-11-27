@@ -53,7 +53,7 @@ export type returnTokensId = {
         return arcs;
     }
 
-    private changeCountTokens(posForChange: position[]): [Set<returnTokensId>, Set<returnTokensId>] {
+    private changeCountTokens(posForChange: position[]): {'minusId': Set<returnTokensId>, 'plusId': Set<returnTokensId>,} {
         let lastFromNode: NodeCore;
         let setPosition = Array.from(new Set(posForChange));
         let minusId = new Set<returnTokensId>() ;
@@ -75,7 +75,10 @@ export type returnTokensId = {
                 lastFromNode = pos.from;
             }
         })
-        return [ minusId, plusId ]
+        return  {
+            'minusId': minusId, 
+            'plusId': plusId, 
+        }
     }
 
     private minusToken(value: NodeCore, countArcs: CountArcs): number {
@@ -183,6 +186,8 @@ export type returnTokensId = {
         this.counterSteps = ref.counterSteps
         this.curPosition = ref.curPosition
         this.historiStep = ref.historiStep
+        console.log(`history step `)
+        console.log(this.historiStep)
         this.treeHist = after.tree ? after.tree: []
         console.log(this.treeHist)
         return {
@@ -387,7 +392,8 @@ export type returnTokensId = {
                 const nodesOfCurPos = this.toNodes(ref.curPosition)
                 //nodesOfCurPos.forEach((node) => byLetter.push(node))
                 //this.nodes = ret;
-                let [minus, plus] = ret;
+                let minus = ret['minusId'];
+                let plus = ret['plusId'];
                 // minusFirstSave = minus;
                 // plusFirstSave = plus;
                 let count = 0;
