@@ -11,7 +11,7 @@ import Button from "@mui/material/Button";
 import TextField from "@mui/material/TextField";
 import DoneIcon from '@mui/icons-material/Done';
 import CloseIcon from '@mui/icons-material/Close';
-
+import {PetriNets} from "../../Logic/PetriNets";
 import { EpsilonNFA } from "../../Logic/EpsilonNFA";
 import { PDA } from "../../Logic/PDA";
 import { TM } from "../../Logic/TM";
@@ -242,6 +242,8 @@ class RunControl extends React.Component<runControlProps, runControlState> {
                 return new Moore(graph, initialNode, input);
             case "dmoore":
                 return new DMoore(graph, initialNode, input);
+            // case "petriNets":
+            //     return new PetriNets(graph, initialNode, input);
         }
 
     }

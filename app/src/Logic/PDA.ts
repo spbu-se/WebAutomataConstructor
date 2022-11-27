@@ -233,6 +233,10 @@ export class PDA extends Computer {
         let positions: position[] = []
         for (let i = 0; i < endsOfEpsWay.length; i++) {
             let stmt = this.statements.get(this.nodes[endsOfEpsWay[i].idLogic].id)
+            let from: NodeCore[] = [];
+            from.push(this.nodes[curLId])
+            let valueHist: NodeCore[] = [];
+            valueHist.push(this.nodes[stmt.idLogic])
             positions.push({
                 stmt: stmt, stack: endsOfEpsWay[i].top, 
                 from: this.nodes[curLId], 
@@ -241,7 +245,7 @@ export class PDA extends Computer {
                 oldStack: stack, 
                 stackDown: stackDown
             })
-            hist.push({ by: EPS, from: this.nodes[curLId], value: this.nodes[stmt.idLogic] })
+            hist.push({ by: EPS, from: from, value: valueHist })
         }
 
         return positions
@@ -289,6 +293,10 @@ export class PDA extends Computer {
                 case stackDown: {
                     let newStack = stack.cpyTo(new Stack<string>())
                     this.matchPushEpsVal(value, newStack)
+                    let from: NodeCore[] = [];
+                    from.push(this.nodes[curLId])
+                    let valueHist: NodeCore[] = [];
+                    valueHist.push(this.nodes[value.idLogic])
                     positions.push({
                         stmt: this.statements.get(value.id), 
                         stack: newStack, 
@@ -298,12 +306,16 @@ export class PDA extends Computer {
                         oldStack: stack, 
                         stackDown
                     })
-                    hist.push({ by: getLetter(transformedInput), from: this.nodes[curLId], value: this.nodes[value.idLogic] })
+                    hist.push({ by: getLetter(transformedInput), from: from, value: valueHist })
                     break
                 }
                 case EPS: {
                     let newStack: Stack<string> = stack.cpyTo(new Stack<string>())
                     this.matchDownEpsVal(value, newStack)
+                    let from: NodeCore[] = [];
+                    from.push(this.nodes[curLId])
+                    let valueHist: NodeCore[] = [];
+                    valueHist.push(this.nodes[value.idLogic])
                     positions.push({
                         stmt: this.statements.get(value.id), 
                         stack: newStack,
@@ -313,7 +325,7 @@ export class PDA extends Computer {
                         oldStack: stack,
                         stackDown: EPS
                     })
-                    hist.push({ by: getLetter(transformedInput), from: this.nodes[curLId], value: this.nodes[value.idLogic] })
+                    hist.push({ by: getLetter(transformedInput), from: from, value: valueHist })
                     break
                 }
             }

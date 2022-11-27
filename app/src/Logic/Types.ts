@@ -23,8 +23,8 @@ export type History = {
 
 export interface HistUnit {
     by: any,
-    from: NodeCore 
-    value: NodeCore
+    from: NodeCore[] 
+    value: NodeCore[]
     
 }
 

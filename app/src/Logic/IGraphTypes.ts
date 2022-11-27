@@ -15,6 +15,11 @@ export interface NodeCore {
     isChangedTokens?: boolean
 }
 
+export type CountArcs = {
+    InputArcs: number, 
+    OutputArcs: number,
+}
+
 export enum Move {
     L,
     R,
@@ -26,7 +31,7 @@ export interface TransitionParams {
     stackPush?: string[]
     move?: Move
     output?: Output
-    numberOfArcs?: number
+    countArcs?: CountArcs
 }
 
 

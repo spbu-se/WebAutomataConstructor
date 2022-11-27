@@ -1,7 +1,12 @@
-import { History, position, Step, HistTrace, statement } from "./Types";
-import { GraphCore, NodeCore, EdgeCore } from "./IGraphTypes";
-import { Computer, EPS } from "./Computer";
-import { NFA } from "./NFA";
+import { History, position, Step, HistTrace, HistUnit } from "./Types";
+import { GraphCore, NodeCore, CountArcs, EdgeCore } from "./IGraphTypes";
+import { Computer, EPS, statementCell } from "./Computer";
+
+
+export type returnTokensId = {
+    nodeId: number,
+    countTokens: number,
+}
 
  export class PetriNets extends Computer { 
 
@@ -15,121 +20,83 @@ import { NFA } from "./NFA";
                 stmt: this.statements.get(value.id),
             })
         })
-        this.setInput(input);
+        this.setInput(input)
+        this.treeHist = []
         this.counterSteps = 0;
-
-        console.log("ALPHBT")
-        this.alphabet.forEach((value, key) => console.log(value, key))
-        console.log("STMTS")
-        this.statements.forEach(value => console.log(value))
-        console.log("CURPOS")
-        console.log(this.curPosition)
-        console.log("MATRIX")
-        this.matrix.forEach(value => {
-            console.log()
-            value.forEach(value1 => console.log(value1))
-        })
     }
 
-    public isTransitionActive(isActiveId: number): boolean {
-        let isActiveNode: NodeCore = this.startStatements[0]
-        let result = false
-        let curNumberOfArcs: number = 0
-        this.nodes.forEach(node => {
-            if (node.id === isActiveId) {
-                isActiveNode = node
-            }
-        })
-        let way = this.input[this.counterSteps]?.value
-        
-        this.edges.forEach(edge => {
-            if (edge.from === isActiveNode.id) {
-                edge.transitions.forEach(transition => transition.forEach(tr => {
-                    if (tr.title === way) 
-                        curNumberOfArcs = tr.numberOfArcs!
-                }))
-            }
-        })
-       
-        if ((isActiveNode.countTokens! >= curNumberOfArcs) && (isActiveNode.countTokens! > 0)) {
-            result = true;
-            return result;
-        }
-        
+    protected treeHist: HistUnit[][] = []
+
+    public isTransitionActive(isActive: NodeCore, letterId: number): boolean {
+        let result = false;
+        let edgesSet: EdgeCore[] = [];
+        this.edges.forEach(edge => edge.transitions.forEach(tr => tr.forEach(way => {
+            if ((edge.from === isActive.id) && (way.title === this.getLetterByNum(letterId)))
+                edgesSet.push(edge);
+        })))
+        edgesSet.forEach(ed => ed.transitions.forEach(tr => tr.forEach(way => {
+            if ((ed.from === isActive.id) && (way.title === this.getLetterByNum(letterId)) && (isActive.countTokens! >= way.countArcs?.InputArcs!)
+            && (isActive.countTokens! > 0))
+                result = true;
+        })))
         return result;
     }
 
-    private changecountTokens(posForChange: position[]): void {
-
-        let nodesForChange: NodeCore[] = [];
-        posForChange.forEach(pos => this.nodes.forEach(node => {
-            if (pos.stmt.id === node.id) {
-                nodesForChange.push(node);
+    protected giveNumberArcs = (pos: position): CountArcs => {
+        let arcs: CountArcs = {InputArcs: 1, OutputArcs: 1};
+               
+        this.edges.forEach(edge => edge.transitions.forEach(tr => tr.forEach(way => {
+            if ((pos.stmt.id === edge.to) && (edge.from === pos.from?.id) && (way.title === pos.by)){
+                arcs = { InputArcs: way.countArcs!.InputArcs, OutputArcs: way.countArcs!.OutputArcs}
             }
-        }))
-        
-        nodesForChange.forEach(nodeForChange => {
-            this.edges.forEach(edge => {
-                if (edge.from === nodeForChange.id) {
-                    this.minusToken(nodeForChange)
-                }
-                if (edge.to === nodeForChange.id) {
-                    this.plusToken(nodeForChange)
-                }
-            })   
+        })))
+        return arcs;
+    }
+
+    private changeCountTokens(posForChange: position[]): [Set<returnTokensId>, Set<returnTokensId>] {
+        let lastFromNode: NodeCore;
+        let setPosition = Array.from(new Set(posForChange));
+        let minusId = new Set<returnTokensId>() ;
+        let plusId = new Set<returnTokensId>();
+        setPosition.forEach(pos => {
+            const countArcs = this.giveNumberArcs(pos);
+            console.log(`count arcs ${countArcs.InputArcs} and ${countArcs.OutputArcs}`)
+            let retPlus = {} as returnTokensId;
+            retPlus.countTokens = this.plusToken(pos.cur!, countArcs);
+            retPlus.nodeId = pos.stmt.id;
+            plusId.add(retPlus);
+
+            let retMinus = {} as returnTokensId;
+            if (lastFromNode !== pos.from && pos.from !== undefined){
+                
+                retMinus.countTokens = this.minusToken(pos.from!, countArcs);
+                retMinus.nodeId = pos.from.id;
+                minusId.add(retMinus)
+                lastFromNode = pos.from;
+            }
         })
-        this.nodes.forEach(node => node.isChangedTokens = false)
+        return [ minusId, plusId ]
     }
 
-
-    private minusToken(value: NodeCore): void {
-        if ((value.countTokens !== undefined) && (!value.isChangedTokens)) {
-            value.countTokens--;
-            value.isChangedTokens = true;
+    private minusToken(value: NodeCore, countArcs: CountArcs): number {
+        let countMinusTokens: number = 0;
+        if ((value.countTokens !== undefined) && (value.countTokens > 0)) {   
+            value.countTokens-= countArcs.InputArcs;
+            countMinusTokens++
         }
+        return countMinusTokens;
     }
 
-    private plusToken(value: NodeCore): void {
-        if ((value.countTokens !== undefined) && (!value.isChangedTokens)) {
-            value.countTokens++;
-            value.isChangedTokens = true;
+    private plusToken(value: NodeCore, countArcs: CountArcs): number {
+        let count = 0;
+        if ((value.countTokens !== undefined)) {
+            value.countTokens += countArcs.OutputArcs;
+            count += countArcs.OutputArcs;
         }
-    }
-
-    protected givesEdgeByType = (from: number): EdgeCore => {
-        let result: EdgeCore
-        result = this.edges[0]
-        this.edges.forEach(edge => edge.transitions.forEach(transition => transition.forEach(way => {
-            if (way.title === (this.input[this.counterSteps]?.value) &&  (edge.from === from)) {
-                result = edge
-                return result
-            }
-        }))) 
-        return result
+        return count;
     }
 
     public haveEpsilon = () => this.alphabet.get(EPS) !== undefined;
-
-    protected toNodes = (positions: position[]): NodeCore[] => {
-    
-        let edgesMap: EdgeCore[] = []
-        
-        positions.forEach(position => {
-            this.edges.forEach(edge => {
-                let needEdge = this.givesEdgeByType(edge.from)
-                edgesMap.push(needEdge)
-                console.log(`needEdge ${needEdge}`)
-            })
-        })
-    
-        let toNodes: NodeCore[] = []
-        edgesMap.forEach(edge => this.nodes.forEach(node => {
-            if (node.id === edge.to) {
-                toNodes.push(node)
-            }
-        }))  
-        return toNodes;      
-    }
 
     protected nextStepPosition = (position: position, by: number): position[] => {
         return this.cellMatrix(position.stmt.idLogic, by).map(v => {
@@ -142,16 +109,27 @@ import { NFA } from "./NFA";
                 })
                 return ret
             }
-    
+
             const ret: position = { 
                 stmt: v, 
                 by: getLetter(by), 
                 cur: this.nodes[v.idLogic], 
                 from: this.nodes[position.stmt.idLogic]
             }
-            console.log(ret);
             return ret
         })
+    }
+
+    protected toPosition = (nod: NodeCore, by: number): position => {
+          
+            const ret: position = { 
+                stmt: this.statements.get(nod.id), 
+                by: this.getLetterByNum(by), 
+                cur: nod, 
+                from: nod.from
+            }
+            //console.log(nod.from?.id)
+            return ret
     }
 
     public setInput = (input: string[]) => {
@@ -162,6 +140,7 @@ import { NFA } from "./NFA";
         this.restart()
     }
     
+    
     protected nextStepPositions = (positions: position[], by: number): position[] => {
         let acc: position[] = []
         positions.map((v) =>
@@ -169,19 +148,43 @@ import { NFA } from "./NFA";
                 ps.forEach((p) => acc.push(p)))
         return acc
     }
-    
+    //вытянуть все ноды связанные с каждой буквой алфавита
+    protected getNodeByLetterId = (letterId: number): Set<NodeCore> => {
+        let nodesId = new Set<number>();
+        let setOfNodes = new Set<NodeCore>();
+        this.edges.forEach(edge => edge.transitions.forEach(tr => 
+            tr.forEach(way => {
+                if ((way.title === this.getLetterByNum(letterId)) && !(nodesId.has(edge.from)))
+                    nodesId.add(edge.from)
+            })))
+        
+        nodesId.forEach(nodId => 
+            this.nodes.forEach(node => {
+                if ((node.id === nodId) && (!setOfNodes.has(node))){
+                    setOfNodes.add(node)
+        }}))
+        setOfNodes.forEach(nodeFromSet => {
+            if (!this.isTransitionActive(nodeFromSet, letterId)){
+                return null;
+            }
+        })
+        return setOfNodes
+    }
+
     pnStep = (): Step => {
+        const alphabetSize = this.alphabet.size;
+        const histUnit: HistUnit[] = []
         const ref = { 
             counterSteps: this.counterSteps,
             curPosition: this.curPosition, 
-            historiStep: this.historiStep 
+            historiStep: this.historiStep,
         }
-        const after = this._step(ref, [])
+        const after = this._step(ref, histUnit)
         this.counterSteps = ref.counterSteps
         this.curPosition = ref.curPosition
         this.historiStep = ref.historiStep
-        this.changecountTokens(this.curPosition);
-        
+        this.treeHist = after.tree ? after.tree: []
+        console.log(this.treeHist)
         return {
             counter: after.counter,
             history: after.history,
@@ -192,28 +195,59 @@ import { NFA } from "./NFA";
     }
     
     pnRun = (): Step => {
-        const histTrace: HistTrace[] = [];
-        
+        const histUnit: HistUnit[] = []
         this.historiRun = []
         this.counterStepsForResult = 0
-        for (let i = 0; i < this.input.length; i++) {
+        // for (let i = 0; i < this.input.length; i++) {
+        //     const ref = { 
+        //         counterSteps: this.counterStepsForResult,
+        //         curPosition: this.curPosition, 
+        //         historiStep: this.historiRun,
+        //     }
+
+        //     const after = this._step(ref, histUnit)
+        //     this.counterStepsForResult = ref.counterSteps
+        //     this.curPosition = ref.curPosition
+        //     this.historiRun = ref.historiStep
+        //     this.treeHist = after.tree ? after.tree: []
+        // }
+
+        const ref = { 
+            counterSteps: this.counterStepsForResult,
+            curPosition: this.curPosition, 
+            historiStep: this.historiRun,
+        }
+
+        const after = this._step(ref, histUnit)
+        this.counterStepsForResult = ref.counterSteps
+        this.curPosition = ref.curPosition
+        this.historiRun = ref.historiStep
+        this.treeHist = after.tree ? after.tree: []
+        
+        //while ((after.history.length !== 0) && (after.nodes.length !== 0)) {
+        for (let i = 0; i < 4; i++){
             const ref = { 
                 counterSteps: this.counterStepsForResult,
                 curPosition: this.curPosition, 
-                historiStep: this.historiRun
+                historiStep: this.historiRun,
             }
-            const after = this._step(ref, histTrace)
+    
+            const after = this._step(ref, histUnit)
             this.counterStepsForResult = ref.counterSteps
             this.curPosition = ref.curPosition
             this.historiRun = ref.historiStep
-            this.changecountTokens(this.curPosition);
+            this.treeHist = after.tree ? after.tree: []
         }
+
+
+
+
+        console.log(this.treeHist)
         return { 
             counter: this.counterStepsForResult, 
             history: this.historiRun, 
             isAdmit: this.haveAdmitting(this.curPosition), 
             nodes: this.toNodes(this.curPosition),
-            histTrace
         }
     }
 
@@ -222,52 +256,194 @@ import { NFA } from "./NFA";
         return positions.reduce((acc: boolean, p) => acc && p.stmt.isAdmit, true)
     }
 
-    protected checkTransition(ref: {counterSteps: number, curPosition: position[], historiStep: History[] }, histTrace: HistTrace[]){
-
-        this.curPosition.forEach(curPos => {
-            if (this.isTransitionActive(curPos.stmt.id) === false){
-                return this.isTransitionActive
+    protected checkTransition = (setNodes: Set<NodeCore>, letterId: number): boolean => {
+        let answer = true;
+        setNodes.forEach(setNode => {
+            //console.log(`setNode.id = ${setNode.id}`)
+            if (this.isTransitionActive(setNode, letterId) === false){
+                answer = false
+                //console.log(`checkTrans set node id ${setNode.id}`)
             }
-       })
-       return true;
+        })
+        //console.log(`answer = ${answer}`)
+       return answer;
     }
 
-    protected _step = (ref: {counterSteps: number, curPosition: position[], historiStep: History[] }, histTrace: HistTrace[]): Step => {
-        const byLetter: NodeCore[] = [];
-        const trNum = this.alphabet.get(this.input[ref.counterSteps]?.value)
-        
-        if (this.checkTransition(ref, histTrace)) {
-            ref.counterSteps++;
-            return {
-                counter: ref.counterSteps,
-                history: ref.historiStep, 
-                nodes: this.toNodes(this.curPosition),
-                isAdmit: this.haveAdmitting(this.curPosition),
-                byLetter, 
-                histTrace
+    protected getNode = (positions: position[]): NodeCore[] => {
+        let getNod: NodeCore[] = [];
+        positions.forEach(pos => {
+            getNod.push(pos.stmt)
+        });
+        return getNod
+    }
+
+    private toNodes(positions: position[]): NodeCore[] {
+        let retNodes: NodeCore[] = []
+        positions.forEach(value => {
+            const from: NodeCore = {
+                id: value.from!.id,
+                isAdmit: value.from!.isAdmit,
+                countTokens: value.from!.countTokens
             }
+
+            let temp: NodeCore = {
+                ...this.nodes[value.stmt.idLogic], 
+                from,
+                cur: value.cur,
+                by: value.by,
+            }
+            retNodes.push(temp)
+        })
+        return retNodes
+    }
+
+    protected getLetterByNum = (num: number): string => {
+        let k: string = '';
+        this.alphabet.forEach((value, key) => {
+            if (value === num){
+                k = key;
+            }
+        });
+        return k;
+    }
+
+    // protected cons = (): void => {
+    //     this.getStatementsFromNodes(this.nodes);
+    // }
+
+    protected getStatementsFromNodes(nodes: NodeCore[]): void {
+        for (let i = 0; i < nodes.length; i++) {
+            this.statements.set(
+                nodes[i].id,
+                {
+                    id: nodes[i].id,
+                    isAdmit: nodes[i].isAdmit,
+                    idLogic: i,
+                    output: nodes[i].output
+                })
         }
-        const nextPositions = this.nextStepPositions(ref.curPosition, trNum)
+    }
 
-        ref.curPosition = nextPositions;
+    protected findNodeByLetter = (letterId: number): Set<statementCell> => {
+        let nodesId = new Set<number>()
+        let setOfNodes = new Set<statementCell>()
+        this.edges.forEach(edge => edge.transitions.forEach(tr => 
+            tr.forEach(way => {
+                //console.log(`way.title = ${way.title}`)
+                //console.log(``)
+                if ((way.title === this.getLetterByNum(letterId)) && !(nodesId.has(edge.from)))
+                    nodesId.add(edge.from)
+            })))
+        
+        
+        //return setOfNodes
+        nodesId.forEach(nodId => 
+            this.matrix.forEach(i => i.forEach(j => j.forEach(stCell => {
+            if ((stCell.id === nodId) && (!setOfNodes.has(stCell)))
+                setOfNodes.add(stCell)
+        }))))
+        return setOfNodes
+    }
 
-        const nodesOfCurPos = this.toNodes(ref.curPosition)
-        nodesOfCurPos.forEach((node) => byLetter.push(node))
+    protected _step = (ref: {counterSteps: number, curPosition: position[], historiStep: History[] }, histUnit: HistUnit[]): Step => {
 
-        ref.historiStep.push({nodes: nodesOfCurPos, by: trNum })
-        if (ref.curPosition.length > 0) {
-            ref.counterSteps++
+        const nodesOfCurPos: NodeCore[] = [];
+        const byLetter: NodeCore[] = [];
+        let minusFirstSave = new Set<returnTokensId>();
+        let plusFirstSave = new Set<returnTokensId>();
+        let isCounterStepsActive = 0;
+        let cou = 0;
+        for (let i = 0; i < this.alphabet.size; i++){
+            console.log(`START STEP`)
+            let nodeByLetter = this.getNodeByLetterId(i);
+            console.log('this.checkTransition(nodeByLetter, i)')
+            console.log(this.checkTransition(nodeByLetter, i))
+            if (this.checkTransition(nodeByLetter, i) === false){
+                continue  
+            }
+            let posMatrix: position[] = [];
+            //let find = this.findNodeByLetter(i);
+            //find.forEach(f => console.log(f.from))
+            nodeByLetter.forEach(nod => {
+                let ps = this.toPosition(nod, i);
+                console.log(this.nodes[nod.from?.id!])
+                posMatrix.push(ps);
+            })
+            ref.curPosition = posMatrix;
+            let trNum = this.getLetterByNum(i)
+            //ref.historiStep.push({nodes: this.getNode(ref.curPosition), by: trNum })
+            
+            ref.curPosition.forEach(d => console.log(d))
+            if (!(ref.curPosition === undefined)) {
+                //cou++
+                //console.log(cou)
+                isCounterStepsActive++;
+                console.log(`INDEX COUNTERSTEPS`); 
+                console.log(isCounterStepsActive);
+                const nextPositions = this.nextStepPositions(ref.curPosition, i)
+                nextPositions.forEach(nextPos =>  console.log(`next step pos-s ${nextPos}`))
+                ref.curPosition = nextPositions;
+                let ret = this.changeCountTokens(ref.curPosition);
+                const nodesOfCurPos = this.toNodes(ref.curPosition)
+                //nodesOfCurPos.forEach((node) => byLetter.push(node))
+                //this.nodes = ret;
+                let [minus, plus] = ret;
+                // minusFirstSave = minus;
+                // plusFirstSave = plus;
+                let count = 0;
+                minus.forEach(m => {
+                    console.log(m.nodeId, m.countTokens)
+                    if (this.nodes[m.nodeId].countTokens !== undefined){
+                        this.nodes[m.nodeId].countTokens! += m.countTokens;
+                    }
+                })
+                plus.forEach(p => {
+                    console.log(p.nodeId, p.countTokens)
+                    if (this.nodes[p.nodeId].countTokens !== undefined){
+                        this.nodes[p.nodeId].countTokens! -= p.countTokens;
+                    }
+                })
+                let nodeByLet = Array.from(nodeByLetter);
+                histUnit.push({by: this.getLetterByNum(i), from: nodeByLet, value: nodesOfCurPos})
+                console.log(histUnit)
+                if (isCounterStepsActive === 1) {
+                    minusFirstSave = minus;
+                    plusFirstSave = plus;
+                    ref.historiStep.push({nodes: this.getNode(ref.curPosition), by: trNum })
+                    nodesOfCurPos.forEach((node) => byLetter.push(node));
+                }
+                //this.treeHist.push(histUnit)
+            }
+            // else {
+            //     console.log(`IF НЕ РАБОТАЕТ`)
+            // }
+            
         }
+        console.log(ref.historiStep);
 
-        histTrace.push({ byLetter })
-
+        if (isCounterStepsActive > 0) {
+            ref.counterSteps++;
+            minusFirstSave.forEach(m => {
+                console.log(m.nodeId, m.countTokens)
+                if (this.nodes[m.nodeId].countTokens !== undefined){
+                    this.nodes[m.nodeId].countTokens! -= m.countTokens;
+                }
+            })
+            plusFirstSave.forEach(p => {
+                console.log(p.nodeId, p.countTokens)
+                if (this.nodes[p.nodeId].countTokens !== undefined){
+                    this.nodes[p.nodeId].countTokens! += p.countTokens;
+                }
+            })
+        }
+        
         return {
             counter: ref.counterSteps,
             history: ref.historiStep, 
             nodes: nodesOfCurPos, 
             isAdmit: this.haveAdmitting(this.curPosition),
+            tree: this.treeHist,
             byLetter, 
-            histTrace
         }
     }
 
@@ -275,11 +451,12 @@ import { NFA } from "./NFA";
         this.counterSteps = 0
         this.historiStep = []
         this.curPosition = []
-        this.startStatements.forEach(value => {
-            this.curPosition.push({
-                stmt: this.statements.get(value.id),
-            })
-        })
+        this.treeHist = []
+        // this.startStatements.forEach(value => {
+        //     this.curPosition.push({
+        //         stmt: this.statements.get(value.id),
+        //     })
+        // })
     }
 
     step = this.pnStep;
@@ -287,19 +464,24 @@ import { NFA } from "./NFA";
 
 }
 
-let petri = new PetriNets({
-    nodes: [
-        { id: 0, isAdmit: false, countTokens: 0, isChangedTokens: false }, 
-        { id: 1, isAdmit: false, countTokens: 1, isChangedTokens: false }, 
-        { id: 2, isAdmit: false, countTokens: 0, isChangedTokens: false },
-    ],
-    edges: [
-        { from: 0, to: 2, transitions: new Set([[{title: 'a', numberOfArcs: 1 }]]) }, 
-        { from: 1, to: 2, transitions: new Set([[{title: 'a', numberOfArcs: 1 }]]) },
-    ]
-}, [{id: 0, isAdmit: false }, { id: 1, isAdmit: false }], ["a"])
+// let petri = new PetriNets({
+//     nodes: [
+//         { id: 0, isAdmit: false, countTokens: 1 }, 
+//         { id: 1, isAdmit: false, countTokens: 1 }, 
+//         { id: 2, isAdmit: false, countTokens: 0 },
+//     ],
+//     edges: [
+//         { from: 0, to: 2, transitions: new Set([[{title: 'a', countArcs: { InputArcs: 1, OutputArcs: 2 }}]]) }, 
+//         { from: 1, to: 2, transitions: new Set([[{title: 'a', countArcs: { InputArcs: 1, OutputArcs: 1 }}]]) },
+//     ]
+// }, [{id: 0, isAdmit: false }, { id: 1, isAdmit: false }])
 
-console.log(`It's petri run \n ${petri.run()}`);
+// //let st = petri.step();
+// //console.log(`It's petri run \n ${petri.run()}`)
+// //console.log(`It's petri step \n ${petri.step()}`)
+// console.log(petri.run());
+// //console.log(petri.run());
+
 
 
 // let petri = new PetriNets({
@@ -312,36 +494,26 @@ console.log(`It's petri run \n ${petri.run()}`);
 //             { id: 4, isAdmit: false, countTokens: 1 },
 //         ],
 //         edges: [
-//             { from: 0, to: 1, transitions: new Set([[{ title: 'a', numberOfArcs: 1 }]]) },
-//             { from: 0, to: 2, transitions: new Set([[{ title: 'a', numberOfArcs: 1 }]]) }, 
-//             { from: 0, to: 3, transitions: new Set([[{ title: 'a', numberOfArcs: 2 }]]) }, 
-//             { from: 1, to: 1, transitions: new Set([[{ title: 'b', numberOfArcs: 1 }]]) },
-//             { from: 2, to: 1, transitions: new Set([[{ title: 'b', numberOfArcs: 1 }]]) }, 
-//             { from: 3, to: 1, transitions: new Set([[{ title: 'b', numberOfArcs: 1 }]]) },
-//             { from: 3, to: 4, transitions: new Set([[{ title: 'c', numberOfArcs: 2 }]]) },
-//             { from: 4, to: 2, transitions: new Set([[{ title: 'd', numberOfArcs: 1 }]]) },
-//             { from: 4, to: 3, transitions: new Set([[{ title: 'd', numberOfArcs: 1 }]]) },
+//             { from: 0, to: 1, transitions: new Set([[{ title: 'a', countArcs: {InputArcs: 1, OutputArcs: 1} }]]) },
+//             { from: 0, to: 2, transitions: new Set([[{ title: 'a', countArcs: {InputArcs: 1, OutputArcs: 1} }]]) }, 
+//             { from: 0, to: 3, transitions: new Set([[{ title: 'a', countArcs: {InputArcs: 1, OutputArcs: 2} }]]) }, 
+//             { from: 1, to: 1, transitions: new Set([[{ title: 'b', countArcs: {InputArcs: 1, OutputArcs: 1} }]]) },
+//             { from: 2, to: 1, transitions: new Set([[{ title: 'b', countArcs: {InputArcs: 1, OutputArcs: 1} }]]) }, 
+//             { from: 3, to: 1, transitions: new Set([[{ title: 'b', countArcs: {InputArcs: 1, OutputArcs: 1} }]]) },
+//             { from: 3, to: 4, transitions: new Set([[{ title: 'c', countArcs: {InputArcs: 1, OutputArcs: 1} }]]) },
+//             { from: 4, to: 2, transitions: new Set([[{ title: 'd', countArcs: {InputArcs: 1, OutputArcs: 1} }]]) },
+//             { from: 4, to: 3, transitions: new Set([[{ title: 'd', countArcs: {InputArcs: 1, OutputArcs: 1} }]]) },
 //         ]
-//     },  [{ id: 0, isAdmit: false }], ["a"])
+//     },  [{ id: 0, isAdmit: false }])
+// //console.log(`It's petri run \n ${petri.run()}`)
+// //console.log(`It's petri step \n ${petri.step()}`)
+// console.log(petri.run());
+// // console.log(petri.step());
+// // console.log(petri.step());
+// // console.log(petri.step());
+// // console.log(petri.step());
+// // console.log(petri.step());
+// // console.log(petri.step());
 
-// let nfa = new Moor(
-// {
-//     nodes: [
-//         { id: 0, isAdmit: false, output: '0' },
-//         { id: 1, isAdmit: false, output: '1' },
-//         { id: 2, isAdmit: false, output: '2' },
-//         { id: 3, isAdmit: false, output: '3' },
-//     ],
-//     edges: [
-//         { from: 0, to: 1, transitions: new Set([[{ title: '5' }]]) },
-//         { from: 1, to: 2, transitions: new Set([[{ title: '10'}]]) },
-//         { from: 2, to: 3, transitions: new Set([[{ titlhe: '10'}]]) },
-//         { from: 3, to: 3, transitions: new Set([[{ title: '5' }]]) },
-//     ]
-// }, [{ id: 0, isAdmit: false }], ["5"])
 
-// console.log(nfa.run())
-// console.log(nfa.step())
-// console.log(nfa.step())
-// // let node: NodeCore = { id: 1, isAdmit: false, countTokens: 1 };
-// // petri.isTransitionActive(node);
+

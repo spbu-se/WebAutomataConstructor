@@ -11,6 +11,7 @@ export type ComputerType
     | "dpda"
     | "dmealy"
     | "dmoore"
+    | "petriNets"
 
 export type ComputerInfo = {
     name: string
