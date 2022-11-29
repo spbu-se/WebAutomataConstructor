@@ -78,7 +78,16 @@ export const transitionsToLabel = (transitions: Set<TransitionParams[]>, frmt: n
                     }
                 })
             })
+        } else if (frmt === "petriNets") {
+            transitions.forEach(value => {
+                value.forEach((v) => {
+                    if (v.title !== undefined && v.title.length > 0 && v.countArcs?.InputArcs !== undefined && v.countArcs.OutputArcs !== undefined) {
+                        str += epsSubst(v.title) + " | " + v.countArcs.InputArcs.toString() + ", " + v.countArcs.OutputArcs.toString() + "\n" + spc
+                    }
+                })
+            })
         }
+
     }
     return str
 }
@@ -122,7 +131,15 @@ export const getTransitionsTitles = (transitions: Set<TransitionParams[]>, frmt:
                     }
                 })
             })
-        }
+        } else if (frmt === "petriNets") {
+            transitions.forEach(value => {
+                value.forEach((v) => {
+                    if (v.title !== undefined && v.title.length > 0 && v.countArcs?.InputArcs !== undefined && v.countArcs.OutputArcs !== undefined) {
+                        str += epsSubst(v.title) + " | " + v.countArcs.InputArcs.toString() + ", " + v.countArcs.OutputArcs.toString() + ";\n"
+                    }
+                })
+            })
+        } 
     }
 
     return str
@@ -473,6 +490,32 @@ export const computersInfo: Record<ComputerType, ComputerInfo> = {
             ]
         }
     },
+    petriNets: {
+        name: "Сети Петри",
+        description: "",
+        preview: "",
+        defaultGraph: {
+            nodes: [
+                { x: 0, y: 200, id: 0, isAdmit: false, isCurrent: false, isInitial: false, label: "P0 | 1", countTokens: 1 }, 
+                { x: 100, y: 200, id: 1, isAdmit: false, isCurrent: false, isInitial: false, label: "P1 | 0", countTokens: 0},
+                { x: 200, y: 400, id: 2, isAdmit: false, isCurrent: false, isInitial: false, label: "P2 | 0", countTokens: 0}, 
+                { x: 200, y: 0, id: 3, isAdmit: false, isCurrent: false, isInitial: false, label: "P3 | 2" , countTokens: 2},
+                { x: 400, y: 200, id: 4, isAdmit: false, isCurrent: false, isInitial: false, label: "P4 | 1", countTokens: 1},
+            ],
+            edges: [
+                { from: 0, to: 1, transitions: new Set([[{ title: 'a', countArcs: {InputArcs: 1, OutputArcs: 1} }]]) },
+                { from: 0, to: 2, transitions: new Set([[{ title: 'a', countArcs: {InputArcs: 1, OutputArcs: 1} }]]) }, 
+                { from: 0, to: 3, transitions: new Set([[{ title: 'a', countArcs: {InputArcs: 1, OutputArcs: 2} }]]) }, 
+                { from: 1, to: 1, transitions: new Set([[{ title: 'b', countArcs: {InputArcs: 1, OutputArcs: 1} }]]) },
+                { from: 2, to: 1, transitions: new Set([[{ title: 'b', countArcs: {InputArcs: 1, OutputArcs: 1} }]]) }, 
+                { from: 3, to: 1, transitions: new Set([[{ title: 'b', countArcs: {InputArcs: 1, OutputArcs: 1} }]]) },
+                { from: 3, to: 4, transitions: new Set([[{ title: 'c', countArcs: {InputArcs: 1, OutputArcs: 1} }]]) },
+                { from: 4, to: 2, transitions: new Set([[{ title: 'd', countArcs: {InputArcs: 1, OutputArcs: 1} }]]) },
+                { from: 4, to: 3, transitions: new Set([[{ title: 'd', countArcs: {InputArcs: 1, OutputArcs: 1} }]]) },
+                
+            ]
+        }
+     },
 
 }
 
