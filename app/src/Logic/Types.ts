@@ -28,6 +28,12 @@ export interface HistUnit {
     
 }
 
+export interface ConfigurationHistUnit {
+    by: any 
+    from: number[], 
+    value: number[]
+}
+
 export type HistTrace = {
     byEpsPred?: NodeCore[], 
     byEpsAfter?: NodeCore[], 
@@ -43,7 +49,8 @@ export type Step = {
     move?: Move,
     pointer?: number
     output?: Output[]
-    tree?: HistUnit[][],
+    tree?: HistUnit[][]
+    configTree?: ConfigurationHistUnit[][],
     byEpsPred?: NodeCore[], 
     byEpsAfter?: NodeCore[], 
     byLetter?: NodeCore[],

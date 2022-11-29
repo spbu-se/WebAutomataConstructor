@@ -17,6 +17,7 @@ export const History = (props: {
             </div>
             {
                 props.history.length !== 0 ?
+                //console.log('history undefined')
                     <div className="run-control__history__scroll">
 
 

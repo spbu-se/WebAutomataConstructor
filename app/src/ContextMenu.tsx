@@ -201,6 +201,7 @@ export const ContextMenu = (props: ContextMenuProps) => {
     }
 
 
+
     const PDAContextMenu = (handleContextMenu: any, handleClose: any) => {
         return (
             <div onContextMenu={handleContextMenu}>
@@ -237,6 +238,45 @@ export const ContextMenu = (props: ContextMenuProps) => {
                         {props.byEmptyStack ? "По стеку" : "По состоянию"}
                     </button>
                 </div>
+                <div onClick={handleClose}>
+                    <button
+                        className={"button-context-menu"}
+                        onClick={props.treeVisible}
+                    >
+                        {props.treeContextInfo()}
+                    </button>
+                </div>
+            </div>
+        )
+    }
+    const PetriNetsContextMenu = (handleContextMenu: any, handleClose: any) => {
+        return (
+            <div onContextMenu={handleContextMenu}>
+                <div onClick={handleClose}>
+                    <button
+                        className={"button-context-menu"}
+                        onClick={controlAction.step}
+                    >
+                        {"Шаг"}
+                    </button>
+                </div>
+                <div onClick={handleClose}>
+                    <button
+                        className={"button-context-menu"}
+                        onClick={controlAction.run}
+                    >
+                        {"Запуск"}
+                    </button>
+                </div>
+                <div onClick={handleClose}>
+                    <button
+                        className={"button-context-menu"}
+                        onClick={controlAction.reset}
+                    >
+                        {"Сброс"}
+                    </button>
+                </div>
+                
                 <div onClick={handleClose}>
                     <button
                         className={"button-context-menu"}
@@ -308,6 +348,8 @@ export const ContextMenu = (props: ContextMenuProps) => {
         case "dpda": {
             return PDAContextMenu
         }
+        case "petriNets":
+            return PetriNetsContextMenu
         default: {
             return AnotherContextMenu
         }

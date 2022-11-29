@@ -17,7 +17,7 @@ import { PDA } from "../../Logic/PDA";
 import { TM } from "../../Logic/TM";
 import { Elements } from "../../App";
 import { decorateGraph, elementsToGraph, graphToElements } from "../../utils";
-import { HistUnit, Output, Step } from "../../Logic/Types";
+import { ConfigurationHistUnit, HistUnit, Output, Step } from "../../Logic/Types";
 import { GraphEval, GraphEvalMultiStart, Move, NodeCore } from "../../Logic/IGraphTypes";
 import { Mealy } from "../../Logic/Mealy";
 import { Moore } from "../../Logic/Moore";
@@ -77,6 +77,7 @@ interface runControlState {
     gElements: graph,
     startNode: node | undefined,
     lastHistUnits: nodeTree[],
+    lastConfigHistUnits: configNodeTree[]
     startStatements: NodeCore[]
 }
 
@@ -128,6 +129,16 @@ type nodeTree = {
     isCurrent: boolean
 }
 
+type configNodeTree = {
+    id: number,
+    config: number[],
+    from?: number[],
+    by?: string,
+    isAdmit: boolean,
+    isInitial: boolean,
+    isCurrent: boolean
+}
+
 class RunControl extends React.Component<runControlProps, runControlState> {
 
     constructor(props: runControlProps) {
@@ -146,6 +157,7 @@ class RunControl extends React.Component<runControlProps, runControlState> {
             gElements: elementsToGraph(this.props.elements),
             startNode: undefined,
             lastHistUnits: [],
+            lastConfigHistUnits: [],
             startStatements: []
         };
     }
@@ -266,6 +278,10 @@ class RunControl extends React.Component<runControlProps, runControlState> {
                 computer: this.getComputer(this.props.computerType, this.state.gElements, initialNode, input),
                 result: undefined
             }, async () => {
+                if (this.props.computerType === 'petriNets') {
+                    await this.initializePetriNets()
+                    return
+                }
 
                 const tmp: nodeTree[] = []
 
@@ -276,6 +292,7 @@ class RunControl extends React.Component<runControlProps, runControlState> {
                 startStmts.forEach((v, index) => {
                     const paddingTreeId = index + 1
 
+                    
                     tmp.push({
                         stack: v.stack ? [...v.stack] : [],
                         from: v.from!,
@@ -297,7 +314,8 @@ class RunControl extends React.Component<runControlProps, runControlState> {
                         // + '\n' + `${(this.props.getLastHistNodeId() + 1)}` + 
                         this.props.createHistNode(v.idd, label, v.isAdmit, v.isInitial, v.isCurrent)
                     })
-                } else {
+                } 
+                else {
                     tmp.forEach((v) => {
                         const gNode = this.state.gElements.nodes.find((gEl) => gEl.id === v.idd)
                         this.props.createHistNode(v.idd, gNode!.label, v.isAdmit, v.isInitial, v.isCurrent)
@@ -307,7 +325,39 @@ class RunControl extends React.Component<runControlProps, runControlState> {
             });
 
         })
+    }
 
+    initializePetriNets = async () => {
+        // petri nets === type
+        const tmp: configNodeTree[] = []
+        // initial configuration ???
+        const initialMarking = this.state.gElements.nodes.map(node => node.countTokens!)
+        const startStmts = this.state.computer !== undefined
+            ? [initialMarking]
+            : []
+        console.log('petri tree')
+        console.log(startStmts)
+
+        startStmts.forEach((v, index) => {
+            const paddingTreeId = index + 1
+            tmp.push({
+                config: v,
+                isAdmit: false,
+                isInitial: true,
+                isCurrent: false,
+                id: this.props.getLastHistNodeId() + paddingTreeId,
+            })
+        })
+
+        console.log(tmp)
+
+        tmp.forEach((v) => {
+            const label = v.config!.reduce((acc, stack) => '\n' + stack + acc, '')
+            this.props.createHistNode(v.id, label, false, v.isInitial, v.isCurrent)
+        })
+
+
+        await this.setState({lastConfigHistUnits: tmp})
     }
 
     onInputChanged = (event: ChangeEvent<HTMLInputElement>): void => {
@@ -347,7 +397,7 @@ class RunControl extends React.Component<runControlProps, runControlState> {
                 const gNode = this.state.gElements.nodes.find((gEl) => gEl.id === v.idd)
                 const label = gNode?.label + '\n' + '―' + (v.stack!.reduce((acc, stack) => '\n' + stack + acc, ''))
                 this.props.createHistNode(v.idd, label, v.isAdmit, v.isInitial, v.isCurrent)
-            })
+            })  
         } else {
             tmp.forEach((v) => {
                 const gNode = this.state.gElements.nodes.find((gEl) => gEl.id === v.idd)
@@ -397,6 +447,7 @@ class RunControl extends React.Component<runControlProps, runControlState> {
 
     }
 
+
     treeEps = (byEpsPred: NodeCore[], byLetter: NodeCore[], byEpsAfter: NodeCore[]) => {
         console.log('\n')
         console.log('EPS>>>', byEpsPred)
@@ -412,12 +463,69 @@ class RunControl extends React.Component<runControlProps, runControlState> {
         this.drawTreeLayot(byEpsAfter, tmp1, tmp2)
     }
 
+
     tree = (byLetter: NodeCore[]) => {
         const tmp: nodeTree[] = []
         this.drawTreeLayot(byLetter, this.state.lastHistUnits, tmp)
     }
 
+    drawTreeLayotPetriNets = async (prev: ConfigurationHistUnit[]) => {
+        const next: configNodeTree[] = []
+
+        prev.forEach((v, index) => {
+            console.log(`index = ${index}`)
+            let isInit = false;
+            (index === 0) ? isInit = true: isInit = false
+            const paddingTreeId = index + 1
+            next.push({
+                from: v.from,
+                config: v.value,
+                by: v.by,
+                isAdmit: true,
+                isInitial: isInit,
+                isCurrent: false,
+                id: this.props.getLastHistNodeId() + paddingTreeId,
+            })
+        })
+
+        console.log(next)
+
+        next.forEach((v) => {
+            const label = v.config!.reduce((acc, stack) => '\n' + stack + acc, '')
+            console.log(v.id, label)
+            this.props.createHistNode(v.id, label, false, v.isInitial, v.isCurrent)
+
+            const from_id = this.state.lastConfigHistUnits[0].id //.find(el => el.config === v.from).id
+            this.props.createHistEdge(from_id, v.id, v.by)
+        })
+
+        // [0, 0, 1] -> [1, 1, 2] by b, [1, 1, 2] -> [3, 2, 1] by c
+
+        await this.setState({lastConfigHistUnits: next})
+    }
+
+    stepPetriNets = async (stepResult: Step) => {
+        const configTree = stepResult.configTree!
+        const nodes = configTree[configTree?.length - 1]
+
+        // tree rendering
+        await this.drawTreeLayotPetriNets(nodes)
+
+        // history rendering
+        // ??? 
+    }
+
+    runPetriNets = async (runResult: Step) => {
+
+         const configTree = runResult.configTree!
+         for (let i = 0; i < configTree.length; i++){
+            const nodes = configTree[i]
+            await this.drawTreeLayotPetriNets(nodes)
+         }
+    }
+    //single step
     step = async () => {
+        console.log('step start')
         if (this.state.computer === undefined) {
             console.error("Computer is not initialized yet");
             return;
@@ -432,14 +540,24 @@ class RunControl extends React.Component<runControlProps, runControlState> {
             await this.props.resetHistTree()
         }
 
-        if (this.state.currentInputIndex === this.state.input.length - 1 && this.props.computerType !== "tm") return;
-        if (this.state.result !== undefined && this.state.currentInputIndex !== -1 && this.props.computerType !== "tm") return;
-
+        if (this.state.currentInputIndex === this.state.input.length - 1 && this.props.computerType !== "tm"
+        && this.props.computerType !== 'petriNets') return;
+        if (this.state.result !== undefined && this.state.currentInputIndex !== -1 && this.props.computerType !== "tm"
+            && this.props.computerType !== 'petriNets') return;
+    
         try {
+            console.log('step attempted')
             const stepResult: Step = this.state.computer.step()
 
+            console.log('step done')
+            if (this.props.computerType === 'petriNets'){
+                await this.stepPetriNets(stepResult)
+                return
+            }
+            
             if (stepResult.nodes.length === 0) return;
 
+            //
             this.props.changeStateIsCurrent(stepResult.nodes.map(node => node.id), true);
             this.props.updMem(stepResult.memory, stepResult.pointer)
 
@@ -450,16 +568,21 @@ class RunControl extends React.Component<runControlProps, runControlState> {
                 result = false;
             }
 
+            // petri networks
+            // gElements.nodes - visual
+            // nodeCore => node (visual)
+            // marking => node
             const nodes = stepResult.nodes
                 .map(nodeCore => this.state.gElements.nodes.find(node => node.id === nodeCore.id))
                 .filter((node): node is node => node !== undefined);
-
+            
             const byEpsPred = stepResult.byEpsPred ? stepResult.byEpsPred : []
 
             const byLetter = stepResult.byLetter ? stepResult.byLetter : []
 
             const byEpsAfter = stepResult.byEpsAfter ? stepResult.byEpsAfter : []
 
+            //tree history
             if (this.props.computerType !== 'tm' && this.state.computer.haveEpsilon()) {
                 console.log('byEpsAfter>>>', byEpsAfter)
                 this.treeEps(byEpsPred, byLetter, byEpsAfter)
@@ -481,6 +604,7 @@ class RunControl extends React.Component<runControlProps, runControlState> {
                 }
             })
 
+            //history
             this.setState({
                 result: result,
                 currentInputIndex: this.state.currentInputIndex + 1,
@@ -530,6 +654,7 @@ class RunControl extends React.Component<runControlProps, runControlState> {
         this.props.resetHistTree()
     }
 
+
     run = async (): Promise<void> => {
         if (this.state.computer === undefined) {
             console.error("Computer is not initialized yet");
@@ -539,7 +664,12 @@ class RunControl extends React.Component<runControlProps, runControlState> {
         await this.reset();
 
         try {
+            
             const result = this.state.computer.run();
+            if (this.props.computerType === 'petriNets'){
+                await this.runPetriNets(result)
+                return
+            }
 
             const histTrace = result.histTrace ? result.histTrace : []
 
@@ -550,6 +680,7 @@ class RunControl extends React.Component<runControlProps, runControlState> {
 
                 const byEpsAfter = histStep.byEpsAfter ? histStep.byEpsAfter : []
 
+                //
                 if (this.state.computer && this.state.computer.haveEpsilon()) {
                     this.treeEps(byEpsPred, byLetter, byEpsAfter)
                 } else {
@@ -764,12 +895,16 @@ class RunControl extends React.Component<runControlProps, runControlState> {
         }
     }
 
+    private showInput  = () => {return this.props.computerType !== 'petriNets'}
+
     render() {
         return (
             <ControlWrapper title={"Запуск"}>
                 <div>
-
-                    <div className="run-control__item run-control__input__row">
+                    {
+                         this.showInput()
+                    ?
+                    (<div className="run-control__item run-control__input__row">
                         {
                             this.state.editMode
                                 ?
@@ -811,7 +946,8 @@ class RunControl extends React.Component<runControlProps, runControlState> {
                             }
                         </div>
 
-                    </div>
+                    </div>) : <div/>
+            }
                     {this.getButtons()}
 
 
